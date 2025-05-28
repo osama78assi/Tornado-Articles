@@ -1,0 +1,36 @@
+const { Request, Response } = require("express");
+const OperationError = require("../../helper/operationError");
+const User = require("../../models/user");
+
+class ErrorEnum {
+    static MISSING_NAME = new OperationError(
+        "Please provide the new name",
+        400
+    );
+}
+
+/**
+ *
+ * @param {Request} req
+ * @param {Response} res
+ */
+async function changeName(req, res, next) {
+    try {
+        const { newName = undefined } = req?.body || {};
+        // Get the id
+        const { userId } = req?.userInfo.id;
+
+        if (newName === undefined) return next(ErrorEnum.MISSING_NAME);
+
+        await User.updateUserName(userId, newName);
+
+        return res.status(200).json({
+            status: "success",
+            message: "New name set successfully.",
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = changeName;
