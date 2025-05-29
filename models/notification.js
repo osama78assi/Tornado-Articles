@@ -11,7 +11,7 @@ Notification.init(
             primaryKey: true,
         },
         content: {
-            type: DataTypes.STRING(500), // More than enough
+            type: DataTypes.STRING(255), // More than enough
             allowNull: false,
         },
         url: {

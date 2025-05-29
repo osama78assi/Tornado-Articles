@@ -51,7 +51,7 @@ Comment.init(
                 // Fast for getting comments by article Id and sorted by created at
                 name: "articleId_comment_btree_index",
                 fields: ["articleId", "createdAt"],
-                using: "BTREE"
+                using: "BTREE",
             },
         ],
     }
@@ -62,6 +62,7 @@ Comment.hasMany(Comment, { foreignKey: "replyToId", as: "reply" });
 
 // To get the parent from the replys
 Comment.belongsTo(Comment, { foreignKey: "replyToId", as: "parent" });
+
 
 
 module.exports = Comment;

@@ -27,7 +27,7 @@ Category.init(
             primaryKey: true,
         },
         title: {
-            type: DataTypes.STRING(300),
+            type: DataTypes.STRING(100),
             unique: {
                 name: "Unique_category",
                 msg: "This category already exists.",

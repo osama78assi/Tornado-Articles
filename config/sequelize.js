@@ -12,25 +12,27 @@ async function connectDB() {
         /*
         it's up to you either make the relations in singel file or sperate them every one for a specific file
         these two require statements internall require
-            1. users               1
-                userPrefernces     2
-                notifiactions      3
-                passwordToken      4
-                category           5
-                followedFollower   6
-            2. Articles            7
-                users              X
-                category           X
-                like               8
-                comment            9
-                articleCategory    10
+            1. users                      1
+                userPrefernces            2
+                notifiactions             3
+                passwordToken             4
+                category                  5
+                followedFollower          6
+                commentLies               7
+            2. Articles                   8
+                users                     X
+                category                  X
+                articleLike               9
+                comment                   10
+                articleCategory           11
+                ArticleImage              12
         */
         require("../models/user");
         require("../models/article");
-
+        
         // Sync the current models with tables in database (if something not found in model add it to database not the opposite)
-        await sequelize.sync({ alter: true });
-        // await sequelize.sync({ force: true });
+        // await sequelize.sync({ alter: true });
+        await sequelize.sync({ force: true });
         console.log("connected to database successfully");
     } catch (err) {
         console.log(err);

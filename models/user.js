@@ -4,8 +4,6 @@ const {
     DataTypes,
     literal,
     Op,
-    Transaction,
-    Sequelize,
 } = require("sequelize");
 const OperationError = require("../helper/operationError");
 const bcrypt = require("bcryptjs");
@@ -19,6 +17,8 @@ const Notification = require("./notification");
 const PasswordToken = require("./passwordToken");
 const Category = require("./category");
 const FollowedFollower = require("./followedFollower");
+const Comment = require("./comment");
+const CommentLike = require("./commentLike");
 
 class ErrorEnum {
     static USER_NOT_FOUND = new OperationError("User not found.", 404);
@@ -36,7 +36,10 @@ class ErrorEnum {
 
     static COULD_NOT_UPDATE = new OperationError("Couldn't update", 400);
 
-    static COULD_NOT_DELETE = new OperationError("Couldn't delete", 400);
+    static COULD_NOT_DELETE = new OperationError(
+        "Couldn't delete. The user maybe not existed",
+        400
+    );
 }
 
 class User extends Model {
@@ -264,6 +267,31 @@ class User extends Model {
         }
     }
 
+    static async getUsersData(
+        offset = 0,
+        limit = 10,
+        sortBy = "createdAt",
+        sortDir = "ASC",
+        exclude = null
+    ) {
+        // If want to exclude a record
+        const ex =
+            exclude !== null ? { where: { id: { [Op.ne]: exclude } } } : {};
+
+        try {
+            const users = await this.findAll({
+                ...ex,
+                offset,
+                limit,
+                order: [[sortBy, sortDir]],
+            });
+
+            return users;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     // To override the toJSON method and exclude the password attribute
     toJSON() {
         const values = { ...this.get() };
@@ -298,7 +326,7 @@ User.init(
             // unique: true // Commented because I use sync with alter set to true and this duplicate the constraint in my DB
         },
         email: {
-            type: DataTypes.STRING(300),
+            type: DataTypes.STRING(254),
             validate: {
                 isEmail: {
                     msg: "The email is invalid",
@@ -308,7 +336,7 @@ User.init(
             // unique: true,
         },
         password: {
-            type: DataTypes.STRING(65),
+            type: DataTypes.CHAR(60),
             allowNull: false,
         }, // Length for bcrypt result is 60 but for safety
         birthDate: {
@@ -328,13 +356,7 @@ User.init(
             },
         },
         gender: {
-            type: DataTypes.STRING(6),
-            validate: {
-                isIn: {
-                    args: [["male", "female"]],
-                    msg: 'Gender must be either "male" or "female".',
-                },
-            },
+            type: DataTypes.ENUM("male", "female"),
             allowNull: false,
         },
         role: {
@@ -348,6 +370,9 @@ User.init(
             defaultValue: new Date(),
         },
         profilePic: {
+            type: DataTypes.STRING(150),
+        },
+        brief: {
             type: DataTypes.STRING(150),
         },
     },
@@ -441,4 +466,18 @@ Category.belongsToMany(User, {
     foreignKey: "categoryId",
     onDelete: "CASCADE",
 });
+
+//// Likes comments
+// M:N between users and comments
+
+User.belongsToMany(Comment, {
+    through: CommentLike,
+    foreignKey: "userId",
+});
+
+Comment.belongsToMany(User, {
+    through: CommentLike,
+    foreignKey: "commentId",
+});
+
 module.exports = User;

@@ -1,11 +1,11 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
 
-class Like extends Model {}
+class ArticleLike extends Model {}
 
 // Both IDs are primary key because the article could only one like from the user
 
-Like.init(
+ArticleLike.init(
     {
         articleId: {
             type: DataTypes.UUID,
@@ -31,7 +31,7 @@ Like.init(
         indexes: [
             {
                 // Fast for getting the likes by article id (and sorted by created at)
-                name: "articleId_like_btree_index",
+                name: "article_id_like_btree_index",
                 fields: ["articleId", "createdAt"],
                 using: "BTREE",
             },
@@ -39,4 +39,4 @@ Like.init(
     }
 );
 
-module.exports = Like;
+module.exports = ArticleLike;

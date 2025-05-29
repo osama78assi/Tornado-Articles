@@ -44,8 +44,8 @@ userRoutes.get("/users", isLoggedIn, searchForUsers); // DONE
 userRoutes.get("/users/:userId", getUserDetails); // DONE
 
 // Admin can delete user account
-userRoutes.delete("/adimn/users", isAuthenticated, isAdmin, adminDeleteUser); // TODO
+userRoutes.delete("/adimn/users/:userId", isAuthenticated, isAdmin, adminDeleteUser); // DONE
 // Admin can browse users
-userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers); // TODO
+userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers); // DONE
 
 module.exports = userRoutes;

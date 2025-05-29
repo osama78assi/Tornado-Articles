@@ -4,9 +4,10 @@ const { Model, DataTypes, QueryTypes } = require("sequelize");
 // Models to add relations
 const User = require("./user");
 const Category = require("./category");
-const Like = require("./like");
+const ArticleLike = require("./articleLike");
 const Comment = require("./comment");
 const ArticleCategory = require("./articleCategory");
+const ArticleImage = require("./articleImage");
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -55,7 +56,7 @@ Article.init(
             primaryKey: true,
         },
         title: {
-            type: DataTypes.STRING(400),
+            type: DataTypes.STRING(255),
             allowNull: false,
         },
         content: {
@@ -74,12 +75,22 @@ Article.init(
             },
             allowNull: false,
         },
+        coverImg: {
+            type: DataTypes.STRING(150),
+            allowNull: true,
+        },
     },
     {
         sequelize,
         timestamp: true,
     }
 );
+
+///// Images
+// The article can have many images so 1:m relationship
+Article.hasMany(ArticleImage, {
+    foreignKey: "articleId",
+});
 
 ///// Users
 
@@ -105,19 +116,18 @@ Category.belongsToMany(Article, {
 /////////// Likes
 // Many-to-Many relation with users through likes
 Article.belongsToMany(User, {
-    through: Like,
+    through: ArticleLike,
     foreignKey: "articleId",
     otherKey: "userId",
 });
 
 // Maybe needed when user want to know where he added likes so we will get the article from the like
 // The relation between articles and like (mtm from users and articles through likes)
-Like.belongsTo(Article, { foreignKey: "articleId" }); // NO NEED
-
+ArticleLike.belongsTo(Article, { foreignKey: "articleId" }); // NO NEED
 
 // Many-to-many between users and aritcles through likes
 User.belongsToMany(Article, {
-    through: Like,
+    through: ArticleLike,
     foreignKey: "userId",
     otherKey: "articleId",
 });
@@ -143,6 +153,5 @@ Comment.belongsTo(Article, { foreignKey: "articleId" });
 
 // Same for users
 Comment.belongsTo(User, { foreignKey: "userId" });
-
 
 module.exports = Article;

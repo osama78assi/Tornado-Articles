@@ -7,12 +7,14 @@ const Category = require("./category");
 const Article = require("./article");
 
 const Comment = require("./comment");
-const Like = require("./like");
+const ArticleLike = require("./articleLike");
 const FollowedFollower = require("./followedFollower");
 const Notification = require("./notification");
 const UserPreference = require("./userPreference");
 const ArticleCategory = require("./articleCategory");
 const PasswordToken = require("./passwordToken");
+const ArticleImage = require("./articleImage");
+const CommentLike = require("./commentLike");
 
 /////////////////////////// Articles
 
@@ -21,23 +23,31 @@ const PasswordToken = require("./passwordToken");
 Article.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" }); // DONE
 
 // Many to many relation with categories
-Article.belongsToMany(Category, { // // DONE
+Article.belongsToMany(Category, {
+    // // DONE
     through: ArticleCategory,
     foreignKey: "articleId",
 });
 
 // Many-to-Many relation with users through likes
-Article.belongsToMany(User, { // DONE
-    through: Like,
+Article.belongsToMany(User, {
+    // DONE
+    through: ArticleLike,
     foreignKey: "articleId",
     otherKey: "userId",
 });
 
 // Many-to-Many relation with users through comments
-Article.belongsToMany(User, { // DONE
+Article.belongsToMany(User, {
+    // DONE
     through: { model: Comment, unique: false },
     foreignKey: "articleId",
 });
+
+// The article can have many images so 1:m relationship
+Article.belongsToMany(ArticleImage, {
+    foreignKey: "articleId"
+})
 
 /////////////////////////// User
 
@@ -46,35 +56,40 @@ Article.belongsToMany(User, { // DONE
 User.hasMany(Article, { foreignKey: "userId", onDelete: "CASCADE" }); // DONE
 
 // Many-to-many between users and aritcles through likes
-User.belongsToMany(Article, { // DONE
-    through: Like,
+User.belongsToMany(Article, {
+    // DONE
+    through: ArticleLike,
     foreignKey: "userId",
     otherKey: "articleId",
 });
 
 // Many-to-many between users and aritcles through commnets
-User.belongsToMany(Article, { // DONE
+User.belongsToMany(Article, {
+    // DONE
     // Let the user comment times
     through: { model: Comment, unique: false },
     foreignKey: "userId",
 });
 
 // Many to Many relationship between users (like user A get an array with who is following)
-User.belongsToMany(User, { // DONE
+User.belongsToMany(User, {
+    // DONE
     through: FollowedFollower,
     foreignKey: "followerId",
     as: "followings",
 });
 
 // Who followed (like user A get an array with who follows A)
-User.belongsToMany(User, { // DONE
+User.belongsToMany(User, {
+    // DONE
     through: FollowedFollower,
     foreignKey: "followedId",
     as: "followers",
 });
 
 // Users have a one to many relationship with notifications
-User.hasMany(Notification, { // DONE
+User.hasMany(Notification, {
+    // DONE
     foreignKey: "userId",
     onDelete: "CASCADE",
 });
@@ -87,19 +102,28 @@ User.belongsToMany(Category, {
 });
 
 // The relation between user and token is one to many (user can have many reset password token but not all of them is valid)
-User.hasMany(PasswordToken, { // DONE
+User.hasMany(PasswordToken, {
+    // DONE
     foreignKey: "userId",
+});
+
+// Comment and likes M:N
+User.belongsToMany(Comment, {
+    through: CommentLike,
+    foreignKey: "userId"
 });
 
 /////////////////////////// Category
 
 // Set the relations
-Category.belongsToMany(Article, { // DONE
+Category.belongsToMany(Article, {
+    // DONE
     through: ArticleCategory,
     foreignKey: "categoryId",
 });
 
-Category.belongsToMany(User, { // DONE
+Category.belongsToMany(User, {
+    // DONE
     through: { model: UserPreference, unique: false },
     foreignKey: "categoryId",
     onDelete: "CASCADE",
@@ -119,24 +143,31 @@ Comment.belongsTo(Article, { foreignKey: "articleId" }); // DONE
 // Same for users
 Comment.belongsTo(User, { foreignKey: "userId" }); // DONE
 
+// same as above
+Comment.belongsToMany(User, {
+    through: CommentLike,
+    foreignKey: "commentId"
+})
+
 /////////////////////////// Likes
 
 // The relation between users and like (mtm from users and articles through likes)
-Like.belongsTo(User, { foreignKey: "userId" }); // NO NEED
+ArticleLike.belongsTo(User, { foreignKey: "userId" }); // NO NEED
 
 // The relation between articles and like (mtm from users and articles through likes)
-Like.belongsTo(Article, { foreignKey: "articleId" }); // NO NEED
+ArticleLike.belongsTo(Article, { foreignKey: "articleId" }); // NO NEED
 
 /////////////////////////// Notifications
 
-Notification.belongsTo(User, { // NO NEED
+Notification.belongsTo(User, {
+    // NO NEED
     foreignKey: "userId",
     onDelete: "CASCADE",
 });
 
 /////////////////////////// PasswordToken
 
-PasswordToken.belongsTo(User, { // NO NEED
+PasswordToken.belongsTo(User, {
+    // NO NEED
     foreignKey: "userId",
 });
-
