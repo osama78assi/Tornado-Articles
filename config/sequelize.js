@@ -31,8 +31,8 @@ async function connectDB() {
         require("../models/article");
         
         // Sync the current models with tables in database (if something not found in model add it to database not the opposite)
-        // await sequelize.sync({ alter: true });
-        await sequelize.sync({ force: true });
+        await sequelize.sync({ alter: true });
+        // await sequelize.sync({ force: true });
         console.log("connected to database successfully");
     } catch (err) {
         console.log(err);

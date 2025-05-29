@@ -1,15 +1,10 @@
 const { sequelize } = require("../config/sequelize");
-const {
-    Model,
-    DataTypes,
-    literal,
-    Op,
-} = require("sequelize");
+const { Model, DataTypes, literal, Op } = require("sequelize");
 const OperationError = require("../helper/operationError");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const validatePassword = require("../helper/validatePassword");
-const { MIN_RESULTS } = require("../config/settings");
+const { MIN_RESULTS, MAX_RESULTS } = require("../config/settings");
 
 // Models to add relations
 const UserPreference = require("./userPreference");
@@ -226,6 +221,13 @@ class User extends Model {
             //         "Invalid Offset or limit: these two must be positive number",
             //         400
             //     );
+            offset = offset < 0 ? 0 : offset;
+            limit =
+                limit < 0
+                    ? MIN_RESULTS
+                    : limit > MAX_RESULTS
+                    ? MAX_RESULTS
+                    : limit;
 
             /// Exclude the user if provided
             exclude = exclude !== null ? { id: { [Op.ne]: exclude } } : {};
@@ -237,8 +239,8 @@ class User extends Model {
                     },
                     ...exclude,
                 },
-                limit: limit > 0 ? limit : MIN_RESULTS,
-                offset: offset > 0 ? offset : 0,
+                limit,
+                offset,
             });
 
             return results;

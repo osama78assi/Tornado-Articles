@@ -2,6 +2,18 @@ const { Request, Response } = require("express");
 const OperationError = require("../../helper/operationError");
 const Category = require("../../models/category");
 
+class ErrorEnum {
+    static CATEGORIES_NOF_PROVIDED = new OperationError(
+        "Please provide the categories you want to add.",
+        400
+    );
+
+    static INVALID_DATA_STRUCTURE = new OperationError(
+        "Please provide the categories titles in an array",
+        400
+    );
+}
+
 /**
  *
  * @param {Request} req
@@ -9,15 +21,12 @@ const Category = require("../../models/category");
  */
 async function adminAddCategories(req, res, next) {
     try {
-        const { titles = null } = req?.body || {};
+        const { titles = [] } = req?.body || {};
 
-        if (titles === null)
-            return next(
-                new OperationError(
-                    "Please provide the categories you want to add.",
-                    400
-                )
-            );
+        if (titles.length === 0) return next(ErrorEnum.CATEGORIES_NOF_PROVIDED);
+
+        if (!Array.isArray(titles))
+            return next(ErrorEnum.INVALID_DATA_STRUCTURE);
 
         const categories = await Category.addCategories(titles);
 

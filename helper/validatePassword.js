@@ -1,7 +1,6 @@
 const OperationError = require("./operationError");
 
 function validatePassword(password) {
-    console.log("\n\n###########", password, "\n\n###########");
     if (password.length < 8) {
         throw new OperationError(
             "Password must be at least 8 characters long.",

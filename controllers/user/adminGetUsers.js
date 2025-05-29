@@ -1,6 +1,7 @@
 const { Request, Response } = require("express");
 const User = require("../../models/user");
 const OperationError = require("../../helper/operationError");
+const { MIN_RESULTS } = require("../../config/settings");
 
 class ErrorEnum {
     static FIELD_NOT_EXISTS = new OperationError(
@@ -21,7 +22,7 @@ async function adminGetUsers(req, res, next) {
     try {
         const {
             offset = 0,
-            limit = 10,
+            limit = MIN_RESULTS,
             sortBy = "fullName",
             sortDir = "ASC",
         } = req?.query;

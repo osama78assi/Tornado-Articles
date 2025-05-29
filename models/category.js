@@ -1,5 +1,7 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes } = require("sequelize");
+const { Model, DataTypes, where } = require("sequelize");
+const OperationError = require("../helper/operationError");
+const { MIN_RESULTS, MAX_RESULTS } = require("../config/settings");
 
 class Category extends Model {
     static async addCategories(categoriesTitles) {
@@ -11,6 +13,67 @@ class Category extends Model {
             });
 
             const categories = await this.bulkCreate(titles);
+
+            return categories;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async deleteCategory(categoryId) {
+        try {
+            const affectedRows = await this.destroy({
+                where: {
+                    id: categoryId,
+                },
+            });
+
+            if (affectedRows === 0)
+                throw new OperationError(
+                    "Category isn't exist or it's already deleted.",
+                    400
+                );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateCategoryTitle(categoryId, newTitle) {
+        try {
+            const updatedObject = await this.update(
+                {
+                    title: newTitle,
+                },
+                {
+                    where: {
+                        id: categoryId,
+                    },
+                    returning: true,
+                }
+            );
+
+            return updatedObject[1][0];
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getCategories(offset = 0, limit = MIN_RESULTS) {
+        try {
+            offset = offset < 0 ? 0 : offset;
+            limit =
+                limit < 0
+                    ? MIN_RESULTS
+                    : limit > MAX_RESULTS
+                    ? MAX_RESULTS
+                    : limit;
+
+            const categories = await this.findAll({
+                offset,
+                limit,
+            });
 
             return categories;
         } catch (err) {
@@ -37,7 +100,8 @@ Category.init(
     },
     {
         sequelize,
-        timestamps: false, // No need to updatedAt and createdAt
+        timestamps: true, // No need to updatedAt
+        updatedAt: false,
     }
 );
 
