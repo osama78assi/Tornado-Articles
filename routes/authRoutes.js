@@ -2,7 +2,7 @@ const { Router } = require("express");
 const signin = require("../controllers/auth/signin");
 const signup = require("../controllers/auth/signup");
 const logout = require("../controllers/auth/logout");
-const profilePic = require("../middlewares/downloadProfilePic");
+const downloadProfilePic = require("../middlewares/downloadProfilePic");
 const isAuthenticated = require('../middlewares/isAuthenticated');
 const forgetPassword = require("../controllers/auth/forgetPassword");
 const resetPasswordByToken = require("../controllers/auth/resetPasswordByToken");
@@ -10,7 +10,7 @@ const resetPasswordByToken = require("../controllers/auth/resetPasswordByToken")
 const authRouter = Router();
 
 authRouter.post("/signin", signin);
-authRouter.post("/signup", profilePic, signup);
+authRouter.post("/signup", downloadProfilePic, signup);
 // The user must be logged in to be able to logout
 authRouter.get("/logout", isAuthenticated, logout);
 

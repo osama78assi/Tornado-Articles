@@ -67,7 +67,8 @@ Article.init(
         },
         private: {
             type: DataTypes.BOOLEAN,
-            defaultValue: true,
+            defaultValue: false,
+            allowNull: false
         },
         userId: {
             type: DataTypes.UUID,

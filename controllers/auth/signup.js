@@ -2,7 +2,7 @@ const { Request, Response } = require("express");
 const OperationError = require("../../helper/operationError");
 const User = require("../../models/user");
 const jwt = require("jsonwebtoken");
-const fs = require("fs");
+const fs = require("fs/promises");
 const path = require("path");
 
 // Just for more readability
@@ -91,7 +91,7 @@ async function signup(req, res, next) {
     } catch (err) {
         // When there is an error the user might uploaded a profile picture
         if (req?.file?.filename) {
-            fs.unlink(
+            await fs.unlink(
                 path.join(
                     __dirname,
                     "../../uploads/profilePics",

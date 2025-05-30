@@ -1,5 +1,6 @@
 const { Request, Response } = require("express");
 const upload = require("../config/profilePicMulterConfig");
+const OperationError = require("../helper/operationError");
 
 /**
  *
@@ -9,7 +10,15 @@ const upload = require("../config/profilePicMulterConfig");
 async function downloadProfilePic(req, res, next) {
     try {
         upload.single("profilePic")(req, res, function (err) {
-            if (err) return next(err);
+            if (err) {
+                console.log(err);
+                return next(
+                    new OperationError(
+                        "Couldn't upload the photo to the server. Please try again",
+                        500
+                    )
+                );
+            }
             // Continue the chain
             next();
         });

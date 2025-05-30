@@ -58,6 +58,7 @@ PasswordToken.init(
         expiresAt: {
             type: DataTypes.DATE,
             defaultValue: new Date(Date.now() + 30 * 60 * 1000), // 30 min
+            allowNull: false,
         },
         userId: {
             type: DataTypes.UUID,

@@ -92,6 +92,7 @@ class User extends Model {
                     "email",
                     "gender",
                     "profilePic",
+                    "brief",
                 ],
                 where: {
                     email: getBy,
@@ -294,6 +295,76 @@ class User extends Model {
         }
     }
 
+    static async getProfilePic(userId) {
+        try {
+            const profilePic = await this.findOne({
+                attributes: ["profilePic"],
+                where: {
+                    id: userId,
+                },
+            });
+
+            return profilePic.dataValues.profilePic;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async setProfilePhoto(userId, newPic) {
+        try {
+            const affectedRows = await this.update(
+                {
+                    profilePic: newPic,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateBrief(userId, newBrief) {
+        try {
+            const affectedRows = await this.update(
+                {
+                    brief: newBrief,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateCookieAccess(userId, allow) {
+        try {
+            const affectedRows = await this.update(
+                { allowCookies: allow },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     // To override the toJSON method and exclude the password attribute
     toJSON() {
         const values = { ...this.get() };
@@ -376,6 +447,11 @@ User.init(
         },
         brief: {
             type: DataTypes.STRING(150),
+        },
+        allowCookies: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            allowNull: false,
         },
     },
     {

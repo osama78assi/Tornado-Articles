@@ -16,19 +16,52 @@ const getUserDetails = require("../controllers/user/getUserDetails");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const isAdmin = require("../middlewares/isAdmin");
 const isLoggedIn = require("../middlewares/isLoggedIn");
+const changeProfilePic = require("../controllers/user/changeProfilePic");
+const downloadProfilePic = require("../middlewares/downloadProfilePic");
+const deletePofilePic = require("../controllers/user/deletePofilePic");
+const { updateBrief } = require("../models/user");
+const editBrief = require("../controllers/user/editBrief");
+const updateCookiesAccess = require("../controllers/user/updateCookiesAccess");
 
 const userRoutes = Router();
 
 // User can change detials like name
 userRoutes.patch("/users/name", isAuthenticated, changeName); // DONE
+// And profile pic
+userRoutes.patch(
+    "/users/profile-pic",
+    isAuthenticated,
+    downloadProfilePic,
+    changeProfilePic
+);
+// Or delete the existing one
+userRoutes.delete("/users/profile-pic", isAuthenticated, deletePofilePic);
+
+// User can edit the brief
+userRoutes.patch("/users/brief", isAuthenticated, editBrief);
+
+// User can allow cookies or refuse it
+userRoutes.patch("/users/cookies", isAuthenticated, updateCookiesAccess);
 
 // User can follow and unfollow another user
 userRoutes.post("/users/followings/:followedId", isAuthenticated, followUser); // DONE
-userRoutes.delete("/users/followings/:followedId", isAuthenticated, unfollowUser); // DONE
+userRoutes.delete(
+    "/users/followings/:followedId",
+    isAuthenticated,
+    unfollowUser
+); // DONE
 
 // User can manage his preferred categories
-userRoutes.post("/users/preferred-categories", isAuthenticated, setPreferredCategories); // DONE
-userRoutes.get("/users/preferred-categories", isAuthenticated, getPreferredCategories); // DONE
+userRoutes.post(
+    "/users/preferred-categories",
+    isAuthenticated,
+    setPreferredCategories
+); // DONE
+userRoutes.get(
+    "/users/preferred-categories",
+    isAuthenticated,
+    getPreferredCategories
+); // DONE
 userRoutes.patch(
     "/users/preferred-categories",
     isAuthenticated,
@@ -44,7 +77,12 @@ userRoutes.get("/users", isLoggedIn, searchForUsers); // DONE
 userRoutes.get("/users/:userId", getUserDetails); // DONE
 
 // Admin can delete user account
-userRoutes.delete("/adimn/users/:userId", isAuthenticated, isAdmin, adminDeleteUser); // DONE
+userRoutes.delete(
+    "/adimn/users/:userId",
+    isAuthenticated,
+    isAdmin,
+    adminDeleteUser
+); // DONE
 // Admin can browse users
 userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers); // DONE
 
