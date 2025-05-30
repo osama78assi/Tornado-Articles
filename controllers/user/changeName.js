@@ -16,17 +16,19 @@ class ErrorEnum {
  */
 async function changeName(req, res, next) {
     try {
-        const { newName = undefined } = req?.body || {};
+        const { newName = null } = req?.body || {};
         // Get the id
         const { userId } = req?.userInfo.id;
 
-        if (newName === undefined) return next(ErrorEnum.MISSING_NAME);
+        if (newName === null) return next(ErrorEnum.MISSING_NAME);
 
         await User.updateUserName(userId, newName);
 
         return res.status(200).json({
             status: "success",
-            message: "New name set successfully.",
+            data: {
+                fullName: newName,
+            },
         });
     } catch (err) {
         next(err);

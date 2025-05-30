@@ -5,7 +5,7 @@ const { Request, Response } = require("express");
  * @param {Request} req
  * @param {Response} res
  */
-async function getRecomondedArticles(req, res, next) {
+async function getRecommendedArticles(req, res, next) {
     try {
         
     } catch(err) {
@@ -13,4 +13,4 @@ async function getRecomondedArticles(req, res, next) {
     }
 }
 
-module.exports = getRecomondedArticles;
+module.exports = getRecommendedArticles;

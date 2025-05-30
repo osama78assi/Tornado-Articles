@@ -1,5 +1,5 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, QueryTypes } = require("sequelize");
+const { Model, DataTypes, QueryTypes, col, Sequelize, fn } = require("sequelize");
 
 // Models to add relations
 const User = require("./user");
@@ -60,6 +60,16 @@ Article.init(
         title: {
             type: DataTypes.STRING(255),
             allowNull: false,
+        },
+        language: {
+            type: DataTypes.ENUM('english'),
+            allowNull: false,
+            defaultValue: "english"
+        },
+        titleTsVector: {
+            type: DataTypes.TSVECTOR,
+            allowNull: false,
+            // Has a trigger check it in config/sequelize
         },
         content: {
             type: DataTypes.TEXT,

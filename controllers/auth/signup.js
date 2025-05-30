@@ -4,6 +4,7 @@ const User = require("../../models/user");
 const jwt = require("jsonwebtoken");
 const fs = require("fs/promises");
 const path = require("path");
+const sanitize = require("../../helper/sanitize");
 
 // Just for more readability
 class ErrorsEnum {
@@ -46,14 +47,20 @@ async function signup(req, res, next) {
             profilePicName = `${protocol}://${host}/uploads/profilePics/${profilePicName}`;
         }
 
-        let { fullName, email, password, birthDate, gender } = req?.body || {};
+        let {
+            fullName = null,
+            email = null,
+            password = null,
+            birthDate = null,
+            gender = null,
+        } = req?.body || {};
 
         // Some validation
-        if (fullName === undefined) return next(ErrorsEnum.NAME_MISSING);
-        if (email === undefined) return next(ErrorsEnum.EMAIL_MISSING);
-        if (password === undefined) return next(ErrorsEnum.PASSWORD_MISSING);
-        if (birthDate === undefined) return next(ErrorsEnum.BIRTH_DATE_MISSING);
-        if (gender === undefined) return next(ErrorsEnum.GENDER_MISSING);
+        if (fullName === null) return next(ErrorsEnum.NAME_MISSING);
+        if (email === null) return next(ErrorsEnum.EMAIL_MISSING);
+        if (password === null) return next(ErrorsEnum.PASSWORD_MISSING);
+        if (birthDate === null) return next(ErrorsEnum.BIRTH_DATE_MISSING);
+        if (gender === null) return next(ErrorsEnum.GENDER_MISSING);
 
         const user = await User.createUser(
             fullName,
@@ -78,11 +85,13 @@ async function signup(req, res, next) {
         });
 
         // Delete some info
-        delete user.dataValues.changeDate;
-        delete user.dataValues.role;
-        delete user.dataValues.createdAt;
-        delete user.dataValues.updatedAt;
-        delete user.dataValues.birthDate;
+        sanitize(user, [
+            "changeDate",
+            "role",
+            "createdAt",
+            "updatedAt",
+            "birthDate",
+        ]);
 
         res.status(200).json({
             status: "success",

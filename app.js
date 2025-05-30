@@ -22,7 +22,7 @@ app.use(cookieParser());
 // Authentication
 app.use("/api/v1/auth", authRouter);
 // Article
-app.use("/api/v1/articles", articleRouter);
+app.use("/api/v1", articleRouter);
 // app.use('/api/v1/admin/articles', articleRouter);
 // Comment
 // app.use('/api/v1/articles/:articleId/comment');

@@ -11,6 +11,10 @@ class ErrorEnum {
     static WRONG_DIRECTION = new OperationError(
         "The sort direction must be either ASC or DESC"
     );
+    static INVALID_OFFSET_LIMIT = new OperationError(
+        "Offset and limit must be numbers",
+        400
+    );
 }
 
 /**
@@ -33,9 +37,18 @@ async function adminGetUsers(req, res, next) {
         if (!["fullname", "createdat"].includes(sortBy.toLocaleLowerCase()))
             return next(ErrorEnum.FIELD_NOT_EXISTS);
 
+        if (typeof offset !== "number" || typeof limit !== "number")
+            return next(ErrorEnum.INVALID_OFFSET_LIMIT);
+
         const currentId = req.userInfo.id;
 
-        const users = await User.getUsersData(offset, limit, sortBy, sortDir, currentId);
+        const users = await User.getUsersData(
+            offset,
+            limit,
+            sortBy,
+            sortDir,
+            currentId
+        );
 
         return res.status(200).json({
             status: "success",

@@ -31,11 +31,11 @@ class ErrorsEnum {
  */
 async function signin(req, res, next) {
     try {
-        let { email, password } = req?.body || {};
+        let { email=null, password=null } = req?.body || {};
 
         // Some validation
-        if (email === undefined) return next(ErrorsEnum.EMIAL_MISSING);
-        if (password === undefined) return next(ErrorsEnum.PASSWORD_MISSING);
+        if (email === null) return next(ErrorsEnum.EMIAL_MISSING);
+        if (password === null) return next(ErrorsEnum.PASSWORD_MISSING);
 
         // Check the validation of the email
         if (!validator.isEmail(email)) return next(ErrorsEnum.INVALID_EMAIL);

@@ -4,7 +4,7 @@ const OperationError = require("../helper/operationError");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const validatePassword = require("../helper/validatePassword");
-const { MIN_RESULTS, MAX_RESULTS } = require("../config/settings");
+const { MIN_RESULTS } = require("../config/settings");
 
 // Models to add relations
 const UserPreference = require("./userPreference");
@@ -14,6 +14,7 @@ const Category = require("./category");
 const FollowedFollower = require("./followedFollower");
 const Comment = require("./comment");
 const CommentLike = require("./commentLike");
+const normalizeOffsetLimit = require("../helper/normalizeOffsetLimit");
 
 class ErrorEnum {
     static USER_NOT_FOUND = new OperationError("User not found.", 404);
@@ -38,7 +39,6 @@ class ErrorEnum {
 }
 
 class User extends Model {
-    // Get user by id
     static async getUserById(id) {
         try {
             // Check if id is UUIDv4
@@ -54,7 +54,6 @@ class User extends Model {
         }
     }
 
-    // Create user
     static async createUser(
         fullName,
         email,
@@ -177,6 +176,7 @@ class User extends Model {
         }
     }
 
+    // To get profile data for example
     static async getUserDetails(userId) {
         try {
             const userData = await this.findAll({
@@ -201,8 +201,21 @@ class User extends Model {
                             )`),
                             "followersCount",
                         ],
+                        [
+                            // Number of published artilces
+                            literal(`(
+                                SELECT COUNT("userId") FROM "Articles"
+                                WHERE "userId" = "User"."id"
+                                )`),
+                            "articleCounts",
+                        ],
                     ],
-                    exclude: ["email", "birthDate", "role"],
+                    exclude: [
+                        "role",
+                        "allowCookies",
+                        "changeDate",
+                        "updatedAt",
+                    ],
                 },
             });
 
@@ -214,7 +227,14 @@ class User extends Model {
         }
     }
 
-    static async searchByName(query, limit, offset = 0, exclude = null) {
+    static async searchByName(
+        query,
+        limit = MIN_RESULTS,
+        offset = 0,
+        exclude = null
+    ) {
+        // Normalize (below the zero or limit very large)
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
             // You can make the API throw error here. I preferred to use the default
             // if (limit < 0 || offset < 0)
@@ -222,18 +242,10 @@ class User extends Model {
             //         "Invalid Offset or limit: these two must be positive number",
             //         400
             //     );
-            offset = offset < 0 ? 0 : offset;
-            limit =
-                limit < 0
-                    ? MIN_RESULTS
-                    : limit > MAX_RESULTS
-                    ? MAX_RESULTS
-                    : limit;
-
             /// Exclude the user if provided
             exclude = exclude !== null ? { id: { [Op.ne]: exclude } } : {};
             const results = await this.findAll({
-                attributes: ["id", "fullName", "profilePic"],
+                attributes: ["id", "fullName", "profilePic", "gender"],
                 where: {
                     fullName: {
                         [Op.iLike]: `%${query}%`,
@@ -250,7 +262,12 @@ class User extends Model {
         }
     }
 
-    static async getPreferredCategories(userId) {
+    static async getPreferredCategories(
+        userId,
+        offset = 0,
+        limit = MIN_RESULTS
+    ) {
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
             const preferredCategories = await this.findOne({
                 where: {
@@ -262,6 +279,8 @@ class User extends Model {
                         attributes: [], // hides the UserPreference data
                     },
                 },
+                offset,
+                limit,
             });
 
             return preferredCategories;
@@ -270,13 +289,16 @@ class User extends Model {
         }
     }
 
+    // To get users data for admin
     static async getUsersData(
         offset = 0,
-        limit = 10,
+        limit = MIN_RESULTS,
         sortBy = "createdAt",
         sortDir = "ASC",
         exclude = null
     ) {
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
+
         // If want to exclude a record
         const ex =
             exclude !== null ? { where: { id: { [Op.ne]: exclude } } } : {};
@@ -365,13 +387,69 @@ class User extends Model {
         }
     }
 
+    // Get who is follower of user X
+    static async getFollowers(userId, offset = 0, limit = MIN_RESULTS) {
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
+        try {
+            // I want to include the followers but if I used User and include I no longer can user offset and limit
+            // So in this way I join 1:M between junction table (FollowedFollowers) with User table
+            // Where my wanted data lives and I can apply limit and offset easily
+            const followers = await FollowedFollower.findAll({
+                offset,
+                limit,
+                attributes: [],
+                where: {
+                    followedId: userId,
+                },
+                include: {
+                    model: this,
+                    as: "follower",
+                    attributes: ["id", "fullName", "profilePic", "gender"],
+                },
+            });
+
+            // Update the array. Send only the data for followers
+            return followers.map((follower) => {
+                return follower.dataValues.follower;
+            });
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    // Get who is followed by user X
+    static async getFollowings(userId, offset = 0, limit = MIN_RESULTS) {
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
+        try {
+            // Same as above
+            const followings = await FollowedFollower.findAll({
+                offset,
+                limit,
+                attributes: [],
+                where: {
+                    followerId: userId,
+                },
+                include: {
+                    model: this,
+                    as: "following",
+                    attributes: ["id", "fullName", "profilePic", "gender"],
+                },
+            });
+
+            // Update the array. Send only the data for followings
+            return followings.map((following) => {
+                return following.dataValues.following;
+            });
+        } catch (err) {
+            throw err;
+        }
+    }
+
     // To override the toJSON method and exclude the password attribute
     toJSON() {
         const values = { ...this.get() };
         delete values.password;
         delete values.changeDate; // No one must know or care when the user changed his password or email
-        delete values.createAt; // (maybe become in the future)
-        delete values.updatedAt;
         return values;
     }
 }
@@ -510,12 +588,26 @@ User.belongsToMany(User, {
     as: "followings",
 });
 
-////////  Users Followings
+// To be able to get user data form junction table also
+// (don't confuse here the followers is the real meaning)
+FollowedFollower.belongsTo(User, {
+    foreignKey: "followerId",
+    as: "follower",
+});
+
+//////// Users Followings
 // Who followed (like user A get an array with who follows A)
 User.belongsToMany(User, {
     through: FollowedFollower,
     foreignKey: "followedId",
     as: "followers",
+});
+
+// To be able to get user data form junction table also
+// (don't confuse here the followings is the real meaning)
+FollowedFollower.belongsTo(User, {
+    foreignKey: "followedId",
+    as: "following",
 });
 
 ////// Notification

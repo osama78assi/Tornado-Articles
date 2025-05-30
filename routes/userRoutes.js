@@ -22,11 +22,13 @@ const deletePofilePic = require("../controllers/user/deletePofilePic");
 const { updateBrief } = require("../models/user");
 const editBrief = require("../controllers/user/editBrief");
 const updateCookiesAccess = require("../controllers/user/updateCookiesAccess");
+const getFollowers = require("../controllers/user/getFollowers");
+const getFollowings = require("../controllers/user/getFollowings");
 
 const userRoutes = Router();
 
 // User can change detials like name
-userRoutes.patch("/users/name", isAuthenticated, changeName); // DONE
+userRoutes.patch("/users/name", isAuthenticated, changeName);
 // And profile pic
 userRoutes.patch(
     "/users/profile-pic",
@@ -44,46 +46,51 @@ userRoutes.patch("/users/brief", isAuthenticated, editBrief);
 userRoutes.patch("/users/cookies", isAuthenticated, updateCookiesAccess);
 
 // User can follow and unfollow another user
-userRoutes.post("/users/followings/:followedId", isAuthenticated, followUser); // DONE
+userRoutes.post("/users/followings/:followedId", isAuthenticated, followUser);
 userRoutes.delete(
     "/users/followings/:followedId",
     isAuthenticated,
     unfollowUser
-); // DONE
+);
 
 // User can manage his preferred categories
 userRoutes.post(
     "/users/preferred-categories",
     isAuthenticated,
     setPreferredCategories
-); // DONE
+);
 userRoutes.get(
     "/users/preferred-categories",
     isAuthenticated,
     getPreferredCategories
-); // DONE
+);
 userRoutes.patch(
     "/users/preferred-categories",
     isAuthenticated,
     updatedPreferredCategories
-); // DONE
+);
 
 // User can delete his/her account
-userRoutes.delete("/users", isAuthenticated, deleteAccount); // DONE
+userRoutes.delete("/users", isAuthenticated, deleteAccount);
 
 // Anyone can search for users (by name)
-userRoutes.get("/users", isLoggedIn, searchForUsers); // DONE
+userRoutes.get("/users", isLoggedIn, searchForUsers);
 // For getting user profile data (contains followers and following counts)
-userRoutes.get("/users/:userId", getUserDetails); // DONE
+userRoutes.get("/users/:userId", getUserDetails);
+
+// User can see his followers
+userRoutes.get("/users/:userId/followers", getFollowers);
+// User can see his followings
+userRoutes.get("/users/:userId/followings", getFollowings);
 
 // Admin can delete user account
 userRoutes.delete(
-    "/adimn/users/:userId",
+    "/admin/users/:userId",
     isAuthenticated,
     isAdmin,
     adminDeleteUser
-); // DONE
+);
 // Admin can browse users
-userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers); // DONE
+userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers);
 
 module.exports = userRoutes;

@@ -1,36 +1,31 @@
 const { Request, Response } = require("express");
 const User = require("../../models/user");
 const { MIN_RESULTS } = require("../../config/settings");
-const OperationError = require("../../helper/operationError");
 
 /**
  *
  * @param {Request} req
  * @param {Response} res
  */
-async function getPreferredCategories(req, res, next) {
+async function getFollowings(req, res, next) {
     try {
-        const userId = req.userInfo.id;
-
+        const { userId } = req?.params;
         const { offset = 0, limit = MIN_RESULTS } = req?.query || {};
+
         if (typeof offset !== "number" || typeof limit !== "number")
             return next(
                 new OperationError("Offset and limit must be numbers", 400)
             );
 
-        const categories = await User.getPreferredCategories(
-            userId,
-            offset,
-            limit
-        );
+        const followings = await User.getFollowings(userId, offset, limit);
 
         return res.status(200).json({
             status: "success",
-            data: categories,
+            data: followings,
         });
     } catch (err) {
         next(err);
     }
 }
 
-module.exports = getPreferredCategories;
+module.exports = getFollowings;

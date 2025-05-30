@@ -32,6 +32,9 @@ async function connectDB() {
         
         // Sync the current models with tables in database (if something not found in model add it to database not the opposite)
         await sequelize.sync({ alter: true });
+        addGinIndex();
+        // addTrigger(); // RUNS only once
+        // dropGinIndex() // RUNS when you want to delete
         // await sequelize.sync({ force: true });
         console.log("connected to database successfully");
     } catch (err) {
@@ -46,9 +49,9 @@ async function addGinIndex() {
 
         // add the index on title of the article
         await sequelize.query(`
-            CREATE INDEX article_title_fts_idx
+            CREATE INDEX IF NOT EXISTS article_title_fts_idx
             ON "Articles"
-            USING gin (to_tsvector('english', title));
+            USING gin ("titleTsVector");
         `);
     } catch (err) {
         console.log(err);
@@ -59,7 +62,29 @@ async function addGinIndex() {
 async function dropGinIndex() {
     try {
         await sequelize.query(`DROP INDEX IF EXISTS article_title_trgm_idx;`);
-    } catch (err) {}
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+// Adding a trigger to the database where it will run to_tsvector
+// on each row's title and pass the language for it
+async function addTrigger() {
+    try {
+        sequelize.query(`
+            CREATE FUNCTION update_title_tsvector() RETURNS trigger AS $$
+            BEGIN
+            NEW."titleTsVector" := to_tsvector(NEW.language, NEW.title);
+            RETURN NEW;
+            END
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
+            ON "Articles" FOR EACH ROW EXECUTE FUNCTION update_title_tsvector();
+        `)
+    } catch(err) {
+        console.log(err);
+    }
 }
 
 module.exports = { sequelize, connectDB };

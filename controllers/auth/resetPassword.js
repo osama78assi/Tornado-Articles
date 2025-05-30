@@ -1,6 +1,19 @@
 const { Request, Response } = require("express");
 const User = require("../../models/user");
 const bcrypt = require("bcryptjs");
+const OperationError = require("../../helper/operationError");
+
+class ErrorEnum {
+    static INCORRECT_PASSWORD = new OperationError(
+        "The password isn't correct.",
+        400
+    );
+
+    static MISSING_DATA = new OperationError(
+        "Please provide both old password and new password",
+        400
+    );
+}
 
 /**
  *
@@ -9,7 +22,10 @@ const bcrypt = require("bcryptjs");
  */
 async function resetPassword(req, res, next) {
     try {
-        const { oldPassword, newPassword } = req?.body || {};
+        const { oldPassword = null, newPassword = null } = req?.body || {};
+
+        if (oldPassword === null || newPassword === null)
+            return next(ErrorEnum.MISSING_DATA);
 
         // The user should be logged in
         const userId = req.userInfo.id;
@@ -21,10 +37,7 @@ async function resetPassword(req, res, next) {
             user.dataValues.password
         );
 
-        if (!isCorrect)
-            return next(
-                new OperationError("The password isn't correct.", 400)
-            );
+        if (!isCorrect) return next(ErrorEnum.INCORRECT_PASSWORD);
 
         await User.updateUserPassword(userId, newPassword);
 

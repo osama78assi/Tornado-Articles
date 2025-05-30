@@ -5,7 +5,7 @@ const { Request, Response } = require("express");
  * @param {Request} req
  * @param {Response} res
  */
-async function deleteArticle(req, res, next) {
+async function searchForArtilcesByTags(req, res, next) {
     try {
         
     } catch(err) {
@@ -13,4 +13,4 @@ async function deleteArticle(req, res, next) {
     }
 }
 
-module.exports = deleteArticle;
+module.exports = searchForArtilcesByTags;

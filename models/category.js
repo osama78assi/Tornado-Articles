@@ -61,15 +61,10 @@ class Category extends Model {
     }
 
     static async getCategories(offset = 0, limit = MIN_RESULTS) {
+        offset = offset < 0 ? 0 : offset;
+        limit =
+            limit < 0 ? MIN_RESULTS : limit > MAX_RESULTS ? MAX_RESULTS : limit;
         try {
-            offset = offset < 0 ? 0 : offset;
-            limit =
-                limit < 0
-                    ? MIN_RESULTS
-                    : limit > MAX_RESULTS
-                    ? MAX_RESULTS
-                    : limit;
-
             const categories = await this.findAll({
                 offset,
                 limit,
