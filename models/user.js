@@ -262,33 +262,6 @@ class User extends Model {
         }
     }
 
-    static async getPreferredCategories(
-        userId,
-        offset = 0,
-        limit = MIN_RESULTS
-    ) {
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
-        try {
-            const preferredCategories = await this.findOne({
-                where: {
-                    id: userId,
-                },
-                include: {
-                    model: Category,
-                    through: {
-                        attributes: [], // hides the UserPreference data
-                    },
-                },
-                offset,
-                limit,
-            });
-
-            return preferredCategories;
-        } catch (err) {
-            throw err;
-        }
-    }
-
     // To get users data for admin
     static async getUsersData(
         offset = 0,
@@ -389,14 +362,15 @@ class User extends Model {
 
     // Get who is follower of user X
     static async getFollowers(userId, offset = 0, limit = MIN_RESULTS) {
+        // It's a good idea to add these two functions (getFollowers and getFollowings)
+        // in FollowedFollwers model but that will cause a problem because users import FollowedFollower
+        
         ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
             // I want to include the followers but if I used User and include I no longer can user offset and limit
             // So in this way I join 1:M between junction table (FollowedFollowers) with User table
             // Where my wanted data lives and I can apply limit and offset easily
             const followers = await FollowedFollower.findAll({
-                offset,
-                limit,
                 attributes: [],
                 where: {
                     followedId: userId,
@@ -406,6 +380,8 @@ class User extends Model {
                     as: "follower",
                     attributes: ["id", "fullName", "profilePic", "gender"],
                 },
+                offset,
+                limit,
             });
 
             // Update the array. Send only the data for followers
@@ -423,8 +399,6 @@ class User extends Model {
         try {
             // Same as above
             const followings = await FollowedFollower.findAll({
-                offset,
-                limit,
                 attributes: [],
                 where: {
                     followerId: userId,
@@ -434,6 +408,8 @@ class User extends Model {
                     as: "following",
                     attributes: ["id", "fullName", "profilePic", "gender"],
                 },
+                offset,
+                limit,
             });
 
             // Update the array. Send only the data for followings

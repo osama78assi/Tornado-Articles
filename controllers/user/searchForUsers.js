@@ -8,11 +8,6 @@ class ErrorEnum {
         "Please provide user name to search.",
         400
     );
-
-    static INVALID_OFFSET_LIMIT = new OperationError(
-        "Offset and limit must be numbers",
-        400
-    );
 }
 
 /**
@@ -29,9 +24,6 @@ async function searchForUsers(req, res, next) {
         } = req?.query || {};
 
         if (query === null) return next(ErrorEnum.INVALID_QUERY);
-
-        if (typeof offset !== "number" || typeof limit !== "number")
-            return next(ErrorEnum.INVALID_OFFSET_LIMIT);
 
         // If the current user is logged in we wanna remove his account from here
         let results = await User.searchByName(

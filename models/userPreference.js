@@ -1,8 +1,10 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes, Op } = require("sequelize");
+const Category = require("./category");
+const normalizeOffsetLimit = require("../helper/normalizeOffsetLimit");
 
 class UserPreference extends Model {
-    static async addPreferredCategoriess(userId, categoriesIds) {
+    static async addPreferredCategories(userId, categoriesIds) {
         try {
             // The records we want to add
             const zip = categoriesIds.map((categoryId) => {
@@ -23,7 +25,7 @@ class UserPreference extends Model {
     static async updatePreferredCategories(userId, toAdd = [], toDelete = []) {
         // Start unmanaged transaction
         const t = await sequelize.transaction();
-        
+
         // Zip the toAdd
         const toAddZip = toAdd.map((categoryId) => {
             return {
@@ -54,9 +56,39 @@ class UserPreference extends Model {
             // No error happened ? commit
             await t.commit();
         } catch (err) {
-            console.log(err)
+            console.log(err);
             // any error ? rolback and throw that error
-            await t.rollback()
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    static async getPreferredCategories(
+        userId,
+        offset = 0,
+        limit = MIN_RESULTS
+    ) {
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
+        try {
+            const preferredCategories = await UserPreference.findAll({
+                attributes: [],
+                where: {
+                    userId,
+                },
+                include: {
+                    model: Category,
+                    attributes: {
+                        exclude: ["createdAt"],
+                    },
+                },
+                offset,
+                limit,
+            });
+
+            return preferredCategories.map((prefCategory) => {
+                return prefCategory.dataValues.Category;
+            });
+        } catch (err) {
             throw err;
         }
     }
@@ -88,5 +120,12 @@ UserPreference.init(
         timestamps: false,
     }
 );
+
+
+// Just to be able to get the categories from junction table
+UserPreference.belongsTo(Category, {
+    foreignKey: "categoryId",
+});
+
 
 module.exports = UserPreference;

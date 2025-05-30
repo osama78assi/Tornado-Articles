@@ -12,11 +12,6 @@ async function getFollowings(req, res, next) {
         const { userId } = req?.params;
         const { offset = 0, limit = MIN_RESULTS } = req?.query || {};
 
-        if (typeof offset !== "number" || typeof limit !== "number")
-            return next(
-                new OperationError("Offset and limit must be numbers", 400)
-            );
-
         const followings = await User.getFollowings(userId, offset, limit);
 
         return res.status(200).json({
