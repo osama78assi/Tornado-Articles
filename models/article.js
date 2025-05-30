@@ -8,6 +8,8 @@ const ArticleLike = require("./articleLike");
 const Comment = require("./comment");
 const ArticleCategory = require("./articleCategory");
 const ArticleImage = require("./articleImage");
+const Tag = require("./tag");
+const ArticleTag = require("./articleTag");
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -112,6 +114,18 @@ Category.belongsToMany(Article, {
     through: ArticleCategory,
     foreignKey: "categoryId",
 });
+
+/////////// Tags
+Article.belongsToMany(Tag, {
+    through: ArticleTag,
+    foreignKey: "articleId",
+});
+
+Tag.belongsToMany(Article, {
+    through: ArticleTag,
+    foreignKey: "tagId",
+});
+
 
 /////////// Likes
 // Many-to-Many relation with users through likes
