@@ -12,6 +12,7 @@ const searchForArticleByTags = require("../controllers/article/searchForArtilces
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const isAdmin = require("../middlewares/isAdmin");
 const publishArticle = require("../controllers/article/publishArticle");
+const downloadArticlesPics = require("../middlewares/downloadArticlesPics");
 
 const articleRouter = Router();
 
@@ -53,8 +54,13 @@ articleRouter.delete(
     adminDeleteArticle
 );
 
-// User can create articles
-articleRouter.post("/articles", isAuthenticated, publishArticle);
+// User can publish articles
+articleRouter.post(
+    "/articles",
+    isAuthenticated,
+    downloadArticlesPics,
+    publishArticle
+);
 
 // Search by title
 articleRouter.get("/articles/search-by-title", searchForArticleBytTitle);

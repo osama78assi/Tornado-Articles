@@ -11,7 +11,7 @@ const tagRoutes = require("./routes/tagRoutes");
 
 let app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "5MB" }));
 
 app.use(cookieParser());
 

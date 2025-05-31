@@ -1,5 +1,10 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, QueryTypes, col, Sequelize, fn } = require("sequelize");
+const {
+    Model,
+    DataTypes,
+    QueryTypes,
+    EagerLoadingError,
+} = require("sequelize");
 
 // Models to add relations
 const User = require("./user");
@@ -10,6 +15,7 @@ const ArticleCategory = require("./articleCategory");
 const ArticleImage = require("./articleImage");
 const Tag = require("./tag");
 const ArticleTag = require("./articleTag");
+const OperationError = require("../helper/operationError");
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -48,7 +54,165 @@ async function searchByTitle() {
     }
 }
 
-class Article extends Model {}
+class Article extends Model {
+    static async publishArticle(
+        userId,
+        title,
+        content,
+        isPrivate,
+        language,
+        coverPic,
+        contentPics,
+        categories,
+        tags
+    ) {
+        // Start unmanaged transaction
+        const t = await sequelize.transaction();
+        try {
+            // Add the article
+            const article = await this.create(
+                {
+                    title,
+                    content,
+                    private: isPrivate,
+                    language,
+                    coverPic,
+                    userId,
+                    titleTsVector: sequelize.fn("to_tsvector", language, title),
+                },
+                { transaction: t }
+            );
+
+            // Add the images
+            // zip the content images
+            if (contentPics.length !== 0) {
+                const zip = contentPics.map((contentPic) => {
+                    return {
+                        articleId: article.dataValues.id,
+                        image: contentPic,
+                    };
+                });
+
+                await ArticleImage.bulkCreate(zip, { transaction: t });
+            }
+
+            // Add the categories
+            if (categories.length !== 0) {
+                // Create the ZIP
+                const zip = categories.map((categoryId) => {
+                    return {
+                        categoryId,
+                        articleId: article.dataValues.id,
+                    };
+                });
+
+                // Create the relations
+                await ArticleCategory.bulkCreate(zip, { transaction: t });
+            }
+
+            // Now add the tags.
+            if (tags.length !== 0) {
+                // Create the tags if not exists
+                const tagsData = await Tag.addTags(tags, t);
+
+                // Create the zip
+                const zip = tagsData.map((tag) => {
+                    return {
+                        tagId: tag.dataValues.id,
+                        articleId: article.dataValues.id,
+                    };
+                });
+
+                // Create the relation
+                await ArticleTag.bulkCreate(zip, {
+                    transaction: t,
+                });
+            }
+
+            await t.commit();
+            return article.dataValues.id;
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    static async getArticleDetails(articleId) {
+        try {
+            const article = await this.findOne({
+                where: {
+                    id: articleId,
+                },
+                attributes: {
+                    exclude: ["titleTsVector"],
+                    include: [
+                        [
+                            // Comments count
+                            sequelize.literal(`(
+                            SELECT COUNT("articleId")
+                            FROM "Comments"
+                            WHERE "Comments"."articleId" = "Article"."id"
+                        )`),
+                            "commentCounts",
+                        ],
+                        [
+                            // Likes count
+                            sequelize.literal(`(
+                                SELECT COUNT("articleId")
+                                FROM "ArticleLikes"
+                                WHERE "ArticleLikes"."articleId" = "Article"."id"
+                            )`),
+                            "likeCounts",
+                        ],
+                    ],
+                },
+                include: [
+                    {
+                        // Get the article publisher
+                        model: User,
+                        as: "publisher",
+                        attributes: ["id", "fullName", "profilePic", "gender"],
+                    },
+                    {
+                        // Get the article categories
+                        model: Category,
+                        through: {
+                            attributes: [], // Don't include anything from junction table
+                        },
+                        attributes: {
+                            exclude: ["createdAt"],
+                        },
+                    },
+                    {
+                        // Get the tags
+                        model: Tag,
+                        through: {
+                            attributes: [], // Don't add anything from junction table
+                        },
+                        attributes: {
+                            exclude: ["createdAt"],
+                        },
+                    },
+                    {
+                        // May not be used but let's get the images urls
+                        model: ArticleImage,
+                        attributes: ['image'], // Only get the image
+                    }
+                ],
+            });
+
+            if (!article)
+                throw new OperationError(
+                    "The article either deleted or not existed in first place.",
+                    404
+                );
+
+            return article;
+        } catch (err) {
+            throw err;
+        }
+    }
+}
 
 Article.init(
     {
@@ -60,25 +224,37 @@ Article.init(
         title: {
             type: DataTypes.STRING(255),
             allowNull: false,
+            validate: {
+                len: {
+                    args: 5,
+                    msg: ["Article title should at least made of 5 chars"],
+                },
+            },
         },
         language: {
-            type: DataTypes.ENUM('english'),
+            type: DataTypes.ENUM("english"),
             allowNull: false,
-            defaultValue: "english"
+            defaultValue: "english",
         },
         titleTsVector: {
             type: DataTypes.TSVECTOR,
             allowNull: false,
-            // Has a trigger check it in config/sequelize
+            // This got a trigger check config/sequelize.js
         },
         content: {
             type: DataTypes.TEXT,
             allowNull: false,
+            validate: {
+                len: {
+                    args: 10,
+                    msg: "Title content should be at least made of 10 chars",
+                },
+            },
         },
         private: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
-            allowNull: false
+            allowNull: false,
         },
         userId: {
             type: DataTypes.UUID,
@@ -96,6 +272,21 @@ Article.init(
     {
         sequelize,
         timestamp: true,
+        hooks: {
+            beforeCreate(article) {
+                // Trim the content and title
+                article.dataValues.title = article.dataValues.title.trim();
+                article.dataValues.content = article.dataValues.content.trim();
+            },
+            beforeUpdate(article) {
+                // Trim the content and title
+                if (article.changed("title"))
+                    article.dataValues.title = article.dataValues.title.trim();
+                if (article.changed("content"))
+                    article.dataValues.content =
+                        article.dataValues.content.trim();
+            },
+        },
     }
 );
 
@@ -108,10 +299,18 @@ Article.hasMany(ArticleImage, {
 ///// Users
 
 // Many-to-one with users
-Article.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" });
+Article.belongsTo(User, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+    as: "publisher",
+});
 
 // one-to-many relation
-User.hasMany(Article, { foreignKey: "userId", onDelete: "CASCADE" });
+User.hasMany(Article, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+    as: "articles",
+});
 
 ///// Categories
 // Many to many relation with categories
@@ -136,7 +335,6 @@ Tag.belongsToMany(Article, {
     through: ArticleTag,
     foreignKey: "tagId",
 });
-
 
 /////////// Likes
 // Many-to-Many relation with users through likes
