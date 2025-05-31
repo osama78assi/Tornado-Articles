@@ -11,6 +11,7 @@ const tagRoutes = require("./routes/tagRoutes");
 
 let app = express();
 
+// This is the body size. Make sure to send the files using FromData to keep this for only JSON body
 app.use(express.json({ limit: "5MB" }));
 
 app.use(cookieParser());

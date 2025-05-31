@@ -8,6 +8,7 @@ const editArticleContent = require("../controllers/article/editArticleContent");
 const adminDeleteArticle = require("../controllers/article/adminDeleteArticle");
 const searchForArticleBytTitle = require("../controllers/article/searchForArticleByTitle");
 const searchForArticleByTags = require("../controllers/article/searchForArtilcesByTags");
+const getArticlesFor = require("../controllers/article/getArticlesFor");
 
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const isAdmin = require("../middlewares/isAdmin");
@@ -17,34 +18,37 @@ const downloadArticlesPics = require("../middlewares/downloadArticlesPics");
 const articleRouter = Router();
 
 // Anyone can get articles (home page for guests)
-articleRouter.get("/articles", getArticles);
+articleRouter.get("/articles", getArticles); // WORKING
+
+// Anyone can get the articles for any user
+articleRouter.get("/articles/:userId", getArticlesFor); // TODO
 
 // User get recomment articles
 articleRouter.get(
     "/articles/recommended",
     isAuthenticated,
     getRecommendedArticles
-);
+); // TODO
 
 // Get the article details
-articleRouter.get("/articles/:articleId", getArticle);
+articleRouter.get("/articles/view/:articleId", getArticle); // DONE
 
 // User can edit the title of the article
 articleRouter.patch(
     "/articles/:articleId/title",
     isAuthenticated,
     editArticleTitle
-);
+); // TODO
 
 // User can edit the content
 articleRouter.patch(
     "/articles/:articleId/content",
     isAuthenticated,
     editArticleContent
-);
+); // TODO
 
 // User can delete his article
-articleRouter.delete("/articles/:articleId", isAuthenticated, deleteArticle);
+articleRouter.delete("/articles/:articleId", isAuthenticated, deleteArticle); // TODO
 
 // Admin delete any article
 articleRouter.delete(
@@ -52,7 +56,7 @@ articleRouter.delete(
     isAuthenticated,
     isAdmin,
     adminDeleteArticle
-);
+); // TODO
 
 // User can publish articles
 articleRouter.post(
@@ -60,12 +64,12 @@ articleRouter.post(
     isAuthenticated,
     downloadArticlesPics,
     publishArticle
-);
+); // DONE
 
 // Search by title
-articleRouter.get("/articles/search-by-title", searchForArticleBytTitle);
+articleRouter.get("/articles/search-by-title", searchForArticleBytTitle); // TODO
 
 // Search by tags
-articleRouter.get("/articles/search-by-tags", searchForArticleByTags);
+articleRouter.get("/articles/search-by-tags", searchForArticleByTags); // TODO
 
 module.exports = articleRouter;

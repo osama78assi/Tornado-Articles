@@ -1,6 +1,7 @@
 const multer = require("multer");
 const OperationError = require("../helper/operationError");
 const path = require("path");
+const { MAX_PROFILE_PIC_SIZE_MB } = require("./settings");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -24,7 +25,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+        fileSize: MAX_PROFILE_PIC_SIZE_MB * 1024 * 1024, // 5MB in my config
     },
 });
 

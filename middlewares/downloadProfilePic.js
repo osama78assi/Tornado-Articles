@@ -1,6 +1,7 @@
 const { Request, Response } = require("express");
 const upload = require("../config/profilePicMulterConfig");
 const OperationError = require("../helper/operationError");
+const { MAX_PROFILE_PIC_SIZE_MB } = require("../config/settings");
 
 /**
  *
@@ -14,7 +15,7 @@ async function downloadProfilePic(req, res, next) {
                 if (err.code === "LIMIT_FILE_SIZE") {
                     return next(
                         new OperationError(
-                            "One of the photos excced the size limit. the maximum size is 5MB.",
+                            `One of the photos excced the size limit. the maximum size is ${MAX_PROFILE_PIC_SIZE_MB}MB.`,
                             413
                         )
                     );

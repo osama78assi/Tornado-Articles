@@ -83,6 +83,7 @@ class User extends Model {
     // Get user by email or id (for auth meaning it will include password)
     static async getUserForAuth(getBy, isEmail = true) {
         try {
+            getBy = isEmail ? { email: getBy } : { id: getBy };
             const user = await this.findOne({
                 attributes: [
                     "id",
@@ -94,7 +95,7 @@ class User extends Model {
                     "brief",
                 ],
                 where: {
-                    email: getBy,
+                    ...getBy,
                 },
             });
 
@@ -131,14 +132,18 @@ class User extends Model {
 
     static async updateUserPassword(userId, newPassword) {
         try {
-            const user = await this.findByPk(userId);
-            if (!user) {
-                throw ErrorEnum.NO_USER_WITH_ID(userId);
-            }
+            const affectedRows = await this.update(
+                { password: newPassword },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
 
-            user.password = newPassword;
-            user.changed("password", true); // Force the changed password flag
-            await user.save(); // Will trigger beforeUpdate automatically
+            if (affectedRows[0] === 0) throw ErrorEnum.NO_USER_WITH_ID(userId);
+
+            return affectedRows;
         } catch (err) {
             throw err;
         }
@@ -146,15 +151,18 @@ class User extends Model {
 
     static async updateUserName(userId, newName) {
         try {
-            const user = await this.findByPk(userId);
-            if (!user) {
-                throw ErrorEnum.NO_USER_WITH_ID(userId);
-            }
+            const affectedRows = await this.update(
+                { fullName: newName },
+                {
+                    where: {
+                        id: userId,
+                    },
+                    returning: true,
+                }
+            );
+            if (affectedRows[0] === 0) throw ErrorEnum.NO_USER_WITH_ID(userId);
 
-            user.fullName = newName;
-            await user.save({
-                validate: true, // Run the validators
-            });
+            return affectedRows[1][0].dataValues.fullName;
         } catch (err) {
             throw err;
         }
@@ -364,7 +372,7 @@ class User extends Model {
     static async getFollowers(userId, offset = 0, limit = MIN_RESULTS) {
         // It's a good idea to add these two functions (getFollowers and getFollowings)
         // in FollowedFollwers model but that will cause a problem because users import FollowedFollower
-        
+
         ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
             // I want to include the followers but if I used User and include I no longer can user offset and limit
@@ -438,15 +446,22 @@ User.init(
             defaultValue: DataTypes.UUIDV4,
         },
         fullName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(50),
             validate: {
                 is: {
-                    args: /^[a-zA-Z0-9_-\s]+$/,
-                    msg: "Name must contain only letters, numbers, hyphens (-), whitespaces, or underscores (_).",
+                    args: /^[a-zA-Z0-9_\-\x20]+$/,
+                    msg: "Name must contain only letters, numbers, hyphens (-), whitespace, or underscores (_).",
                 },
-                len: {
-                    args: 4,
-                    msg: "Name length should be at least 4 characters",
+                lenWithNoSpaces(fullName) {
+                    if (
+                        fullName.trim().length < 4 ||
+                        fullName.trim().length > 50
+                    ) {
+                        throw new OperationError(
+                            "Name length should be at least 4 characters and at maximum 50 characters.",
+                            400
+                        );
+                    }
                 },
             },
             allowNull: false,
@@ -520,8 +535,8 @@ User.init(
                 try {
                     // Trim the spaces
                     user.fullName = user.fullName?.trim();
-                    user.email = user.email?.trim();
-                    user.gender = user.gender?.trim();
+                    user.email = user.email?.trim()?.toLowerCase();
+                    user.gender = user.gender?.trim()?.toLowerCase();
                     user.password = user.password?.trim();
 
                     // Custom password validation (run here before hashing)
@@ -534,19 +549,31 @@ User.init(
                     throw err;
                 }
             },
-            async beforeUpdate(user) {
+            async beforeBulkUpdate(options) {
                 try {
-                    // Check if the property password changed
-                    if (user.changed("password")) {
-                        validatePassword(user.password);
+                    // Check if the property password included in update statement
+                    if (options.fields.includes("password")) {
+                        validatePassword(options.attributes.password);
                         const salt = await bcrypt.genSalt(10);
-                        user.password = await bcrypt.hash(user.password, salt);
-                        user.changeDate = new Date(); // Save the time when password changes
+                        options.attributes.password = await bcrypt.hash(
+                            options.attributes.password,
+                            salt
+                        );
+                        options.attributes.changeDate = new Date(); // Save the time when password changes. Sequelize will inlude that in the update statement
                     }
 
                     // The email
-                    if (user.changed("email")) {
-                        user.changeDate = new Date(); // Save the time when email changes
+                    if (options.fields.includes("email")) {
+                        options.attributes.email = options.attributes.email
+                            ?.trim()
+                            ?.toLowerCase();
+                        options.attributes.changeDate = new Date(); // Save the time when email changes
+                    }
+
+                    // The full name
+                    if (options.fields.includes("fullName")) {
+                        options.attributes.fullName =
+                            options.attributes.fullName?.trim();
                     }
                 } catch (err) {
                     throw err;

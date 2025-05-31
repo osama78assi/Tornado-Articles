@@ -97,6 +97,23 @@ Category.init(
         sequelize,
         timestamps: true, // No need to updatedAt
         updatedAt: false,
+        hooks: {
+            beforeBulkCreate(categories) {
+                categories.forEach((category) => {
+                    category.dataValues.title = category.dataValues.title
+                        .trim()
+                        .toLocaleLowerCase();
+                });
+            },
+            beforeBulkUpdate(options) {
+                // To check if the title is included into update statement
+                if (options.fields.includes("title")) {
+                    options.attributes.title = options.attributes.title
+                        .trim()
+                        .toLocaleLowerCase();
+                }
+            },
+        },
     }
 );
 

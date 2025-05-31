@@ -12,7 +12,7 @@ ArticleImage.init(
                 key: "id",
             },
             onDelete: "CASCADE",
-            allowNull: false
+            allowNull: false,
         },
         image: {
             type: DataTypes.STRING(150),
@@ -22,6 +22,13 @@ ArticleImage.init(
     {
         sequelize,
         timestamps: false,
+        indexes: [
+            {
+                name: "article_id_articles_images_btree_index",
+                fields: ["articleId"],
+                using: "BTREE",
+            },
+        ],
     }
 );
 

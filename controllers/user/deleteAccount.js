@@ -8,7 +8,7 @@ const User = require("../../models/user");
  */
 async function deleteAccount(req, res, next) {
     try {
-        const { userId } = req?.userInfo?.id;
+        const userId = req?.userInfo?.id;
 
         await User.deleteUser(userId);
 

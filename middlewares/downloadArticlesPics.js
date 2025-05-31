@@ -2,6 +2,7 @@ const { Request, Response } = require("express");
 const upload = require("../config/articleImgsMulterConfig");
 const OperationError = require("../helper/operationError");
 const deleteFiles = require("../helper/deleteFiles");
+const { MAX_ARTICLE_PICS_SIZE_MB, MAX_ARTICLE_CONTENT_PICS_COUNT } = require("../config/settings");
 
 /**
  *{2}
@@ -13,7 +14,7 @@ async function downloadArticlesPics(req, res, next) {
         // The fields in upload will make the files attribute an objcet holding arrays of images
         upload.fields([
             { name: "coverPic", maxCount: 1 },
-            { name: "contentPics", maxCount: 5 },
+            { name: "contentPics", maxCount: MAX_ARTICLE_CONTENT_PICS_COUNT },
         ])(req, res, async function (err) {
             if (err) {
                 await deleteFiles(req?.files);
@@ -21,7 +22,7 @@ async function downloadArticlesPics(req, res, next) {
                     if (err.code === "LIMIT_FILE_SIZE") {
                         return next(
                             new OperationError(
-                                "One of the photos excced the size limit. the maximum size is 5MB.",
+                                `One of the photos (content/cover) excced the size limit. the maximum size is ${MAX_ARTICLE_PICS_SIZE_MB}MB.`,
                                 413
                             )
                         );

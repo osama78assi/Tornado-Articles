@@ -16,6 +16,8 @@ const ArticleImage = require("./articleImage");
 const Tag = require("./tag");
 const ArticleTag = require("./articleTag");
 const OperationError = require("../helper/operationError");
+const { MIN_RESULTS } = require("../config/settings");
+const normalizeOffsetLimit = require("../helper/normalizeOffsetLimit");
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -199,8 +201,8 @@ class Article extends Model {
                     {
                         // May not be used but let's get the images urls
                         model: ArticleImage,
-                        attributes: ['image'], // Only get the image
-                    }
+                        attributes: ["image"], // Only get the image
+                    },
                 ],
             });
 
@@ -211,6 +213,50 @@ class Article extends Model {
                 );
 
             return article;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getLatestArticles(offset = 0, limit = MIN_RESULTS) {
+        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
+        try {
+            const articles = await this.findAll({
+                attributes: [
+                    "id",
+                    "title",
+                    "createdAt",
+                    "coverImg",
+                    "language",
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT("articleId")
+                            FROM "Likes"
+                            WHERE "articleId" = "Artilce"."id"
+                        )`),
+                        "likesCount",
+                    ],
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT("articleId")
+                            FROM "Comments"
+                            WHERE "articleId" = "Article"."id"
+                        )`),
+                        "commentsCount",
+                    ],
+                ],
+                include: {
+                    // Get some info about the publisher
+                    model: User,
+                    attributes: ["id", "fullName", "profilePic", "gender"],
+                },
+
+                offset,
+                limit,
+                order: [["createdAt", "DESC"]],
+            });
+
+            return articles;
         } catch (err) {
             throw err;
         }
@@ -275,16 +321,30 @@ Article.init(
     {
         sequelize,
         timestamp: true,
+        indexes: [
+            {
+                name: "user_id_articles_btree_index", // Getting articles for a publisher is faster now
+                fields: ["userId", "createdAt"],
+                using: "BTREE",
+            },
+        ],
         hooks: {
             beforeCreate(article) {
                 // Trim the content and title
                 article.dataValues.title = article.dataValues.title.trim();
+                // Normalize the header
+                article.dataValues.title =
+                    article.dataValues.title.toLocaleLowerCase();
+
                 article.dataValues.content = article.dataValues.content.trim();
             },
             beforeUpdate(article) {
                 // Trim the content and title
-                if (article.changed("title"))
+                if (article.changed("title")) {
                     article.dataValues.title = article.dataValues.title.trim();
+                    article.dataValues.title =
+                        article.dataValues.title.toLocaleLowerCase();
+                }
                 if (article.changed("content"))
                     article.dataValues.content =
                         article.dataValues.content.trim();

@@ -1,10 +1,12 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../helper/operationError");
-const fs = require("fs/promises");
-const path = require("path");
-const isFileExists = require("../../helper/isFileExists");
 const Article = require("../../models/article");
 const deleteFiles = require("../../helper/deleteFiles");
+
+const {
+    MAX_CATEGORIES_ARTICLE_COUNT,
+    MAX_TAGS_ARTICLE_COUNT,
+} = require("../../config/settings");
 
 class ErrorEnums {
     static MISSING_TITLE = new OperationError(
@@ -18,6 +20,16 @@ class ErrorEnums {
 
     static INVALID_CATEGORIES = new OperationError(
         "Categories must be array",
+        400
+    );
+
+    static TOO_MANY_CATEGORIES = new OperationError(
+        `The article can have maximum ${MAX_CATEGORIES_ARTICLE_COUNT} categories.`,
+        400
+    );
+
+    static TOO_MANY_TAGS = new OperationError(
+        `The article can have maximum ${MAX_TAGS_ARTICLE_COUNT} tags.`,
         400
     );
 
@@ -40,11 +52,18 @@ async function publishArticle(req, res, next) {
             tags = [],
         } = req?.body || {};
 
+        // Normal validation
         if (title === null) return next(ErrorEnums.MISSING_TITLE);
         if (content === null) return next(ErrorEnums.MISSINGS_CONTENT);
+
+        // These fields must be arrays. even if one item
         if (!Array.isArray(categories))
             return next(ErrorEnums.INVALID_CATEGORIES);
         if (!Array.isArray(tags)) return next(ErrorEnums.INVALID_TAGS);
+
+        // These arrays got a limit btw
+        if (categories.length > MAX_CATEGORIES_ARTICLE_COUNT) return next(ErrorEnums.TOO_MANY_CATEGORIES);
+        if (tags.length > MAX_TAGS_ARTICLE_COUNT) return next(ErrorEnums.TOO_MANY_TAGS);
 
         // Get user Id
         const userId = req.userInfo.id;
