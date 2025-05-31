@@ -1,5 +1,5 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, QueryTypes } = require("sequelize");
+const { Model, DataTypes, QueryTypes, Op } = require("sequelize");
 
 class Tag extends Model {
     static async addTags(tags, transaction) {
@@ -18,6 +18,22 @@ class Tag extends Model {
             });
             return tagsData;
         } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getTagsByNames (tags) {
+        try {
+            const tagsData = await this.findAll({
+                where: {
+                    tagName: {
+                        [Op.in]: tags
+                    }
+                }
+            })
+
+            return tagsData;
+        } catch(err) {
             throw err;
         }
     }

@@ -76,7 +76,7 @@ class Article extends Model {
                     content,
                     private: isPrivate,
                     language,
-                    coverPic,
+                    coverImg: coverPic,
                     userId,
                     titleTsVector: sequelize.fn("to_tsvector", language, title),
                 },
@@ -113,7 +113,10 @@ class Article extends Model {
             // Now add the tags.
             if (tags.length !== 0) {
                 // Create the tags if not exists
-                const tagsData = await Tag.addTags(tags, t);
+                await Tag.addTags(tags, t);
+
+                // If one tag is existed then getting IDs from the previous function is usless
+                const tagsData = await Tag.getTagsByNames(tags);
 
                 // Create the zip
                 const zip = tagsData.map((tag) => {
