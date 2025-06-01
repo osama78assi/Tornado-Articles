@@ -1,8 +1,11 @@
 const { Request, Response } = require("express");
 const upload = require("../config/articleImgsMulterConfig");
-const OperationError = require("../helper/operationError");
-const deleteFiles = require("../helper/deleteFiles");
-const { MAX_ARTICLE_PICS_SIZE_MB, MAX_ARTICLE_CONTENT_PICS_COUNT } = require("../config/settings");
+const OperationError = require("../util/operationError");
+const deleteFiles = require("../util/deleteFiles");
+const {
+    MAX_ARTICLE_PICS_SIZE_MB,
+    MAX_ARTICLE_CONTENT_PICS_COUNT,
+} = require("../config/settings");
 
 /**
  *{2}

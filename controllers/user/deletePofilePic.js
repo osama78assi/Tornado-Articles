@@ -2,7 +2,7 @@ const { Request, Response } = require("express");
 const User = require("../../models/user");
 const fs = require("fs/promises");
 const path = require("path");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 
 /**
  *

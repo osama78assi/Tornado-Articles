@@ -1,7 +1,7 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes, Op } = require("sequelize");
 const Category = require("./category");
-const normalizeOffsetLimit = require("../helper/normalizeOffsetLimit");
+const normalizeOffsetLimit = require("../util/normalizeOffsetLimit");
 
 class UserPreference extends Model {
     static async addPreferredCategories(userId, categoriesIds) {
@@ -104,6 +104,7 @@ UserPreference.init(
                 key: "id",
             },
             primaryKey: true,
+            onDelete: "CASCADE", // When user deletes his/her account. Delete the preferences
         },
         categoryId: {
             type: DataTypes.UUID,
@@ -113,6 +114,7 @@ UserPreference.init(
                 key: "id",
             },
             primaryKey: true,
+            onDelete: "CASCADE", // When user deletes his/her account. Delete the preferences
         },
     },
     {
@@ -121,11 +123,9 @@ UserPreference.init(
     }
 );
 
-
 // Just to be able to get the categories from junction table
 UserPreference.belongsTo(Category, {
     foreignKey: "categoryId",
 });
-
 
 module.exports = UserPreference;

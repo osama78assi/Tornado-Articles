@@ -1,7 +1,7 @@
 const { Request, Response } = require("express");
 const PasswordToken = require("../../models/passwordToken");
 const crypto = require("crypto");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const User = require("../../models/user");
 
 class ErrorEnum {

@@ -15,9 +15,9 @@ const ArticleCategory = require("./articleCategory");
 const ArticleImage = require("./articleImage");
 const Tag = require("./tag");
 const ArticleTag = require("./articleTag");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 const { MIN_RESULTS } = require("../config/settings");
-const normalizeOffsetLimit = require("../helper/normalizeOffsetLimit");
+const normalizeOffsetLimit = require("../util/normalizeOffsetLimit");
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -115,15 +115,30 @@ class Article extends Model {
             // Now add the tags.
             if (tags.length !== 0) {
                 // Create the tags if not exists
-                await Tag.addTags(tags, t);
+                const tagsData = await Tag.addTags(tags, t);
 
-                // If one tag is existed then getting IDs from the previous function is usless
-                const tagsData = await Tag.getTagsByNames(tags);
+                // If one tag is existed we need its id because the previouse function return new id
+                const existedTags = await Tag.getTagsByNames(tags);
 
-                // Create the zip
-                const zip = tagsData.map((tag) => {
+                // Create the object to hold the data
+                const finalTags = {};
+
+                // tagName is unique so valid as object's keys
+                // Start from the created one because it contains all tags the user added
+                tagsData.forEach((tag) => {
+                    finalTags[tag.dataValues.tagName] = tag.dataValues.id; // Assign the tagName: tagId
+                });
+
+                existedTags.forEach((tag) => {
+                    finalTags[tag.dataValues.tagName] = tag.dataValues.id; // If the tag existed this will contain the correct id
+                });
+
+                console.log("\n\n###########", finalTags, "\n\n###########");
+
+                // Create the zip. Looping over values
+                const zip = Object.values(finalTags).map((tagId) => {
                     return {
-                        tagId: tag.dataValues.id,
+                        tagId,
                         articleId: article.dataValues.id,
                     };
                 });
@@ -149,7 +164,7 @@ class Article extends Model {
                     id: articleId,
                 },
                 attributes: {
-                    exclude: ["titleTsVector"],
+                    exclude: ["titleTsVector", "userId"],
                     include: [
                         [
                             // Comments count
@@ -231,8 +246,8 @@ class Article extends Model {
                     [
                         sequelize.literal(`(
                             SELECT COUNT("articleId")
-                            FROM "Likes"
-                            WHERE "articleId" = "Artilce"."id"
+                            FROM "ArticleLikes"
+                            WHERE "articleId" = "Article"."id"
                         )`),
                         "likesCount",
                     ],
@@ -248,6 +263,7 @@ class Article extends Model {
                 include: {
                     // Get some info about the publisher
                     model: User,
+                    as: "publisher",
                     attributes: ["id", "fullName", "profilePic", "gender"],
                 },
 
@@ -312,6 +328,7 @@ Article.init(
                 key: "id",
             },
             allowNull: false,
+            onDelete: "CASCADE", // When the user delete his/her account. Delete his/her articles
         },
         coverImg: {
             type: DataTypes.STRING(150),

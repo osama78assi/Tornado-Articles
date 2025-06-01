@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 

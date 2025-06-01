@@ -11,6 +11,7 @@ CommentLike.init(
                 model: "Users",
                 key: "id",
             },
+            onDelete: "CASCADE"
         },
         commentId: {
             type: DataTypes.UUID,
@@ -18,6 +19,7 @@ CommentLike.init(
                 model: "Comments",
                 key: "id",
             },
+            onDelete: "CASCADE"
         },
     },
     {

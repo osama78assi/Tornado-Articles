@@ -1,6 +1,6 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 
 class FollowedFollower extends Model {
     static async addFollower(followerId, followedId) {
@@ -46,6 +46,7 @@ FollowedFollower.init(
                 model: "Users",
                 key: "id",
             },
+            onDelete: "CASCADE"
         },
         followedId: {
             type: DataTypes.UUID,
@@ -53,6 +54,7 @@ FollowedFollower.init(
                 model: "Users",
                 key: "id",
             },
+            onDelete: "CASCADE"
         },
     },
     {

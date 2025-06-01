@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const crypto = require("crypto");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const User = require("../../models/user");
 const PasswordToken = require("../../models/passwordToken");
 const sendResetPassURL = require("../../services/sendResetPassURL");
@@ -12,7 +12,7 @@ const sendResetPassURL = require("../../services/sendResetPassURL");
  */
 async function forgetPassword(req, res, next) {
     try {
-        const { email=null } = req?.query || {};
+        const { email = null } = req?.query || {};
 
         if (email === null)
             return next(

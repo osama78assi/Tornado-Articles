@@ -1,6 +1,6 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes, where } = require("sequelize");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 const { MIN_RESULTS, MAX_RESULTS } = require("../config/settings");
 
 class Category extends Model {

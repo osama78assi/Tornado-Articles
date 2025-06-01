@@ -1,7 +1,7 @@
 const { Request, Response } = require("express");
 const User = require("../../models/user");
 const bcrypt = require("bcryptjs");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 
 class ErrorEnum {
     static INCORRECT_PASSWORD = new OperationError(
@@ -14,7 +14,10 @@ class ErrorEnum {
         400
     );
 
-    static SAME_PASSWORD = new OperationError("The new password is the same as old. Please choose another one", 400);
+    static SAME_PASSWORD = new OperationError(
+        "The new password is the same as old. Please choose another one",
+        400
+    );
 }
 
 /**
@@ -25,7 +28,7 @@ class ErrorEnum {
 async function resetPassword(req, res, next) {
     try {
         const { oldPassword = null, newPassword = null } = req?.body || {};
-        
+
         if (oldPassword === null || newPassword === null)
             return next(ErrorEnum.MISSING_DATA);
 
@@ -42,7 +45,8 @@ async function resetPassword(req, res, next) {
         if (!isCorrect) return next(ErrorEnum.INCORRECT_PASSWORD);
 
         // Check if the password is the same
-        if(await bcrypt.compare(newPassword, user.dataValues.password)) return next(ErrorEnum.SAME_PASSWORD);
+        if (await bcrypt.compare(newPassword, user.dataValues.password))
+            return next(ErrorEnum.SAME_PASSWORD);
 
         await User.updateUserPassword(userId, newPassword);
 

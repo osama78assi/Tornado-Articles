@@ -17,9 +17,6 @@ const downloadArticlesPics = require("../middlewares/downloadArticlesPics");
 
 const articleRouter = Router();
 
-// Anyone can get articles (home page for guests)
-articleRouter.get("/articles", getArticles); // WORKING
-
 // Anyone can get the articles for any user
 articleRouter.get("/articles/:userId", getArticlesFor); // TODO
 
@@ -65,6 +62,9 @@ articleRouter.post(
     downloadArticlesPics,
     publishArticle
 ); // DONE
+
+// Anyone can get articles (home page for guests)
+articleRouter.get("/articles", getArticles); // WORKING
 
 // Search by title
 articleRouter.get("/articles/search-by-title", searchForArticleBytTitle); // TODO

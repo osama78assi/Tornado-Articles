@@ -1,10 +1,10 @@
 const { Request, Response } = require("express");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const User = require("../../models/user");
 const jwt = require("jsonwebtoken");
 const fs = require("fs/promises");
 const path = require("path");
-const sanitize = require("../../helper/sanitize");
+const sanitize = require("../../util/sanitize");
 
 // Just for more readability
 class ErrorsEnum {

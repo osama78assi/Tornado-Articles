@@ -1,7 +1,7 @@
 const { Request, Response } = require("express");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const Article = require("../../models/article");
-const deleteFiles = require("../../helper/deleteFiles");
+const deleteFiles = require("../../util/deleteFiles");
 
 const {
     MAX_CATEGORIES_ARTICLE_COUNT,
@@ -62,8 +62,10 @@ async function publishArticle(req, res, next) {
         if (!Array.isArray(tags)) return next(ErrorEnums.INVALID_TAGS);
 
         // These arrays got a limit btw
-        if (categories.length > MAX_CATEGORIES_ARTICLE_COUNT) return next(ErrorEnums.TOO_MANY_CATEGORIES);
-        if (tags.length > MAX_TAGS_ARTICLE_COUNT) return next(ErrorEnums.TOO_MANY_TAGS);
+        if (categories.length > MAX_CATEGORIES_ARTICLE_COUNT)
+            return next(ErrorEnums.TOO_MANY_CATEGORIES);
+        if (tags.length > MAX_TAGS_ARTICLE_COUNT)
+            return next(ErrorEnums.TOO_MANY_TAGS);
 
         // Get user Id
         const userId = req.userInfo.id;

@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const Category = require("../../models/category");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 
 /**
  *

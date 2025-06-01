@@ -1,5 +1,7 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes, QueryTypes, Op } = require("sequelize");
+const OperationError = require("../util/operationError");
+const { normalizeTag, normalizeTags } = require("../util/normalizeTags");
 
 class Tag extends Model {
     static async addTags(tags, transaction) {
@@ -15,25 +17,30 @@ class Tag extends Model {
             const tagsData = await this.bulkCreate(zip, {
                 transaction,
                 ignoreDuplicates: true, // ON CONFLICT DO NOTHING
+                returning: true,
             });
+
             return tagsData;
         } catch (err) {
             throw err;
         }
     }
 
-    static async getTagsByNames (tags) {
+    static async getTagsByNames(tags) {
         try {
+            // Normalize the tags. To be able to find the tag
+            tags = normalizeTags(tags);
+
             const tagsData = await this.findAll({
                 where: {
                     tagName: {
-                        [Op.in]: tags
-                    }
-                }
-            })
+                        [Op.in]: tags,
+                    },
+                },
+            });
 
             return tagsData;
-        } catch(err) {
+        } catch (err) {
             throw err;
         }
     }
@@ -49,6 +56,12 @@ Tag.init(
         tagName: {
             type: DataTypes.STRING(50),
             allowNull: false,
+            validate: {
+                NotEmptyString(value) {
+                    if (value.length < 0)
+                        throw new OperationError("The tag must not be empty");
+                },
+            },
             // unique: true,
         },
     },
@@ -59,10 +72,19 @@ Tag.init(
         indexes: [
             {
                 name: "tag_name_btree_index",
-                fields: ['tagName'],
-                using: "BTREE"
-            }
-        ]
+                fields: ["tagName"],
+                using: "BTREE",
+            },
+        ],
+        hooks: {
+            beforeBulkCreate(tags) {
+                tags.forEach((tag) => {
+                    tag.dataValues.tagName = normalizeTag(
+                        tag.dataValues.tagName
+                    );
+                });
+            },
+        },
     }
 );
 

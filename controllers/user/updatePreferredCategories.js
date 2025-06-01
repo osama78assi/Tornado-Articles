@@ -1,7 +1,7 @@
 const { Request, Response } = require("express");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const User = require("../../models/user");
-const removeDuplicated = require("../../helper/removeDuplicated");
+const removeDuplicated = require("../../util/removeDuplicated");
 const UserPreference = require("../../models/userPreference");
 
 class ErrorEnum {

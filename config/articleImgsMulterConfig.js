@@ -1,5 +1,5 @@
 const multer = require("multer");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 const path = require("path");
 const { MAX_ARTICLE_PICS_SIZE_MB } = require("./settings");
 

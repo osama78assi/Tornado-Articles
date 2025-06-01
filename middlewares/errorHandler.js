@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
-const OperationError = require("../helper/operationError");
-const prettyError = require("../helper/prettyError");
+const OperationError = require("../util/operationError");
+const prettyError = require("../util/prettyError");
 
 /**
  *
@@ -14,7 +14,7 @@ function errorHandler(error, req, res, next) {
             message: error.message,
         });
     } else {
-        console.log(error)
+        console.log(error);
         if (process.env.NODE_ENV === "development") {
             res.status(500).json({
                 status: "error",

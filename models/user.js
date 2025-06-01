@@ -1,9 +1,9 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes, literal, Op } = require("sequelize");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
-const validatePassword = require("../helper/validatePassword");
+const validatePassword = require("../util/validatePassword");
 const { MIN_RESULTS } = require("../config/settings");
 
 // Models to add relations
@@ -14,7 +14,7 @@ const Category = require("./category");
 const FollowedFollower = require("./followedFollower");
 const Comment = require("./comment");
 const CommentLike = require("./commentLike");
-const normalizeOffsetLimit = require("../helper/normalizeOffsetLimit");
+const normalizeOffsetLimit = require("../util/normalizeOffsetLimit");
 
 class ErrorEnum {
     static USER_NOT_FOUND = new OperationError("User not found.", 404);

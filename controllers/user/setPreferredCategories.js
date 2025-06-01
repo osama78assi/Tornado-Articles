@@ -1,7 +1,7 @@
 const { Request, Response } = require("express");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const UserPreference = require("../../models/userPreference");
-const removeDuplicated = require("../../helper/removeDuplicated");
+const removeDuplicated = require("../../util/removeDuplicated");
 
 /**
  *

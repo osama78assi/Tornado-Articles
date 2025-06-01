@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const upload = require("../config/profilePicMulterConfig");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 const { MAX_PROFILE_PIC_SIZE_MB } = require("../config/settings");
 
 /**

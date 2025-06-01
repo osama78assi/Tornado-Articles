@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const User = require("../../models/user");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 
 /**
  *

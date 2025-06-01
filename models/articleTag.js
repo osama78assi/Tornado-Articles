@@ -19,7 +19,6 @@ ArticleTag.init(
                 model: "Tags",
                 key: "id",
             },
-            onDelete: "CASCADE",
         },
     },
     {

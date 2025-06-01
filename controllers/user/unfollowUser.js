@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const FollowedFollower = require("../../models/followedFollower");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 
 /**
  *
@@ -16,10 +16,7 @@ async function unfollowUser(req, res, next) {
         // The user can't follow gim/her self in the first place then how could they unfollow ?
         if (followedId === followerId)
             return next(
-                new OperationError(
-                    "The account can't follow itself.",
-                    400
-                )
+                new OperationError("The account can't follow itself.", 400)
             );
 
         await FollowedFollower.removeFollower(followerId, followedId);

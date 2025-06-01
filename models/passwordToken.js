@@ -1,6 +1,6 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
-const OperationError = require("../helper/operationError");
+const OperationError = require("../util/operationError");
 
 class PasswordToken extends Model {
     static async createToken(userId, tokenId) {
@@ -67,6 +67,7 @@ PasswordToken.init(
                 key: "id",
             },
             allowNull: false,
+            onDelete: "CASCADE"
         },
     },
     {

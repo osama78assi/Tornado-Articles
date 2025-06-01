@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const FollowedFollower = require("../../models/followedFollower");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 
 /**
  *
@@ -17,10 +17,7 @@ async function followUser(req, res, next) {
         // Self follow isn't allowed (like youtube you can subscribe with yourself)
         if (followerId === followedId)
             return next(
-                new OperationError(
-                    "The account can't follow itself.",
-                    400
-                )
+                new OperationError("The account can't follow itself.", 400)
             );
 
         // Add the follow

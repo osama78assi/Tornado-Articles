@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const OperationError = require("../../helper/operationError");
+const OperationError = require("../../util/operationError");
 const User = require("../../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -31,7 +31,7 @@ class ErrorsEnum {
  */
 async function signin(req, res, next) {
     try {
-        let { email=null, password=null } = req?.body || {};
+        let { email = null, password = null } = req?.body || {};
 
         // Some validation
         if (email === null) return next(ErrorsEnum.EMIAL_MISSING);
