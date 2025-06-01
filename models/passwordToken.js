@@ -1,53 +1,7 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
-const OperationError = require("../util/operationError");
 
-class PasswordToken extends Model {
-    static async createToken(userId, tokenId) {
-        try {
-            const passToken = await this.create({
-                tokenId,
-                userId,
-            });
-
-            return passToken;
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getTokenById(tokenId) {
-        try {
-            const passwordToken = await this.findByPk(tokenId);
-
-            if (passwordToken === null)
-                throw new OperationError(
-                    "There is no token with that ID.",
-                    404
-                );
-
-            return passwordToken;
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async deleteTokenById(tokenId) {
-        try {
-            const affectedRows = await this.destroy({ where: { tokenId } });
-
-            if (affectedRows === 0)
-                throw new OperationError(
-                    "Couldn't delete the token or it doesn't exist.",
-                    500
-                );
-
-            return affectedRows;
-        } catch (err) {
-            throw err;
-        }
-    }
-}
+class PasswordToken extends Model {}
 
 PasswordToken.init(
     {

@@ -1,42 +1,7 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
-const OperationError = require("../util/operationError");
 
-class FollowedFollower extends Model {
-    static async addFollower(followerId, followedId) {
-        try {
-            const data = await this.create({
-                followerId,
-                followedId,
-            });
-
-            return data;
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async removeFollower(followerId, followedId) {
-        try {
-            const affectedRows = await this.destroy({
-                where: {
-                    followerId,
-                    followedId,
-                },
-            });
-
-            if (affectedRows === 0)
-                throw new OperationError(
-                    "You already unfollowed this user.",
-                    400
-                );
-
-            return affectedRows;
-        } catch (err) {
-            throw err;
-        }
-    }
-}
+class FollowedFollower extends Model {}
 
 FollowedFollower.init(
     {

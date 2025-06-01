@@ -1,50 +1,9 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, QueryTypes, Op } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 const OperationError = require("../util/operationError");
-const { normalizeTag, normalizeTags } = require("../util/normalizeTags");
+const { normalizeTag } = require("../util/normalizeTags");
 
-class Tag extends Model {
-    static async addTags(tags, transaction) {
-        try {
-            // Create the zip
-            const zip = tags.map((tag) => {
-                return {
-                    tagName: tag,
-                };
-            });
-
-            // Let the one who passed the transaction controle it
-            const tagsData = await this.bulkCreate(zip, {
-                transaction,
-                ignoreDuplicates: true, // ON CONFLICT DO NOTHING
-                returning: true,
-            });
-
-            return tagsData;
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getTagsByNames(tags) {
-        try {
-            // Normalize the tags. To be able to find the tag
-            tags = normalizeTags(tags);
-
-            const tagsData = await this.findAll({
-                where: {
-                    tagName: {
-                        [Op.in]: tags,
-                    },
-                },
-            });
-
-            return tagsData;
-        } catch (err) {
-            throw err;
-        }
-    }
-}
+class Tag extends Model {}
 
 Tag.init(
     {
