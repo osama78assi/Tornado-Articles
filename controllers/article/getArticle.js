@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const Article = require("../../models/article");
+const ArticleService = require("../../dbServices/articleService");
 
 /**
  *
@@ -10,7 +10,7 @@ async function getArticle(req, res, next) {
     try {
         const {articleId} = req?.params;
 
-        const article = await Article.getArticleDetails(articleId);
+        const article = await ArticleService.getArticleDetails(articleId);
 
         if(article.dataValues.private) {
             return res.status(403).json({

@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const OperationError = require("../../util/operationError");
 
 /**
@@ -22,7 +22,7 @@ async function adminDeleteUser(req, res, next) {
             );
 
         // This step is dangerous operation you can add extra comfirm like sending the password or user name
-        await User.deleteUser(userId);
+        await UserService.deleteUser(userId);
 
         return res.status(200).json({
             status: "success",

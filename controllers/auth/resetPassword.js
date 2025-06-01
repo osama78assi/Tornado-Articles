@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const bcrypt = require("bcryptjs");
 const OperationError = require("../../util/operationError");
 
@@ -35,7 +35,7 @@ async function resetPassword(req, res, next) {
         // The user should be logged in
         const userId = req.userInfo.id;
 
-        const user = await User.getUserForAuth(userId, false);
+        const user = await UserService.getUserForAuth(userId, false);
 
         const isCorrect = await bcrypt.compare(
             oldPassword,
@@ -48,7 +48,7 @@ async function resetPassword(req, res, next) {
         if (await bcrypt.compare(newPassword, user.dataValues.password))
             return next(ErrorEnum.SAME_PASSWORD);
 
-        await User.updateUserPassword(userId, newPassword);
+        await UserService.updateUserPassword(userId, newPassword);
 
         // Logout the user
         res.clearCookie("token", {

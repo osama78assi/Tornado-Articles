@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const Category = require("../../models/category");
+const CategoryService = require("../../dbServices/categoryService");
 
 class ErrorEnum {
     static CATEGORIES_NOF_PROVIDED = new OperationError(
@@ -28,7 +28,7 @@ async function adminAddCategories(req, res, next) {
         if (!Array.isArray(titles))
             return next(ErrorEnum.INVALID_DATA_STRUCTURE);
 
-        const categories = await Category.addCategories(titles);
+        const categories = await CategoryService.addCategories(titles);
 
         return res.status(200).json({
             status: "success",

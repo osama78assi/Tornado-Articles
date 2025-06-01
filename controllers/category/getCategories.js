@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const { MIN_RESULTS } = require("../../config/settings");
-const Category = require("../../models/category");
+const CategoryService = require("../../dbServices/categoryService");
 
 /**
  *
@@ -11,7 +11,7 @@ async function getCategories(req, res, next) {
     try {
         const { offset = 0, limit = MIN_RESULTS } = req?.query;
 
-        const categories = await Category.getCategories(offset, limit);
+        const categories = await CategoryService.getCategories(offset, limit);
 
         return res.status(200).json({
             status: "success",

@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const UserPreference = require("../../models/userPreference");
+const UserPreferenceService = require("../../dbServices/userPreferenceService");
 const removeDuplicated = require("../../util/removeDuplicated");
 
 /**
@@ -26,7 +26,7 @@ async function setPreferredCategories(req, res, next) {
                 )
             );
 
-        const categoriesData = await UserPreference.addPreferredCategories(
+        const categoriesData = await UserPreferenceService.addPreferredCategories(
             userId,
             categories
         );

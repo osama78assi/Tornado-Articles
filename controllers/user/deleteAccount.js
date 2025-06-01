@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 
 /**
  *
@@ -10,7 +10,7 @@ async function deleteAccount(req, res, next) {
     try {
         const userId = req?.userInfo?.id;
 
-        await User.deleteUser(userId);
+        await UserService.deleteUser(userId);
 
         // Delete the token
         res.clearCookie("token", {

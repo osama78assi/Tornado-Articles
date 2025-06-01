@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 
 /**
  *
@@ -11,7 +11,7 @@ async function getUserDetails(req, res, next) {
         const { userId } = req?.params || {};
 
         // get the details
-        const user = await User.getUserDetails(userId);
+        const user = await UserService.getUserDetails(userId);
 
         return res.status(200).json({
             status: "success",

@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const jwt = require("jsonwebtoken");
 const fs = require("fs/promises");
 const path = require("path");
@@ -62,7 +62,7 @@ async function signup(req, res, next) {
         if (birthDate === null) return next(ErrorsEnum.BIRTH_DATE_MISSING);
         if (gender === null) return next(ErrorsEnum.GENDER_MISSING);
 
-        const user = await User.createUser(
+        const user = await UserService.createUser(
             fullName,
             email,
             password,

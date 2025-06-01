@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const FollowedFollower = require("../../models/followedFollower");
+const FollowingService = require("../../dbServices/followingService");
 const OperationError = require("../../util/operationError");
 
 /**
@@ -21,7 +21,7 @@ async function followUser(req, res, next) {
             );
 
         // Add the follow
-        await FollowedFollower.addFollower(followerId, followedId);
+        await FollowingService.addFollower(followerId, followedId);
 
         return res.status(200).json({
             status: "success",

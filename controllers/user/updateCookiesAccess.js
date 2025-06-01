@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 
 class ErrorEnum {
     static INVALID_DATA_TYPE = new OperationError(
@@ -23,7 +23,7 @@ async function updateCookiesAccess(req, res, next) {
 
         const userId = req.userInfo.id;
 
-        await User.updateCookieAccess(userId, allow);
+        await UserService.updateCookieAccess(userId, allow);
 
         return res.status(200).json({
             status: "success",

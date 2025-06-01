@@ -1,8 +1,7 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
 const removeDuplicated = require("../../util/removeDuplicated");
-const UserPreference = require("../../models/userPreference");
+const UserPreferenceService = require("../../dbServices/userPreferenceService");
 
 class ErrorEnum {
     static EMPTY_DATA = new OperationError(
@@ -37,7 +36,7 @@ async function updatePreferredCategories(req, res, next) {
         toDelete = removeDuplicated(toDelete);
         toAdd = removeDuplicated(toAdd);
 
-        await UserPreference.updatePreferredCategories(userId, toAdd, toDelete);
+        await UserPreferenceService.updatePreferredCategories(userId, toAdd, toDelete);
 
         return res.status(200).json({
             status: "success",

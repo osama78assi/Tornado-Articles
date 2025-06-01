@@ -1,8 +1,8 @@
 const { Request, Response } = require("express");
 const crypto = require("crypto");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
-const PasswordToken = require("../../models/passwordToken");
+const UserService = require("../../dbServices/userService");
+const PasswordTokenservice = require("../../dbServices/passwordTokenService");
 const sendResetPassURL = require("../../services/sendResetPassURL");
 
 /**
@@ -23,7 +23,7 @@ async function forgetPassword(req, res, next) {
             );
 
         // Get the user id
-        const { id, fullName } = await User.getUserForAuth(email);
+        const { id, fullName } = await UserService.getUserForAuth(email);
 
         // We will send the token to the user
         const token = crypto.randomBytes(32).toString("hex");
@@ -35,7 +35,7 @@ async function forgetPassword(req, res, next) {
             .digest("base64url");
 
         // Store the hashed one (to not allow anyone to know it except users)
-        await PasswordToken.createToken(id, hashedToken);
+        await PasswordTokenservice.createToken(id, hashedToken);
 
         // Send the token
         await sendResetPassURL(

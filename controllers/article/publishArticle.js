@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const Article = require("../../models/article");
+const ArticleService = require("../../dbServices/articleService");
 const deleteFiles = require("../../util/deleteFiles");
 
 const {
@@ -101,7 +101,7 @@ async function publishArticle(req, res, next) {
         }
 
         // Safe the document (due to the complex relationships I will made one query getting publisher, likes count and comments count)
-        const artilceId = await Article.publishArticle(
+        const artilceId = await ArticleService.publishArticle(
             userId,
             title,
             content,
@@ -114,7 +114,7 @@ async function publishArticle(req, res, next) {
         );
 
         // Because of getting the article is complex I separated them
-        const articleData = await Article.getArticleDetails(artilceId);
+        const articleData = await ArticleService.getArticleDetails(artilceId);
 
         return res.status(200).json({
             status: "success",

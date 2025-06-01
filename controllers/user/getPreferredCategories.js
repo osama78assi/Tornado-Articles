@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const { MIN_RESULTS } = require("../../config/settings");
-const UserPreference = require("../../models/userPreference");
+const UserPreferenceService = require("../../dbServices/userPreferenceService");
 
 /**
  *
@@ -13,7 +13,7 @@ async function getPreferredCategories(req, res, next) {
 
         const { offset = 0, limit = MIN_RESULTS } = req?.query || {};
 
-        const categories = await UserPreference.getPreferredCategories(
+        const categories = await UserPreferenceService.getPreferredCategories(
             userId,
             offset,
             limit

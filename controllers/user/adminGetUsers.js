@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const OperationError = require("../../util/operationError");
 const { MIN_RESULTS } = require("../../config/settings");
 
@@ -35,7 +35,7 @@ async function adminGetUsers(req, res, next) {
 
         const currentId = req.userInfo.id;
 
-        const users = await User.getUsersData(
+        const users = await UserService.getUsersData(
             offset,
             limit,
             sortBy,

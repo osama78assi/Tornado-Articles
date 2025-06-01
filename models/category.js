@@ -1,5 +1,5 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, where } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 const OperationError = require("../util/operationError");
 const { MIN_RESULTS, MAX_RESULTS } = require("../config/settings");
 

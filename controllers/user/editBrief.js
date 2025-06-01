@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 
 /**
  *
@@ -21,7 +21,7 @@ async function editBrief(req, res, next) {
             );
 
         // To delete the brief just pass empty string
-        await User.updateBrief(userId, newBrief === "" ? null : newBrief);
+        await UserService.updateBrief(userId, newBrief === "" ? null : newBrief);
 
         return res.status(200).json({
             status: "success",

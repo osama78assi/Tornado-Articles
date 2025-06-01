@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const FollowedFollower = require("../../models/followedFollower");
+const FolowingService = require("../../dbServices/followingService");
 const OperationError = require("../../util/operationError");
 
 /**
@@ -19,7 +19,7 @@ async function unfollowUser(req, res, next) {
                 new OperationError("The account can't follow itself.", 400)
             );
 
-        await FollowedFollower.removeFollower(followerId, followedId);
+        await FolowingService.removeFollower(followerId, followedId);
 
         return res.status(200).json({
             status: "success",

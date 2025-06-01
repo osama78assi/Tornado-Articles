@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const fs = require("fs/promises");
 const path = require("path");
 const OperationError = require("../../util/operationError");
@@ -13,7 +13,7 @@ async function deletePofilePic(req, res, next) {
     try {
         const userId = req.userInfo.id;
 
-        const profilePic = await User.getProfilePic(userId);
+        const profilePic = await UserService.getProfilePic(userId);
 
         if (profilePic === null) {
             return next(
@@ -29,7 +29,7 @@ async function deletePofilePic(req, res, next) {
 
         await fs.unlink(p);
 
-        await User.setProfilePhoto(userId, null);
+        await UserService.setProfilePhoto(userId, null);
 
         return res.status(200).json({
             status: "success",

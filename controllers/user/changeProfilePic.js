@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const fs = require("fs/promises");
 const path = require("path");
 const isFileExists = require("../../util/isFileExists");
@@ -22,10 +22,10 @@ async function changeProfilePic(req, res, next) {
         const userId = req.userInfo.id;
 
         // Get user photo if exists
-        const oldPhotoUrl = await User.getProfilePic(userId);
+        const oldPhotoUrl = await UserService.getProfilePic(userId);
 
         // Set the new photo
-        await User.setProfilePhoto(userId, newPic);
+        await UserService.setProfilePhoto(userId, newPic);
 
         // Remove the old profile pic if exists
         if (oldPhotoUrl !== null) {

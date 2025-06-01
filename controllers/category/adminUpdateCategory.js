@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const Category = require("../../models/category");
+const CategoryService = require("../../dbServices/categoryService");
 const OperationError = require("../../util/operationError");
 
 /**
@@ -21,7 +21,7 @@ async function adminUpdateCategory(req, res, next) {
                 )
             );
 
-        const newDoc = await Category.updateCategoryTitle(
+        const newDoc = await CategoryService.updateCategoryTitle(
             categoryId,
             categoryTitle
         );

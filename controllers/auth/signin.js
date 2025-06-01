@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
@@ -40,7 +40,7 @@ async function signin(req, res, next) {
         // Check the validation of the email
         if (!validator.isEmail(email)) return next(ErrorsEnum.INVALID_EMAIL);
 
-        const user = await User.getUserForAuth(email);
+        const user = await UserService.getUserForAuth(email);
 
         const isCorrect = await bcrypt.compare(
             password,

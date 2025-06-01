@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const Category = require("../../models/category");
+const CategoryService = require("../../dbServices/categoryService");
 
 /**
  *
@@ -10,7 +10,7 @@ async function adminDeleteCategory(req, res, next) {
     try {
         const {categoryId} = req?.params;
 
-        await Category.deleteCategory(categoryId);
+        await CategoryService.deleteCategory(categoryId);
 
         return res.status(200).json({
             status: "success",

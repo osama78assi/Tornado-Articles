@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 
 class ErrorEnum {
     static MISSING_NAME = new OperationError(
@@ -22,7 +22,7 @@ async function changeName(req, res, next) {
 
         if (newName === null) return next(ErrorEnum.MISSING_NAME);
 
-        const fullName = await User.updateUserName(userId, newName);
+        const fullName = await UserService.updateUserName(userId, newName);
 
         return res.status(200).json({
             status: "success",

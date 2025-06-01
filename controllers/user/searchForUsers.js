@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 const OperationError = require("../../util/operationError");
 const { MIN_RESULTS } = require("../../config/settings");
 
@@ -26,7 +26,7 @@ async function searchForUsers(req, res, next) {
         if (query === null) return next(ErrorEnum.INVALID_QUERY);
 
         // If the current user is logged in we wanna remove his account from here
-        let results = await User.searchByName(
+        let results = await UserService.searchByName(
             query,
             limit,
             offset,

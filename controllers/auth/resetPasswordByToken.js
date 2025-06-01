@@ -2,7 +2,7 @@ const { Request, Response } = require("express");
 const PasswordToken = require("../../models/passwordToken");
 const crypto = require("crypto");
 const OperationError = require("../../util/operationError");
-const User = require("../../models/user");
+const UserService = require("../../dbServices/userService");
 
 class ErrorEnum {
     static MISSING_PASSWORD = new OperationError(
@@ -43,7 +43,7 @@ async function resetPasswordByToken(req, res, next) {
             return next(ErrorEnum.EXPIRED_TOKEN);
 
         // Here the token is valid and existed. update the password
-        await User.updateUserPassword(
+        await UserService.updateUserPassword(
             passwordToken.dataValues.userId,
             newPassword
         );
