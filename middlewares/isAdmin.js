@@ -1,6 +1,6 @@
 const { Request, Response } = require("express");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const UserService = require("../dbServices/userService");
 const OperationError = require("../util/operationError");
 
 /**
@@ -11,11 +11,10 @@ const OperationError = require("../util/operationError");
  */
 async function isAdmin(req, res, next) {
     try {
-        const token = req.cookies.token;
         const id = req.userInfo.id;
 
         // Get the id
-        const user = await User.getUserById(id);
+        const user = await UserService.getUserById(id);
 
         if (user.dataValues.role === "user") {
             return next(new OperationError("You aren't admin man !", 401));

@@ -138,6 +138,12 @@ class articleService {
                 });
             }
 
+            // Increase the articles count by 1
+            await User.increment("articleCounts", {
+                where: { id: userId },
+                transaction: t,
+            });
+
             await t.commit();
             return article.dataValues.id;
         } catch (err) {

@@ -6,7 +6,6 @@ const validator = require("validator");
 const { MIN_RESULTS } = require("../config/settings");
 const FollowedFollower = require("../models/followedFollower");
 
-
 class ErrorEnum {
     static USER_NOT_FOUND = new OperationError("User not found.", 404);
 
@@ -28,7 +27,6 @@ class ErrorEnum {
         400
     );
 }
-
 
 class UserService {
     static async getUserById(id) {
@@ -182,34 +180,6 @@ class UserService {
             const userData = await User.findAll({
                 where: { id: userId },
                 attributes: {
-                    include: [
-                        [
-                            // Count how many followings (users this user follows)
-                            literal(`(
-                                    SELECT COUNT("followerId")
-                                    FROM "FollowedFollowers"
-                                    WHERE "FollowedFollowers"."followerId" = "User"."id"
-                                )`),
-                            "followingsCount",
-                        ],
-                        [
-                            // Count how many followers (users who follow this user)
-                            literal(`(
-                                    SELECT COUNT("followedId")
-                                    FROM "FollowedFollowers"
-                                    WHERE "FollowedFollowers"."followedId" = "User"."id"
-                                )`),
-                            "followersCount",
-                        ],
-                        [
-                            // Number of published artilces
-                            literal(`(
-                                    SELECT COUNT("userId") FROM "Articles"
-                                    WHERE "userId" = "User"."id"
-                                    )`),
-                            "articleCounts",
-                        ],
-                    ],
                     exclude: [
                         "role",
                         "allowCookies",
@@ -267,7 +237,7 @@ class UserService {
         offset = 0,
         limit = MIN_RESULTS,
         sortBy = "createdAt",
-        sortDir = "ASC",
+        sortDir = "DESC",
         exclude = null
     ) {
         ({ offset, limit } = normalizeOffsetLimit(offset, limit));
@@ -355,67 +325,6 @@ class UserService {
             );
 
             return affectedRows;
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    // Get who is follower of user X
-    static async getFollowers(userId, offset = 0, limit = MIN_RESULTS) {
-        // It's a good idea to add these two functions (getFollowers and getFollowings)
-        // in FollowedFollwers model but that will cause a problem because users import FollowedFollower
-
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
-        try {
-            // I want to include the followers but if I used User and include I no longer can user offset and limit
-            // So in this way I join 1:M between junction table (FollowedFollowers) with User table
-            // Where my wanted data lives and I can apply limit and offset easily
-            const followers = await FollowedFollower.findAll({
-                attributes: [],
-                where: {
-                    followedId: userId,
-                },
-                include: {
-                    model: User,
-                    as: "follower",
-                    attributes: ["id", "fullName", "profilePic", "gender"],
-                },
-                offset,
-                limit,
-            });
-
-            // Update the array. Send only the data for followers
-            return followers.map((follower) => {
-                return follower.dataValues.follower;
-            });
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    // Get who is followed by user X
-    static async getFollowings(userId, offset = 0, limit = MIN_RESULTS) {
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
-        try {
-            // Same as above
-            const followings = await FollowedFollower.findAll({
-                attributes: [],
-                where: {
-                    followerId: userId,
-                },
-                include: {
-                    model: User,
-                    as: "following",
-                    attributes: ["id", "fullName", "profilePic", "gender"],
-                },
-                offset,
-                limit,
-            });
-
-            // Update the array. Send only the data for followings
-            return followings.map((following) => {
-                return following.dataValues.following;
-            });
         } catch (err) {
             throw err;
         }

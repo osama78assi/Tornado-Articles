@@ -1,5 +1,5 @@
 const { Request, Response } = require("express");
-const UserService = require("../../dbServices/userService");
+const FollowingService = require("../../dbServices/followingService");
 const { MIN_RESULTS } = require("../../config/settings");
 
 /**
@@ -12,7 +12,7 @@ async function getFollowings(req, res, next) {
         const { userId } = req?.params;
         const { offset = 0, limit = MIN_RESULTS } = req?.query || {};
 
-        const followings = await UserService.getFollowings(userId, offset, limit);
+        const followings = await FollowingService.getFollowings(userId, offset, limit);
 
         return res.status(200).json({
             status: "success",

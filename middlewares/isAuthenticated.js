@@ -1,7 +1,7 @@
 const { Request, Response } = require("express");
 const OperationError = require("../util/operationError");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const UserService = require("../dbServices/userService");
 
 /**
  *
@@ -26,7 +26,7 @@ async function isAuthenticated(req, res, next) {
         );
 
         // Check if the user is exist in database
-        const user = await User.getUserById(payload?.id);
+        const user = await UserService.getUserById(payload?.id);
 
         // Check if there is something changed (Password or email)
         // When the date is after the initilize of the token

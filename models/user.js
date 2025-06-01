@@ -107,6 +107,28 @@ User.init(
             defaultValue: false,
             allowNull: false,
         },
+        followerCounts: {
+            // Reduce queries count
+            type: DataTypes.BIGINT,
+            defaultValue: 0,
+            validate: {
+                min: 0,
+            },
+        },
+        folloingCounts: {
+            type: DataTypes.BIGINT,
+            defaultValue: 0,
+            validate: {
+                min: 0,
+            },
+        },
+        articleCounts: {
+            type: DataTypes.BIGINT,
+            defaultValue: 0,
+            validate: {
+                min: 0,
+            },
+        },
     },
     {
         sequelize,

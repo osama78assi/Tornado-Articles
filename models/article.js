@@ -1,9 +1,5 @@
 const { sequelize } = require("../config/sequelize");
-const {
-    Model,
-    DataTypes,
-    QueryTypes,
-} = require("sequelize");
+const { Model, DataTypes, QueryTypes } = require("sequelize");
 
 // Models to add relations
 const User = require("./user");
@@ -71,6 +67,20 @@ Article.init(
         coverImg: {
             type: DataTypes.STRING(150),
             allowNull: true,
+        },
+        likeCounts: { // To reduce queries count
+            type: DataTypes.BIGINT,
+            validate: {
+                min: 0,
+            },
+            defaultValue: 0,
+        },
+        commentCounts: {
+            type: DataTypes.BIGINT,
+            validate: {
+                min: 0,
+            },
+            defaultValue: 0,
         },
     },
     {

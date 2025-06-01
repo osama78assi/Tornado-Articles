@@ -32,7 +32,10 @@ ArticleLike.init(
             {
                 // Fast for getting the likes by article id (and sorted by created at)
                 name: "article_id_like_btree_index",
-                fields: ["articleId", "createdAt"],
+                fields: [
+                    { name: "articleId" },
+                    { name: "createdAt", order: "DESC" },
+                ],
                 using: "BTREE",
             },
         ],
