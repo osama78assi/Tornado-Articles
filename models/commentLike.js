@@ -14,7 +14,7 @@ CommentLike.init(
             onDelete: "CASCADE"
         },
         commentId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Comments",
                 key: "id",

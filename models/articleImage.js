@@ -6,7 +6,7 @@ class ArticleImage extends Model {}
 ArticleImage.init(
     {
         articleId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Articles",
                 key: "id",

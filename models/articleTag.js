@@ -6,7 +6,7 @@ class ArticleTag extends Model {}
 ArticleTag.init(
     {
         articleId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Articles",
                 key: "id",

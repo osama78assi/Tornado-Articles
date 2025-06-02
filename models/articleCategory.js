@@ -8,7 +8,7 @@ class ArticleCategory extends Model {}
 ArticleCategory.init(
     {
         articleId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             primaryKey: true,
             references: {
                 model: 'Categories',

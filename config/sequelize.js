@@ -8,9 +8,7 @@ const sequelize = new Sequelize(
 async function connectDB() {
     try {
         await sequelize.authenticate();
-        // require("../models/associations");
         /*
-        it's up to you either make the relations in singel file or sperate them every one for a specific file
         these two require statements internall require
             1. users                      1
                 userPrefernces            2

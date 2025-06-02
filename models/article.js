@@ -101,11 +101,6 @@ Article.init(
         timestamp: true,
         indexes: [
             {
-                name: "user_id_articles_btree_index", // Getting articles for a publisher is faster now
-                fields: ["userId", "createdAt"],
-                using: "BTREE",
-            },
-            {
                 name: "like_counts_created_at_btree_index", // Getting posts for guests now is faster
                 fields: [
                     { name: "likeCounts", order: "DESC" },
