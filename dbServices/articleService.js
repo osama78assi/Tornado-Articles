@@ -160,26 +160,6 @@ class articleService {
                 },
                 attributes: {
                     exclude: ["titleTsVector", "userId"],
-                    include: [
-                        [
-                            // Comments count
-                            sequelize.literal(`(
-                                SELECT COUNT("articleId")
-                                FROM "Comments"
-                                WHERE "Comments"."articleId" = "Article"."id"
-                            )`),
-                            "commentCounts",
-                        ],
-                        [
-                            // Likes count
-                            sequelize.literal(`(
-                                    SELECT COUNT("articleId")
-                                    FROM "ArticleLikes"
-                                    WHERE "ArticleLikes"."articleId" = "Article"."id"
-                                )`),
-                            "likeCounts",
-                        ],
-                    ],
                 },
                 include: [
                     {
@@ -238,22 +218,6 @@ class articleService {
                     "createdAt",
                     "coverImg",
                     "language",
-                    [
-                        sequelize.literal(`(
-                                SELECT COUNT("articleId")
-                                FROM "ArticleLikes"
-                                WHERE "articleId" = "Article"."id"
-                            )`),
-                        "likesCount",
-                    ],
-                    [
-                        sequelize.literal(`(
-                                SELECT COUNT("articleId")
-                                FROM "Comments"
-                                WHERE "articleId" = "Article"."id"
-                            )`),
-                        "commentsCount",
-                    ],
                 ],
                 include: {
                     // Get some info about the publisher

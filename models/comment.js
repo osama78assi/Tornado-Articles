@@ -1,15 +1,16 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
+const generateSnowFlakeId = require("../config/snowFlake");
 
 class Comment extends Model {}
 
-// Here no one from the keys are primary because the user can comment many times to the same article
+// Here userId and articleId aren't unique because the user can comment many times to the same article
 
 Comment.init(
     {
         id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            type: DataTypes.BIGINT,
+            defaultValue: () => generateSnowFlakeId(),
             primaryKey: true,
         },
         content: {
@@ -46,14 +47,6 @@ Comment.init(
     {
         sequelize,
         timestamps: true,
-        indexes: [
-            {
-                // Fast for getting comments by article Id and sorted by created at
-                name: "articleId_comment_btree_index",
-                fields: ["articleId", "createdAt"],
-                using: "BTREE",
-            },
-        ],
     }
 );
 

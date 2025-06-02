@@ -1,5 +1,5 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, literal, Op } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 const OperationError = require("../util/operationError");
 const bcrypt = require("bcryptjs");
 const validatePassword = require("../util/validatePassword");
@@ -114,13 +114,15 @@ User.init(
             validate: {
                 min: 0,
             },
+            allowNull: false,
         },
-        folloingCounts: {
+        followingCounts: {
             type: DataTypes.BIGINT,
             defaultValue: 0,
             validate: {
                 min: 0,
             },
+            allowNull: false,
         },
         articleCounts: {
             type: DataTypes.BIGINT,
@@ -128,6 +130,7 @@ User.init(
             validate: {
                 min: 0,
             },
+            allowNull: false,
         },
     },
     {

@@ -1,5 +1,5 @@
 const { sequelize } = require("../config/sequelize");
-const { Model, DataTypes, QueryTypes } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 
 // Models to add relations
 const User = require("./user");
@@ -10,14 +10,15 @@ const ArticleCategory = require("./articleCategory");
 const ArticleImage = require("./articleImage");
 const Tag = require("./tag");
 const ArticleTag = require("./articleTag");
+const generateSnowFlakeId = require("../config/snowFlake");
 
 class Article extends Model {}
 
 Article.init(
     {
         id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            type: DataTypes.BIGINT,
+            defaultValue: () => generateSnowFlakeId(),
             primaryKey: true,
         },
         title: {
@@ -68,12 +69,14 @@ Article.init(
             type: DataTypes.STRING(150),
             allowNull: true,
         },
-        likeCounts: { // To reduce queries count
+        likeCounts: {
+            // To reduce queries count
             type: DataTypes.BIGINT,
             validate: {
                 min: 0,
             },
             defaultValue: 0,
+            allowNull: false,
         },
         commentCounts: {
             type: DataTypes.BIGINT,
@@ -81,6 +84,16 @@ Article.init(
                 min: 0,
             },
             defaultValue: 0,
+            allowNull: false,
+        },
+        minsToRead: {
+            // This will help in the recommendation system
+            type: DataTypes.INTEGER,
+            defaultValue: 5,
+            validate: {
+                min: 2,
+            },
+            allowNull: false,
         },
     },
     {
@@ -91,6 +104,13 @@ Article.init(
                 name: "user_id_articles_btree_index", // Getting articles for a publisher is faster now
                 fields: ["userId", "createdAt"],
                 using: "BTREE",
+            },
+            {
+                name: "like_counts_created_at_btree_index", // Getting posts for guests now is faster
+                fields: [
+                    { name: "likeCounts", order: "DESC" },
+                    { name: "createdAt", order: "DESC" },
+                ],
             },
         ],
         hooks: {
