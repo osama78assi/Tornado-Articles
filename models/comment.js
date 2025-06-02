@@ -27,7 +27,7 @@ Comment.init(
             allowNull: false,
         },
         articleId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Articles",
                 key: "id",
@@ -36,7 +36,7 @@ Comment.init(
             allowNull: false,
         },
         replyToId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: Comment,
                 key: "id",

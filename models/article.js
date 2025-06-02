@@ -4,7 +4,7 @@ const { Model, DataTypes } = require("sequelize");
 // Models to add relations
 const User = require("./user");
 const Category = require("./category");
-const ArticleLike = require("./articleLike");
+const ArticleScore = require("./articleScore");
 const Comment = require("./comment");
 const ArticleCategory = require("./articleCategory");
 const ArticleImage = require("./articleImage");
@@ -78,14 +78,6 @@ Article.init(
             defaultValue: 0,
             allowNull: false,
         },
-        commentCounts: {
-            type: DataTypes.BIGINT,
-            validate: {
-                min: 0,
-            },
-            defaultValue: 0,
-            allowNull: false,
-        },
         minsToRead: {
             // This will help in the recommendation system
             type: DataTypes.INTEGER,
@@ -95,16 +87,31 @@ Article.init(
             },
             allowNull: false,
         },
+        readCounts: {
+            type: DataTypes.BIGINT,
+            defaultValue: 0,
+            validate: {
+                min: 0,
+            },
+        },
+        score: {
+            type: DataTypes.BIGINT,
+            defaultValue: 0,
+        },
+        rank: {
+            // Will help in recommendation system
+            type: DataTypes.FLOAT,
+            defaultValue: 0,
+        },
     },
     {
         sequelize,
         timestamp: true,
         indexes: [
             {
-                name: "like_counts_created_at_btree_index", // Getting posts for guests now is faster
+                name: "rank_created_at_btree_index", // Getting posts for guests now is faster
                 fields: [
-                    { name: "likeCounts", order: "DESC" },
-                    { name: "createdAt", order: "DESC" },
+                    { name: "rank", order: "DESC" },
                 ],
             },
         ],
@@ -179,21 +186,17 @@ Tag.belongsToMany(Article, {
     foreignKey: "tagId",
 });
 
-/////////// Likes
-// Many-to-Many relation with users through likes
+/////////// Scores
+// Many-to-Many relation with users through scores
 Article.belongsToMany(User, {
-    through: ArticleLike,
+    through: ArticleScore,
     foreignKey: "articleId",
     otherKey: "userId",
 });
 
-// Maybe needed when user want to know where he added likes so we will get the article from the like
-// The relation between articles and like (mtm from users and articles through likes)
-ArticleLike.belongsTo(Article, { foreignKey: "articleId" }); // NO NEED
-
-// Many-to-many between users and aritcles through likes
+// Many-to-many between users and aritcles through scores
 User.belongsToMany(Article, {
-    through: ArticleLike,
+    through: ArticleScore,
     foreignKey: "userId",
     otherKey: "articleId",
 });

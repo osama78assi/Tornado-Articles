@@ -11,7 +11,7 @@ const PasswordToken = require("./passwordToken");
 const Category = require("./category");
 const FollowedFollower = require("./followedFollower");
 const Comment = require("./comment");
-const CommentLike = require("./commentLike");
+const CommentScore = require("./commentScore");
 
 class User extends Model {
     // To override the toJSON method and exclude the password attribute
@@ -250,16 +250,16 @@ Category.belongsToMany(User, {
     onDelete: "CASCADE",
 });
 
-//// Likes comments
+//// Scores comments
 // M:N between users and comments
 
 User.belongsToMany(Comment, {
-    through: CommentLike,
+    through: CommentScore,
     foreignKey: "userId",
 });
 
 Comment.belongsToMany(User, {
-    through: CommentLike,
+    through: CommentScore,
     foreignKey: "commentId",
 });
 

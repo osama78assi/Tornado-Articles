@@ -9,7 +9,9 @@ const ArticleService = require("../../dbServices/articleService");
  */
 async function getArticles(req, res, next) {
     try {
-        const {offset=0, limit=MIN_RESULTS} = req?.query;
+        // 1. If the first time query
+        // 2. second time take the 
+        const { limit=MIN_RESULTS, } = req?.query;
 
         const articles = await ArticleService.getLatestArticles(offset, limit);
 

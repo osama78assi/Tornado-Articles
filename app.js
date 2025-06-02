@@ -7,7 +7,6 @@ const OperationError = require("./util/operationError");
 const path = require("path");
 const userRoutes = require("./routes/userRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
-const tagRoutes = require("./routes/tagRoutes");
 
 let app = express();
 
@@ -24,12 +23,9 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRouter);
 // Article
 app.use("/api/v1", articleRouter);
-// app.use('/api/v1/admin/articles', articleRouter);
+
 // Comment
 // app.use('/api/v1/articles/:articleId/comment');
-
-// Like
-// app.use('/api/v1/articles/:aricleId/likes'); // Could have also /counts or /details
 
 // Categories I will just leave it here as it is because there is admin routes in this route
 app.use("/api/v1", categoryRoutes); // like admin/categories and /categories
@@ -41,9 +37,6 @@ app.use("/api/v1", userRoutes); // may have search so ?=''
 
 // Notifications
 // app.use('/api/v1/users/:userId/notifications')
-
-// Tags
-app.use("api/v1/tags", tagRoutes);
 
 // Static files like photos, Js, CSS and HTML
 app.use("/uploads", express.static(path.join(__dirname, "./uploads")));

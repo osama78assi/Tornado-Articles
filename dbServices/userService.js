@@ -1,10 +1,9 @@
 const User = require("../models/user");
 const normalizeOffsetLimit = require("../util/normalizeOffsetLimit");
-const { literal, Op } = require("sequelize");
+const { Op } = require("sequelize");
 const OperationError = require("../util/operationError");
 const validator = require("validator");
 const { MIN_RESULTS } = require("../config/settings");
-const FollowedFollower = require("../models/followedFollower");
 
 class ErrorEnum {
     static USER_NOT_FOUND = new OperationError("User not found.", 404);

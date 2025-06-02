@@ -1,9 +1,9 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
 
-class CommentLike extends Model {}
+class CommentScore extends Model {}
 
-CommentLike.init(
+CommentScore.init(
     {
         userId: {
             type: DataTypes.UUID,
@@ -11,7 +11,8 @@ CommentLike.init(
                 model: "Users",
                 key: "id",
             },
-            onDelete: "CASCADE"
+            onDelete: "CASCADE",
+            primaryKey: false
         },
         commentId: {
             type: DataTypes.BIGINT,
@@ -19,7 +20,8 @@ CommentLike.init(
                 model: "Comments",
                 key: "id",
             },
-            onDelete: "CASCADE"
+            onDelete: "CASCADE",
+            primaryKey: false
         },
     },
     {
@@ -28,12 +30,12 @@ CommentLike.init(
         updatedAt: false,
         indexes: [
             {
-                name: "comment_id_like_btree_index",
-                fields: ["commentId", "createdAt"],
+                name: "comment_id_score_btree_index", // to get comments faster
+                fields: ["commentId"],
                 using: "BTREE",
             },
         ],
     }
 );
 
-module.exports = CommentLike;
+module.exports = CommentScore;

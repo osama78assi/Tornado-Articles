@@ -1,11 +1,11 @@
 const { sequelize } = require("../config/sequelize");
 const { Model, DataTypes } = require("sequelize");
 
-class ArticleLike extends Model {}
+class ArticleScore extends Model {}
 
 // Both IDs are primary key because the article could only one like from the user
 
-ArticleLike.init(
+ArticleScore.init(
     {
         articleId: {
             type: DataTypes.BIGINT,
@@ -27,19 +27,18 @@ ArticleLike.init(
     {
         sequelize,
         timestamps: true,
-        updatedAt: false, // Like will never be updated
-        indexes: [
-            {
-                // Fast for getting the likes by article id (and sorted by created at)
-                name: "article_id_like_btree_index",
-                fields: [
-                    { name: "articleId" },
-                    { name: "createdAt", order: "DESC" },
-                ],
-                using: "BTREE",
-            },
-        ],
+        updatedAt: false, // score will never be updated
+        // indexes: [
+        //     {
+        //         // Fast for getting the likes by article id (and sorted by created at)
+        //         name: "article_id_like_btree_index",
+        //         fields: [
+        //             { name: "articleId" },
+        //         ],
+        //         using: "BTREE",
+        //     },
+        // ],
     }
 );
 
-module.exports = ArticleLike;
+module.exports = ArticleScore;
