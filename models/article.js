@@ -69,15 +69,6 @@ Article.init(
             type: DataTypes.STRING(150),
             allowNull: true,
         },
-        likeCounts: {
-            // To reduce queries count
-            type: DataTypes.BIGINT,
-            validate: {
-                min: 0,
-            },
-            defaultValue: 0,
-            allowNull: false,
-        },
         minsToRead: {
             // This will help in the recommendation system
             type: DataTypes.INTEGER,
@@ -87,14 +78,14 @@ Article.init(
             },
             allowNull: false,
         },
-        readCounts: {
+        readCounts: { // will help in recommendation system
             type: DataTypes.BIGINT,
             defaultValue: 0,
             validate: {
                 min: 0,
             },
         },
-        score: {
+        score: { // To reduce queries. Likes-Dislikes
             type: DataTypes.BIGINT,
             defaultValue: 0,
         },
@@ -109,6 +100,7 @@ Article.init(
         timestamp: true,
         indexes: [
             {
+                // There is two indexes here. in sequelize config file
                 name: "rank_created_at_btree_index", // Getting posts for guests now is faster
                 fields: [
                     { name: "rank", order: "DESC" },

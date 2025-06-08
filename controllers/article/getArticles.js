@@ -9,17 +9,29 @@ const ArticleService = require("../../dbServices/articleService");
  */
 async function getArticles(req, res, next) {
     try {
-        // 1. If the first time query
-        // 2. second time take the 
-        const { limit=MIN_RESULTS, } = req?.query;
+        const {
+            limit = MIN_RESULTS,
+            since = new Date().toISOString(), // default value current time for the server
+            reducedTimes = null,
+            lastPublisher = null,
+        } = req?.query;
 
-        const articles = await ArticleService.getLatestArticles(offset, limit);
+        // 1. If this is first time requesting then I don't have lastPublisher
+        if (lastPublisher === null) {
+            const articles = await ArticleService.getLatestArticlesGuests(
+                limit,
+                since,
+            );
 
-        return res.status(200).json({
-            status: "success",
-            data: articles
-        })
-    } catch(err) {
+            return res.status(200).json({
+                status: "success",
+                data: articles,
+            });
+        }
+
+        // 2. There is a last publisher id
+        
+    } catch (err) {
         next(err);
     }
 }

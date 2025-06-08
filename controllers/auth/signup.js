@@ -5,6 +5,9 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs/promises");
 const path = require("path");
 const sanitize = require("../../util/sanitize");
+const redis = require("../../config/redisConfig");
+const crypto = require("crypto");
+const testAuth = require("../../loggers/testingAuth");
 
 // Just for more readability
 class ErrorsEnum {
@@ -73,15 +76,50 @@ async function signup(req, res, next) {
         );
 
         // Sign in directly
-        // Divide by 1000 becuase jwt takes time in seconds
-        const token = jwt.sign({ id: user.id }, process.env.SECRET_STRING, {
-            expiresIn: +process.env.TOKEN_LIFE_TIME / 1000,
+        const jti = crypto.randomUUID(); // Json Token ID
+        const refreshToken = jwt.sign(
+            {
+                id: user.id,
+                jti,
+            },
+            process.env.REFRESH_SECRET_STRING,
+            {
+                expiresIn: +process.env.REFRESH_TOKEN_LIFE_TIME, // (30 day)
+            }
+        );
+
+        // Set the refresh token in the cookies
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            maxAge: +process.env.REFRESH_TOKEN_LIFE_TIME * 1000, // (ms)
+            // secure: true,
         });
 
-        // Set the token in the cookies
-        res.cookie("token", token, {
+        // Cache the refresh token to auto-reuse-detction
+        redis.set(
+            `refresh:${jti}`,
+            user.dataValues.id,
+            "EX",
+            +process.env.REFRESH_TOKEN_LIFE_TIME
+        ); // pass TTL is the time to live for the token
+
+        // For testing
+        testAuth("signup", jti, user.dataValues.id, refreshToken);
+
+        // Generate the access token
+        const accessToken = jwt.sign(
+            { id: user.dataValues.id },
+            process.env.ACCESS_SECRET_STRING,
+            {
+                expiresIn: +process.env.ACCESS_TOKEN_LIFE_TIME, // 15min
+            }
+        );
+
+        // Save it in httpOnly cookie
+        res.cookie("accessToken", accessToken, {
             httpOnly: true,
-            maxAge: +process.env.TOKEN_LIFE_TIME,
+            maxAge: +process.env.ACCESS_TOKEN_LIFE_TIME * 1000,
+            // secure: true,
         });
 
         // Delete some info
@@ -93,6 +131,7 @@ async function signup(req, res, next) {
             "birthDate",
         ]);
 
+        // Send the access token via data
         res.status(200).json({
             status: "success",
             data: user,

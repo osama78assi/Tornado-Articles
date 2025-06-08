@@ -9,6 +9,7 @@ const Category = require("../models/category");
 const OperationError = require("../util/operationError");
 const { MIN_RESULTS } = require("../config/settings");
 const normalizeOffsetLimit = require("../util/normalizeOffsetLimit");
+const { Op } = require("sequelize");
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -208,7 +209,11 @@ class articleService {
         }
     }
 
-    static async getLatestArticles(offset = 0, limit = MIN_RESULTS) {
+    static async getLatestArticlesGuests(
+        offset = 0,
+        limit = MIN_RESULTS,
+        since
+    ) {
         ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
             const articles = await Article.findAll({
@@ -218,6 +223,7 @@ class articleService {
                     "createdAt",
                     "coverImg",
                     "language",
+                    "minsToRead",
                 ],
                 include: {
                     // Get some info about the publisher
@@ -225,10 +231,18 @@ class articleService {
                     as: "publisher",
                     attributes: ["id", "fullName", "profilePic", "gender"],
                 },
-
+                where: {
+                    private: false,
+                    createdAt: {
+                        [Op.lte]: since,
+                    },
+                },
                 offset,
                 limit,
-                order: [["createdAt", "DESC"]],
+                order: [
+                    ["rank", "DESC"],
+                    ["createdAt", "DESC"],
+                ],
             });
 
             return articles;

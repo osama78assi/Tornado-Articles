@@ -39,6 +39,7 @@ async function connectDB() {
     }
 }
 
+// Add GIN index in article's title for fast search
 async function addGinIndex() {
     try {
         // Enable pg_trgm extension to be able to use GIN index for flexible searching in titles
@@ -61,6 +62,21 @@ async function dropGinIndex() {
         await sequelize.query(`DROP INDEX IF EXISTS article_title_trgm_idx;`);
     } catch (err) {
         console.log(err);
+    }
+}
+
+// Add partial index in table articles for public
+// articles to make their query faster
+async function addPartialIndexArticle() {
+    try {
+        // This will be very helpfull in guests
+        await sequelize.query(`
+            CREATE INDEX IF NOT EXISTS "public_artilce_btree_index"
+            ON "Articles" (rank DESC, "createdAt" DESC)
+            WHERE private = false;
+        `)
+    } catch(err) {
+        console.log(err)
     }
 }
 
