@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const User = require("../modules/authenticationAuthorization/models/authUser");
 const normalizeOffsetLimit = require("../util/normalizeOffsetLimit");
 const { Op } = require("sequelize");
 const OperationError = require("../util/operationError");

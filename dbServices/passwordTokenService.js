@@ -1,4 +1,4 @@
-const PasswordToken = require("../models/passwordToken");
+const PasswordToken = require("../modules/authenticationAuthorization/models/passwordToken");
 const OperationError = require("../util/operationError");
 
 class ErrorEnums {
