@@ -1,6 +1,5 @@
-const fs = require("fs/promises");
-const path = require("path");
-const isFileExists = require("./isFileExists");
+import { unlink } from "fs/promises";
+import { join } from "path";
 
 /**
  *
@@ -10,8 +9,8 @@ async function deleteFiles(files) {
     // Delete cover image if exists
     const fileName = files?.coverPic?.[0]?.filename;
     if (fileName) {
-        const p = path.join(__dirname, "../uploads/articles", fileName);
-        await fs.unlink(p);
+        const p = join(__dirname, "../uploads/articles", fileName);
+        await unlink(p);
     }
 
     // Content pics
@@ -21,15 +20,15 @@ async function deleteFiles(files) {
         await Promise.all(
             contentPics?.map(async (file) => {
                 const fileName = file?.filename;
-                const p = path.join(
+                const p = join(
                     __dirname,
                     "../uploads/articles",
                     fileName
                 );
-                await fs.unlink(p);
+                await unlink(p);
             })
         );
     }
 }
 
-module.exports = deleteFiles;
+export default deleteFiles;

@@ -1,4 +1,4 @@
-const OperationError = require("./operationError");
+import OperationError from "./operationError";
 
 function validatePassword(password) {
     if (password.length < 8) {
@@ -30,4 +30,4 @@ function validatePassword(password) {
     }
 }
 
-module.exports = validatePassword;
+export default validatePassword;

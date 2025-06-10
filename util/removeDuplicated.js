@@ -1,11 +1,11 @@
-function removeDuplicated(arr, visited = {}) {
+function removeDuplicated(arr, visited = new Map()) {
     return arr.filter((item) => {
-        if (visited[item]) return false;
+        if (visited.get(item)) return false;
         else {
-            visited[item] = 1;
+            visited.set(item, 1);
             return item;
         }
     });
 }
 
-module.exports = removeDuplicated;
+export default removeDuplicated;

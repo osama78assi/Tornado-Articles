@@ -4,7 +4,7 @@
 // up to 4096 ID at the same millisecond but if the application got high traffic
 // we could reuse the same IDs for article and comment for example
 
-const FlakeId = require("flake-idgen");
+import FlakeId from "flake-idgen";
 
 // To transfer BIGINT to sequelize safely. And because FlakeId return a buffer
 function intFormat(buffer) {
@@ -27,4 +27,4 @@ function generateSnowFlakeId() {
     return intFormat(flakeIdGen.next());
 }
 
-module.exports = generateSnowFlakeId;
+export default generateSnowFlakeId;

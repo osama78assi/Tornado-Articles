@@ -1,9 +1,9 @@
-const multer = require("multer");
-const OperationError = require("../util/operationError");
-const path = require("path");
-const { MAX_PROFILE_PIC_SIZE_MB } = require("./settings");
+import multer, { diskStorage } from "multer";
+import { extname, join } from "path";
+import OperationError from "../util/operationError";
+import { MAX_PROFILE_PIC_SIZE_MB } from "./settings";
 
-const storage = multer.diskStorage({
+const storage = diskStorage({
     destination: function (req, file, cb) {
         // Reject the file if it's not an image
         if (!file.mimetype.startsWith("image/")) {
@@ -13,10 +13,10 @@ const storage = multer.diskStorage({
             );
         }
 
-        cb(null, path.join(__dirname, "../uploads/profilePics"));
+        cb(null, join(__dirname, "../uploads/profilePics"));
     },
     filename: function (req, file, cb) {
-        const ext = path.extname(file.originalname); // Keep original extension
+        const ext = extname(file.originalname); // Keep original extension
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
         cb(null, uniqueSuffix + ext);
     },
@@ -29,4 +29,4 @@ const upload = multer({
     },
 });
 
-module.exports = upload;
+export default upload;

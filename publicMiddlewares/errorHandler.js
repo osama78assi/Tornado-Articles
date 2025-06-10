@@ -1,6 +1,6 @@
-const { Request, Response } = require("express");
-const OperationError = require("../util/operationError");
-const prettyError = require("../util/prettyError");
+import { Request, Response } from "express";
+import OperationError from "../util/operationError";
+import prettyError from "../util/prettyError";
 
 /**
  *
@@ -27,4 +27,4 @@ function errorHandler(error, req, res, next) {
     }
 }
 
-module.exports = errorHandler;
+export default errorHandler;

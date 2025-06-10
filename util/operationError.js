@@ -1,11 +1,11 @@
 // The operation error is error that not related to syntax errors. Like missing values to create article
 class OperationError extends Error {
-    constructor(message, statusCode, code=1) {
+    constructor(message, statusCode, code) {
         super(message);
         this.statusCode = statusCode;
-        this.status = "error";
-        this.code = code
+        this.success = false
+        this.code = code;
     }
 }
 
-module.exports = OperationError;
+export default OperationError;

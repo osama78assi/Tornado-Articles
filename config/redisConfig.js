@@ -1,4 +1,4 @@
-const Redis = require("ioredis");
+import Redis from "ioredis";
 
 // Connect to the database in memory. the one that hosted in the provided host and port
 const redis = new Redis({
@@ -14,4 +14,4 @@ redis.on("error", (err) => {
     console.log(err);
 });
 
-module.exports = redis;
+export default redis;

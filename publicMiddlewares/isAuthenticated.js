@@ -1,7 +1,7 @@
-const { Request, Response } = require("express");
-const OperationError = require("../util/operationError");
-const jwt = require("jsonwebtoken");
-const UserService = require("../dbServices/userService");
+import  { Request, Response } from "express";
+import  OperationError from "../util/operationError";
+import  jwt from "jsonwebtoken";
+import  UserService from "../dbServices/userService";
 
 class ErrorsEnum {
     static NO_TOKEN = new OperationError(
@@ -49,10 +49,7 @@ async function isAuthenticated(req, res, next) {
         }
 
         // Verfiy the token
-        const payload = jwt.verify(
-            token,
-            process.env.SECRET_STRING
-        );
+        const payload = jwt.verify(token, process.env.SECRET_STRING);
 
         // Check if the user is exist in database
         const user = await UserService.getUserById(payload?.id);
@@ -80,4 +77,4 @@ async function isAuthenticated(req, res, next) {
     }
 }
 
-module.exports = isAuthenticated;
+export default isAuthenticated;

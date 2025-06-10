@@ -1,12 +1,12 @@
-const fs = require('fs/promises')
+import { access } from 'fs/promises';
 
 async function isFileExists(path) {
     try {
-        await fs.access(path);
+        await access(path);
         return true
     } catch(err) {
         return false;
     }
 }
 
-module.exports = isFileExists;
+export default isFileExists;

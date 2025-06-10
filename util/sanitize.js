@@ -3,4 +3,4 @@ function sanitize(queryObject, fields=[]) {
         delete queryObject.dataValues[fields[i]];
 }
 
-module.exports = sanitize
+export default sanitize

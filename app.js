@@ -1,12 +1,12 @@
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const errorHandler = require("./middlewares/errorHandler");
-const authRouter = require("./routes/authRoutes");
-const articleRouter = require("./routes/artcileRoutes");
-const OperationError = require("./util/operationError");
-const path = require("path");
-const userRoutes = require("./routes/userRoutes");
-const categoryRoutes = require("./routes/categoryRoutes");
+import cookieParser from "cookie-parser";
+import express from "express";
+import path from "path";
+import errorHandler from "./middlewares/errorHandler";
+import articleRouter from "./src/tornadoArticles/routes/artcileRoutes";
+import categoryRoutes from "./src/tornadoArticles/routes/categoryRoutes";
+import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes";
+import authRouter from "./src/authenticationAuthorization/route/authRoutes";
+import OperationError from "./util/operationError";
 
 let app = express();
 
@@ -31,7 +31,7 @@ app.use("/api/v1", articleRouter);
 app.use("/api/v1", categoryRoutes); // like admin/categories and /categories
 
 // Users
-app.use("/api/v1", userRoutes); // may have search so ?=''
+app.use("/api/v1", TornadoUserRoutes); // may have search so ?=''
 // It have two things admin can block users
 // api/v1/admin/users or api/v1/users
 
@@ -54,4 +54,4 @@ app.all("{/*root}", function (req, res, next) {
 // Error handler middleware
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

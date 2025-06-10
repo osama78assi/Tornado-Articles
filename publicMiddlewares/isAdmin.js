@@ -1,7 +1,6 @@
-const { Request, Response } = require("express");
-const jwt = require("jsonwebtoken");
-const UserService = require("../dbServices/userService");
-const OperationError = require("../util/operationError");
+import { Request, Response } from "express";
+import UserService from "../dbServices/userService";
+import OperationError from "../util/operationError";
 
 /**
  *
@@ -26,4 +25,4 @@ async function isAdmin(req, res, next) {
     }
 }
 
-module.exports = isAdmin;
+export default isAdmin;

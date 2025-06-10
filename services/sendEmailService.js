@@ -11,4 +11,4 @@ async function sendMail(transporter, mailOptions) {
     });
 }
 
-module.exports = sendMail;
+export default sendMail;

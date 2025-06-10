@@ -1,4 +1,4 @@
-const { MIN_RESULTS, MAX_RESULTS } = require("../config/settings");
+import { MIN_RESULTS, MAX_RESULTS } from "../config/settings";
 
 function normalizeOffsetLimit(offset, limit) {
     return {

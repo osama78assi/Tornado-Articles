@@ -1,11 +1,7 @@
-const nodemailer = require("nodemailer");
-const sendEmailService = require("./sendEmailService");
+import nodemailer from "nodemailer";
+import sendEmailService from "./sendEmailService";
 
-async function sendResetPassURL(
-    { userName, userEmail },
-    auth,
-    resetToken
-) {
+async function sendResetPassURL({ userName, userEmail }, auth, resetToken) {
     try {
         // Create a transporter
         const transporter = nodemailer.createTransport({
@@ -47,4 +43,4 @@ async function sendResetPassURL(
     }
 }
 
-module.exports = sendResetPassURL;
+export default sendResetPassURL;

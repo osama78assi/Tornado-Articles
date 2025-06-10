@@ -1,6 +1,6 @@
-const { Request, Response } = require("express");
-const jwt = require("jsonwebtoken");
-const User = require("../modules/authenticationAuthorization/models/user");
+import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import User from "../modules/authenticationAuthorization/models/user";
 
 /**
  *
@@ -60,4 +60,4 @@ async function isLoggedIn(req, res, next) {
     }
 }
 
-module.exports = isLoggedIn;
+export default isLoggedIn;

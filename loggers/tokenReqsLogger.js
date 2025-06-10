@@ -1,5 +1,5 @@
-const path = require("path");
-const fs = require("fs");
+import fs from "fs";
+import path from "path";
 
 // When someone is trying to request for refresh token. I will block him by the way
 // But logging that to a file can be really usefull
@@ -21,4 +21,4 @@ function tokenReqsLogger(userId, ip, requestedAt, isFirstTime = false) {
     );
 }
 
-module.exports = tokenReqsLogger;
+export default tokenReqsLogger;
