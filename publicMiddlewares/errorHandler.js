@@ -1,23 +1,23 @@
-import { Request, Response } from "express";
-import OperationError from "../util/operationError";
-import prettyError from "../util/prettyError";
+import APIError from "../util/APIError.js";
+import prettyError from "../util/prettyError.js";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 function errorHandler(error, req, res, next) {
-    if (error instanceof OperationError) {
+    if (error instanceof APIError) {
         res.status(error.statusCode).json({
-            status: error.status,
+            success: error.success,
             message: error.message,
+            code: error.code
         });
     } else {
         console.log(error);
         if (process.env.NODE_ENV === "development") {
             res.status(500).json({
-                status: "error",
+                success: false,
                 ...error,
             });
         } else {

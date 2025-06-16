@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../../../config/sequelize";
-import generateSnowFlakeId from "../../../config/snowFlake";
-import OperationError from "../../../util/operationError";
+import { sequelize } from "../../../config/sequelize.js";
+import generateSnowFlakeId from "../../../config/snowFlake.js";
+import APIError from "../../../util/APIError.js";
 
 class Article extends Model {}
 
@@ -18,7 +18,7 @@ Article.init(
             validate: {
                 isLargeEnough(title) {
                     if (title.length < 5) {
-                        throw new OperationError(
+                        throw new APIError(
                             "Article title should at least made of 5 chars",
                             400,
                             "SHORT_TITLE"
@@ -42,7 +42,7 @@ Article.init(
             validate: {
                 isLargeEnough(title) {
                     if (title.length < 10) {
-                        throw new OperationError(
+                        throw new APIError(
                             "Title content should be at least made of 10 chars",
                             400,
                             "SHORT_CONTENT"

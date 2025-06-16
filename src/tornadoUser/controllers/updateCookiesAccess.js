@@ -1,9 +1,8 @@
-import { Request, Response } from "express";
-import OperationError from "../../../util/operationError";
-import TornadoUserService from "../services/tornadoUserService";
+import APIError from "../../../util/APIError.js";
+import TornadoUserService from "../services/tornadoUserService.js";
 
 class ErrorEnum {
-    static INVALID_DATA_TYPE = new OperationError(
+    static INVALID_DATA_TYPE = new APIError(
         "Please provide 'allow'. It field must be either true or false",
         400,
         "INVALID_ALLOW_FIELD"
@@ -12,8 +11,8 @@ class ErrorEnum {
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function updateCookiesAccess(req, res, next) {
     try {

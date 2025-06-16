@@ -1,11 +1,10 @@
-import { Request, Response } from "express";
-import OperationError from "../../../util/operationError";
-import FolowingService from "../services/followingService";
+import APIError from "../../../util/APIError.js";
+import FolowingService from "../services/followingService.js";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function unfollowUser(req, res, next) {
     try {
@@ -16,7 +15,7 @@ async function unfollowUser(req, res, next) {
         // The user can't follow gim/her self in the first place then how could they unfollow ?
         if (followedId === followerId)
             return next(
-                new OperationError(
+                new APIError(
                     "The account can't unfollow itself.",
                     400,
                     "WRONG_FOLLOWING"

@@ -1,11 +1,10 @@
-import { Request, Response } from "express";
-import OperationError from "../../../util/operationError";
-import TornadoUserService from "../services/tornadoUserService";
+import APIError from "../../../util/APIError.js";
+import TornadoUserService from "../services/tornadoUserService.js";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function editBrief(req, res, next) {
     try {
@@ -14,7 +13,7 @@ async function editBrief(req, res, next) {
 
         if (newBrief === null)
             return next(
-                new OperationError(
+                new APIError(
                     "Please provide the new brief to edit it.",
                     400,
                     "MISSING_BRIEF"

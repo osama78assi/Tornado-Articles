@@ -1,11 +1,10 @@
-import { Request, Response } from "express";
-import { MIN_RESULTS } from "../../../config/settings";
-import UserPreferenceService from "../services/userPreferenceService";
+import { MIN_RESULTS } from "../../../config/settings.js";
+import UserPreferenceService from "../services/userPreferenceService.js";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function getPreferredCategories(req, res, next) {
     try {

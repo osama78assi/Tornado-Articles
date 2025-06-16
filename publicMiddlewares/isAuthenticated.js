@@ -1,58 +1,55 @@
-import  { Request, Response } from "express";
-import  OperationError from "../util/operationError";
-import  jwt from "jsonwebtoken";
-import  UserService from "../dbServices/userService";
+import jwt from "jsonwebtoken";
+import TornadoUserService from "../src/tornadoUser/services/tornadoUserService.js";
+import APIError from "../util/APIError.js";
 
 class ErrorsEnum {
-    static NO_TOKEN = new OperationError(
+    static NO_TOKEN = new APIError(
         "Authentication required. Please log in to access this source",
-        401
+        401,
+        "UNATHUNTICATED"
     );
-    static CHANGES_HAPPENED = new OperationError(
+    static CHANGES_HAPPENED = new APIError(
         "Some changes happened to the user data. The token is no longer valid. Please login again",
-        401
+        401,
+        "USER_DATA_CHANGED"
     );
-    static EXPIRED_TOKEN = new OperationError(
-        "Token has expired. Please request for access token.",
-        401
+    static EXPIRED_TOKEN = new APIError(
+        "Token has expired. Please send request for new access token.",
+        401,
+        "ACCESS_TOKEN_EXPIRED"
     );
-    static INVALID_TOKEN = new OperationError(
+    static INVALID_TOKEN = new APIError(
         "Invalid token. Please login again before requesting",
-        401
-    );
-    static INALID_HEADER = new OperationError(
-        "Header violate standard. the token should be sent with prefix Barrer",
-        417 // Expectation Failed
+        401,
+        "INVALID_ACCESS_TOKEN"
     );
 }
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function isAuthenticated(req, res, next) {
+    const refreshToken = req?.cookies?.refreshToken || null;
+
     try {
-        let authorization = req.get("Authorization");
-
-        if (authorization === undefined) return next(ErrorsEnum.NO_TOKEN);
-
-        // Check if it's Barrer
-        const { barrer, token = null } = authorization.split(" ");
-
-        if (barrer !== "Barrer") {
-            return next(ErrorsEnum.INALID_HEADER);
-        }
-
-        if (token === null) {
+        const token = req?.cookies?.accessToken || null;
+        
+        if (token === null && refreshToken === null) {
             return next(ErrorsEnum.NO_TOKEN);
+        }
+        
+        // Check the refresh to know if it's not really authenticated
+        if(token === null && refreshToken !== null) {
+            return next(ErrorsEnum.EXPIRED_TOKEN)
         }
 
         // Verfiy the token
-        const payload = jwt.verify(token, process.env.SECRET_STRING);
+        const payload = jwt.verify(token, process.env.ACCESS_SECRET_STRING);
 
         // Check if the user is exist in database
-        const user = await UserService.getUserById(payload?.id);
+        const user = await TornadoUserService.getUserById(payload?.id);
 
         // Check if there is something changed (Password or email)
         // When the date is after the initilize of the token
@@ -67,9 +64,16 @@ async function isAuthenticated(req, res, next) {
         };
         return next();
     } catch (err) {
-        if (err instanceof jwt.TokenExpiredError) {
+        // When the access token is expired and there is a refresh token
+        if (
+            err instanceof jwt.TokenExpiredError ||
+            (err instanceof jwt.JsonWebTokenError && refreshToken !== null)
+        ) {
             next(ErrorsEnum.EXPIRED_TOKEN);
-        } else if (err instanceof jwt.JsonWebTokenError) {
+        } else if (
+            err instanceof jwt.JsonWebTokenError &&
+            refreshToken === null
+        ) {
             next(ErrorsEnum.INVALID_TOKEN);
         } else {
             next(err);

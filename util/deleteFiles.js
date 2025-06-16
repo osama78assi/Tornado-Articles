@@ -1,5 +1,6 @@
 import { unlink } from "fs/promises";
-import { join } from "path";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 /**
  *
@@ -8,6 +9,7 @@ import { join } from "path";
 async function deleteFiles(files) {
     // Delete cover image if exists
     const fileName = files?.coverPic?.[0]?.filename;
+    const __dirname = dirname(fileURLToPath(import.meta.url))
     if (fileName) {
         const p = join(__dirname, "../uploads/articles", fileName);
         await unlink(p);
@@ -20,11 +22,7 @@ async function deleteFiles(files) {
         await Promise.all(
             contentPics?.map(async (file) => {
                 const fileName = file?.filename;
-                const p = join(
-                    __dirname,
-                    "../uploads/articles",
-                    fileName
-                );
+                const p = join(__dirname, "../uploads/articles", fileName);
                 await unlink(p);
             })
         );

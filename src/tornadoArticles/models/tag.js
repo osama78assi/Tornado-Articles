@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../../../config/sequelize";
-import { normalizeTag } from "../../../util/normalizeTags";
-import OperationError from "../../../util/operationError";
+import { sequelize } from "../../../config/sequelize.js";
+import { normalizeTag } from "../../../util/normalizeTags.js";
+import APIError from "../../../util/APIError.js";
 
 class Tag extends Model {}
 
@@ -18,7 +18,7 @@ Tag.init(
             validate: {
                 NotEmptyString(value) {
                     if (value.length < 0)
-                        throw new OperationError(
+                        throw new APIError(
                             "The tag must not be empty",
                             400,
                             "EMPTY_TAG"

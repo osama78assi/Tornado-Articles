@@ -55,7 +55,7 @@ const RDUCE_SINCE_BY = 6;
 
 const REDUCE_SINCE_TIMES = 8;
 
-export default {
+export {
     MAX_RESULTS,
     MIN_RESULTS,
     MAX_PROFILE_PIC_SIZE_MB,

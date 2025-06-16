@@ -1,15 +1,14 @@
-import { Request, Response } from "express";
-import { MIN_RESULTS } from "../../../config/settings";
-import OperationError from "../../../util/operationError";
-import TornadoUserService from "../services/tornadoUserService";
+import { MIN_RESULTS } from "../../../config/settings.js";
+import APIError from "../../../util/APIError.js";
+import TornadoUserService from "../services/tornadoUserService.js";
 
 class ErrorEnum {
-    static FIELD_NOT_EXISTS = new OperationError(
+    static FIELD_NOT_EXISTS = new APIError(
         "The field must be either `fullName` or `createAt`.",
         400,
         "INVALID_FIELD"
     );
-    static WRONG_DIRECTION = new OperationError(
+    static WRONG_DIRECTION = new APIError(
         "The sort direction must be either ASC or DESC",
         400,
         "INVALID_DIRECTION"
@@ -18,8 +17,8 @@ class ErrorEnum {
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function adminGetUsers(req, res, next) {
     try {

@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
-import { MIN_RESULTS } from "../../../config/settings";
-import TornadoUserService from "../services/tornadoUserService";
-import OperationError from "../../../util/operationError";
+import { MIN_RESULTS } from "../../../config/settings.js";
+import APIError from "../../../util/APIError.js";
+import TornadoUserService from "../services/tornadoUserService.js";
 
 class ErrorEnum {
-    static INVALID_QUERY = new OperationError(
+    static INVALID_QUERY = new APIError(
         "Please provide user name to search.",
         400,
         "MISSING_USER_NAME"
@@ -13,8 +12,8 @@ class ErrorEnum {
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function searchForUsers(req, res, next) {
     try {

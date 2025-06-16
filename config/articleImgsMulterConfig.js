@@ -1,18 +1,20 @@
 import multer, { diskStorage } from "multer";
-import OperationError from "../util/operationError";
-import { join, extname } from "path";
-import { MAX_ARTICLE_PICS_SIZE_MB } from "./settings";
+import { dirname, extname, join } from "path";
+import { fileURLToPath } from "url";
+import APIError from "../util/APIError.js";
+import { MAX_ARTICLE_PICS_SIZE_MB } from "./settings.js";
 
 const storage = diskStorage({
     destination: function (req, file, cb) {
         // Reject the file if it's not an image
         if (!file.mimetype.startsWith("image/")) {
             return cb(
-                new OperationError("Only image files are allowed!", 400),
+                new APIError("Only images are allowed.", 400, "ONLY_IMAGES"),
                 false
             );
         }
 
+        const __dirname = dirname(fileURLToPath(import.meta.url));
         cb(null, join(__dirname, "../uploads/articles"));
     },
     filename: function (req, file, cb) {

@@ -1,19 +1,19 @@
 import { Router } from "express";
-import adminDeleteArticle from "../controllers/article/adminDeleteArticle";
-import deleteArticle from "../controllers/article/deleteArticle";
-import editArticleContent from "../controllers/article/editArticleContent";
-import editArticleTitle from "../controllers/article/editArticleTitle";
-import getArticle from "../controllers/article/getArticle";
-import getArticles from "../controllers/article/getArticles";
-import getArticlesFor from "../controllers/article/getArticlesFor";
-import getRecommendedArticles from "../controllers/article/getRecommendedArticles";
-import publishArticle from "../controllers/article/publishArticle";
-import searchForArticleBytTitle from "../controllers/article/searchForArticleByTitle";
-import searchForArticleByTags from "../controllers/article/searchForArtilcesByTags";
+import adminDeleteArticle from "../controllers/adminDeleteArticle.js";
+import deleteArticle from "../controllers/deleteArticle.js";
+import editArticleContent from "../controllers/editArticleContent.js";
+import editArticleTitle from "../controllers/editArticleTitle.js";
+import getArticle from "../controllers/getArticle.js";
+import getArticles from "../controllers/getArticles.js";
+import getArticlesFor from "../controllers/getArticlesFor.js";
+import getRecommendedArticles from "../controllers/getRecommendedArticles.js";
+import publishArticle from "../controllers/publishArticle.js";
+import searchForArticleBytTitle from "../controllers/searchForArticleByTitle.js";
+import searchForArticleByTags from "../controllers/searchForArtilcesByTags.js";
 
-import isAdmin from "../../../publicMiddlewares//isAdmin";
-import isAuthenticated from "../../../publicMiddlewares/isAuthenticated";
-import downloadArticlesPics from "../middlewares/downloadArticlesPics";
+import isAdmin from "../../../publicMiddlewares/isAdmin.js";
+import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import downloadArticlesPics from "../middlewares/downloadArticlesPics.js";
 
 const articleRouter = Router();
 

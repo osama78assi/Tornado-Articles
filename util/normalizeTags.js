@@ -14,4 +14,4 @@ function normalizeTags(tags) {
     return tags.map((tag) => normalizeTag(tag));
 }
 
-export default { normalizeTags, normalizeTag };
+export { normalizeTags, normalizeTag };

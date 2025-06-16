@@ -1,9 +1,9 @@
 import { Op } from "sequelize";
-import { sequelize } from "../../../config/sequelize";
-import { MIN_RESULTS } from "../../../config/settings";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit";
-import Category from "../models/category";
-import UserPreference from "../models/userPreference";
+import { sequelize } from "../../../config/sequelize.js";
+import { MIN_RESULTS } from "../../../config/settings.js";
+import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
+import Category from "../../tornadoCategories/models/category.js";
+import UserPreference from "../models/userPreference.js";
 
 class UserPreferenceService {
     static async addPreferredCategories(userId, categoriesIds) {

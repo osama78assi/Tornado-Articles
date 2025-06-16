@@ -1,11 +1,10 @@
-import { Request, Response } from "express";
-import OperationError from "../../../util/operationError";
-import FollowingService from "../services/followingService";
+import APIError from "../../../util/APIError.js";
+import FollowingService from "../services/followingService.js";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function followUser(req, res, next) {
     try {
@@ -17,7 +16,7 @@ async function followUser(req, res, next) {
         // Self follow isn't allowed (like youtube you can subscribe with yourself)
         if (followerId === followedId)
             return next(
-                new OperationError(
+                new APIError(
                     "The account can't follow itself.",
                     400,
                     "WRONG_FOLLOWING"

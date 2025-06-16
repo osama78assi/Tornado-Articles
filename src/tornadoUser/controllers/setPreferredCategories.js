@@ -1,16 +1,15 @@
-import { Request, Response } from "express";
-import OperationError from "../../../util/operationError";
-import removeDuplicated from "../../../util/removeDuplicated";
-import UserPreferenceService from "../services/userPreferenceService";
+import APIError from "../../../util/APIError.js";
+import removeDuplicated from "../../../util/removeDuplicated.js";
+import UserPreferenceService from "../services/userPreferenceService.js";
 
 class ErrorsEnum {
-    static MISSING_CATEGORIES = new OperationError(
+    static MISSING_CATEGORIES = new APIError(
         "Please provide the categories IDs you want to add as preferred.",
         400,
         "MISSING_CATEGORIES"
     );
 
-    static INVALID_DATATYPE = new OperationError(
+    static INVALID_DATATYPE = new APIError(
         "The preferred categories must be an array",
         400,
         "INVALID_CATEGORIES_DATATYPE"
@@ -19,8 +18,8 @@ class ErrorsEnum {
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function setPreferredCategories(req, res, next) {
     try {

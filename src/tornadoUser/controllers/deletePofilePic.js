@@ -1,13 +1,14 @@
-import { Request, Response } from "express";
 import { unlink } from "fs/promises";
 import { join } from "path";
-import OperationError from "../../../util/operationError";
-import TornadoUserService from "../services/tornadoUserService";
+import APIError from "../../../util/APIError.js";
+import TornadoUserService from "../services/tornadoUserService.js";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function deletePofilePic(req, res, next) {
     try {
@@ -17,7 +18,7 @@ async function deletePofilePic(req, res, next) {
 
         if (profilePic === null) {
             return next(
-                new OperationError(
+                new APIError(
                     "There is no profile photo to delete.",
                     404,
                     "IMAGE_NOT_FOUND"
@@ -25,9 +26,10 @@ async function deletePofilePic(req, res, next) {
             );
         }
 
+        const __dirname = dirname(fileURLToPath(import.meta.url))
         const p = join(
             __dirname,
-            "../../uploads/profilePics",
+            "../../../uploads/profilePics",
             profilePic.split("/").at(-1) // extract the path in the server
         );
 

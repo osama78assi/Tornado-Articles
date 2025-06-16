@@ -1,4 +1,4 @@
-import { sequelize } from "../../../config/sequelize";
+import { sequelize } from "../../../config/sequelize.js";
 import { Model, DataTypes } from "sequelize";
 
 class ArticleCategory extends Model {}

@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import addAssociations from "../src/database";
+import addAssociations from "../src/database/index.js";
 
 const sequelize = new Sequelize(
     `postgres://${process.env.DB_USER_NAME}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE_NAME}`,
@@ -10,7 +10,7 @@ async function connectDB() {
     try {
         await sequelize.authenticate();
 
-        addAssociations();
+        await addAssociations();
 
         // Sync the current models with tables in database (if something not found in model add it to database not the opposite)
         await sequelize.sync({ alter: true });
@@ -64,4 +64,4 @@ async function addPartialIndexArticle() {
     }
 }
 
-export default { sequelize, connectDB };
+export { sequelize, connectDB };

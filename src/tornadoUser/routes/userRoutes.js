@@ -1,28 +1,26 @@
 import { Router } from "express";
 // Controllers
-import adminDeleteUser from "../controllers/adminDeleteUser";
-import adminGetUsers from "../controllers/adminGetUsers";
-import changeName from "../controllers/changeName";
-import deleteAccount from "../controllers/deleteAccount";
-import followUser from "../controllers/followUser";
-import getPreferredCategories from "../controllers/getPreferredCategories";
-import getUserDetails from "../controllers/getUserDetails";
-import searchForUsers from "../controllers/searchForUsers";
-import setPreferredCategories from "../controllers/setPreferredCategories";
-import unfollowUser from "../controllers/unfollowUser";
-import updatedPreferredCategories from "../controllers/updatePreferredCategories";
-import changeProfilePic from "../controllers/changeProfilePic";
-import deletePofilePic from "../controllers/deletePofilePic";
-import editBrief from "../controllers/editBrief";
-import getFollowers from "../controllers/getFollowers";
-import getFollowings from "../controllers/getFollowings";
-import updateCookiesAccess from "../controllers/updateCookiesAccess";
+import adminGetUsers from "../controllers/adminGetUsers.js";
+import changeName from "../controllers/changeName.js";
+import changeProfilePic from "../controllers/changeProfilePic.js";
+import deletePofilePic from "../controllers/deletePofilePic.js";
+import editBrief from "../controllers/editBrief.js";
+import followUser from "../controllers/followUser.js";
+import getFollowers from "../controllers/getFollowers.js";
+import getFollowings from "../controllers/getFollowings.js";
+import getPreferredCategories from "../controllers/getPreferredCategories.js";
+import getUserProfile from "../controllers/getUserProfile.js";
+import searchForUsers from "../controllers/searchForUsers.js";
+import setPreferredCategories from "../controllers/setPreferredCategories.js";
+import unfollowUser from "../controllers/unfollowUser.js";
+import updateCookiesAccess from "../controllers/updateCookiesAccess.js";
+import updatedPreferredCategories from "../controllers/updatePreferredCategories.js";
 
 // Middlewares
-import downloadProfilePic from "../middlewares/downloadProfilePic";
-import isAdmin from "../../../publicMiddlewares/isAdmin";
-import isAuthenticated from "../../../publicMiddlewares/isAuthenticated";
-import isLoggedIn from "../../../publicMiddlewares/isLoggedIn";
+import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js";
+import isAdmin from "../../../publicMiddlewares/isAdmin.js";
+import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
 
 const userRoutes = Router();
 
@@ -69,26 +67,16 @@ userRoutes.patch(
     updatedPreferredCategories
 );
 
-// User can delete his/her account
-userRoutes.delete("/users", isAuthenticated, deleteAccount);
-
 // Anyone can search for users (by name)
 userRoutes.get("/users", isLoggedIn, searchForUsers);
 // For getting user profile data (contains followers and following counts)
-userRoutes.get("/users/:userId", getUserDetails);
+userRoutes.get("/users/:userId", getUserProfile);
 
 // User can see his followers
 userRoutes.get("/users/:userId/followers", getFollowers);
 // User can see his followings
 userRoutes.get("/users/:userId/followings", getFollowings);
 
-// Admin can delete user account
-userRoutes.delete(
-    "/admin/users/:userId",
-    isAuthenticated,
-    isAdmin,
-    adminDeleteUser
-);
 // Admin can browse users
 userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers);
 

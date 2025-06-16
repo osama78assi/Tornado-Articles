@@ -1,9 +1,8 @@
-import { Request, Response } from "express";
-import OperationError from "../../../util/operationError";
-import TornadoUserService from "../services/tornadoUserService";
+import APIError from "../../../util/APIError.js";
+import TornadoUserService from "../services/tornadoUserService.js";
 
 class ErrorEnum {
-    static MISSING_NAME = new OperationError(
+    static MISSING_NAME = new APIError(
         "Please provide the new name",
         400,
         "MISSING_NAME"
@@ -12,8 +11,8 @@ class ErrorEnum {
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function changeName(req, res, next) {
     try {

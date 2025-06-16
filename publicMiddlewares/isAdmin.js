@@ -1,22 +1,21 @@
-import { Request, Response } from "express";
-import UserService from "../dbServices/userService";
-import OperationError from "../util/operationError";
+import TornadoUserService from "../src/tornadoUser/services/tornadoUserService.js";
+import APIError from "../util/APIError.js";
 
 /**
  *
  * This middleware should be called after authintacion middleware
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function isAdmin(req, res, next) {
     try {
         const id = req.userInfo.id;
 
         // Get the id
-        const user = await UserService.getUserById(id);
+        const user = await TornadoUserService.getUserById(id);
 
         if (user.dataValues.role === "user") {
-            return next(new OperationError("You aren't admin man !", 401));
+            return next(new APIError("You aren't admin man !", 401));
         }
         // Pass to next middelware
         next();

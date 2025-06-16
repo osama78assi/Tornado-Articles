@@ -1,5 +1,5 @@
-import Tag from "../models/tag";
-import { normalizeTags } from "../../../util/normalizeTags";
+import Tag from "../models/tag.js";
+import { normalizeTags } from "../../../util/normalizeTags.js";
 import { Op } from "sequelize";
 
 class TagService {

@@ -1,15 +1,18 @@
-import { Op } from "sequelize";
-import { sequelize } from "../../../config/sequelize";
-import { MIN_RESULTS } from "../../../config/settings";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit";
-import OperationError from "../../../util/operationError";
-import User from "../../tornadoUser/models/Tornadouser";
-import Article from "../models/article";
-import ArticleCategory from "../models/articleCategory";
-import ArticleImage from "../models/articleImage";
-import ArticleTag from "../models/articleTag";
-import Category from "../models/category";
-import Tag from "../models/tag";
+import { ForeignKeyConstraintError, Op } from "sequelize";
+import { sequelize } from "../../../config/sequelize.js";
+import { MIN_RESULTS } from "../../../config/settings.js";
+import APIError from "../../../util/APIError.js";
+import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
+import User from "../../auth/models/user.js";
+import Category from "../../tornadoCategories/models/category.js";
+import Article from "../models/article.js";
+import ArticleCategory from "../models/articleCategory.js";
+import ArticleImage from "../models/articleImage.js";
+import ArticleTag from "../models/articleTag.js";
+import Tag from "../models/tag.js";
+import TagService from "../services/tagService.js";
+
+// TODO: There is a direct connection between the models. Encapsulate it throw services
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
 // ts_rank will give the search result a rank by number and quality of matches.
@@ -107,10 +110,10 @@ class ArticleService {
             // Now add the tags.
             if (tags.length !== 0) {
                 // Create the tags if not exists
-                const tagsData = await Tag.addTags(tags, t);
+                const tagsData = await TagService.addTags(tags, t);
 
                 // If one tag is existed we need its id because the previouse function return new id
-                const existedTags = await Tag.getTagsByNames(tags);
+                const existedTags = await TagService.getTagsByNames(tags);
 
                 // Create the object to hold the data
                 const finalTags = {};
@@ -149,6 +152,15 @@ class ArticleService {
             return article.dataValues.id;
         } catch (err) {
             await t.rollback();
+            // Due to complex relation I will make some of them readable
+            if (err instanceof ForeignKeyConstraintError) {
+                if (err.table === "ArticleCategories")
+                    throw new APIError(
+                        "One of the categroies isn't exists",
+                        404,
+                        "CATEGORY_NOT_FOUND"
+                    );
+            }
             throw err;
         }
     }
@@ -198,7 +210,7 @@ class ArticleService {
             });
 
             if (!article)
-                throw new OperationError(
+                throw new APIError(
                     "The article either deleted or not existed in first place.",
                     404,
                     "ARTICLE_NOT_FOUND"

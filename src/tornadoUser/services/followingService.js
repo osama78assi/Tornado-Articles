@@ -1,8 +1,8 @@
-import { sequelize } from "../../../config/sequelize";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit";
-import OperationError from "../../../util/operationError";
-import FollowedFollower from "../models/followedFollower";
-import TornadoUser from "../models/Tornadouser";
+import { sequelize } from "../../../config/sequelize.js";
+import APIError from "../../../util/APIError.js";
+import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
+import FollowedFollower from "../models/followedFollower.js";
+import User from "../../auth/models/user.js";
 
 class FollowingService {
     static async addFollower(followerId, followedId) {
@@ -10,12 +10,12 @@ class FollowingService {
         const t = await sequelize.transaction();
         try {
             // First, lock the rows to be updated
-            await TornadoUser.findByPk(followedId, {
+            await User.findByPk(followedId, {
                 transaction: t,
                 lock: t.LOCK.UPDATE,
             });
 
-            await TornadoUser.findByPk(followerId, {
+            await User.findByPk(followerId, {
                 transaction: t,
                 lock: t.LOCK.UPDATE,
             });
@@ -29,14 +29,14 @@ class FollowingService {
             );
 
             // Increase the followers for followed and the opposite
-            await TornadoUser.increment("followerCounts", {
+            await User.increment("followerCounts", {
                 where: {
                     id: followedId,
                 },
                 transaction: t,
             });
 
-            await TornadoUser.increment("followingCounts", {
+            await User.increment("followingCounts", {
                 where: {
                     id: followerId,
                 },
@@ -55,12 +55,12 @@ class FollowingService {
         const t = await sequelize.transaction();
         try {
             // Lock the rows
-            await TornadoUser.findByPk(followerId, {
+            await User.findByPk(followerId, {
                 transaction: t,
                 lock: t.LOCK.UPDATE,
             });
 
-            await TornadoUser.findByPk(followedId, {
+            await User.findByPk(followedId, {
                 transaction: t,
                 lock: t.LOCK.UPDATE,
             });
@@ -73,14 +73,14 @@ class FollowingService {
                 transaction: t,
             });
 
-            await TornadoUser.decrement("followerCounts", {
+            await User.decrement("followerCounts", {
                 where: {
                     id: followedId,
                 },
                 transaction: t,
             });
 
-            await TornadoUser.decrement("followingCounts", {
+            await User.decrement("followingCounts", {
                 where: {
                     id: followerId,
                 },
@@ -88,7 +88,7 @@ class FollowingService {
             });
 
             if (affectedRows === 0) {
-                throw new OperationError(
+                throw new APIError(
                     "You already unfollowed this user.",
                     400,
                     "NO_DATA"
@@ -119,7 +119,7 @@ class FollowingService {
                     followedId: userId,
                 },
                 include: {
-                    model: TornadoUser,
+                    model: User,
                     as: "follower",
                     attributes: ["id", "fullName", "profilePic", "gender"],
                 },
@@ -147,7 +147,7 @@ class FollowingService {
                     followerId: userId,
                 },
                 include: {
-                    model: TornadoUser,
+                    model: User,
                     as: "following",
                     attributes: ["id", "fullName", "profilePic", "gender"],
                 },

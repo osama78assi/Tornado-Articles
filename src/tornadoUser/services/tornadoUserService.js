@@ -1,44 +1,42 @@
 import { Op } from "sequelize";
 import validator from "validator";
-import { MIN_RESULTS } from "../../../config/settings";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit";
-import OperationError from "../../../util/operationError";
-import TornadoUser from "../models/Tornadouser";
+import { MIN_RESULTS } from "../../../config/settings.js";
+import APIError from "../../../util/APIError.js";
+import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
+import {
+    default as TornadoUser,
+} from "../../auth/models/user.js";
 
 class ErrorEnum {
-    static USER_NOT_FOUND = new OperationError(
+    static USER_NOT_FOUND = new APIError(
         "User not found.",
         404,
         "USER_NOT_FOUND"
     );
 
-    static UNVALID_ID = new OperationError(
+    static UNVALID_ID = new APIError(
         "The provided ID isn't valid",
         400,
         "INVALID_ID"
     );
 
     static NO_USER_WITH_ID = (id) =>
-        new OperationError(
-            `There is no user with ID ${id}`,
-            404,
-            "NO_USER_WITH_ID"
-        );
+        new APIError(`There is no user with ID ${id}`, 404, "NO_USER_WITH_ID");
 
     static NO_USER_WITH = (getBy, isEmail = true) =>
-        new OperationError(
+        new APIError(
             `There is no user with ${isEmail ? "email" : "id"} "${getBy}".`,
             404,
             "USER_NOT_FOUND"
         );
 
-    static COULD_NOT_UPDATE = new OperationError(
+    static COULD_NOT_UPDATE = new APIError(
         "Couldn't update",
         400,
         "SERVER_ERROR"
     );
 
-    static COULD_NOT_DELETE = new OperationError(
+    static COULD_NOT_DELETE = new APIError(
         "Couldn't delete. The user maybe not existed",
         400,
         "SERVER_ERROR"
@@ -72,6 +70,7 @@ class TornadoUserService {
                         "allowCookies",
                         "changeDate",
                         "updatedAt",
+                        "email",
                     ],
                 },
             });
@@ -95,7 +94,7 @@ class TornadoUserService {
         try {
             // You can make the API throw error here. I preferred to use the default
             // if (limit < 0 || offset < 0)
-            //     throw new OperationError(
+            //     throw new APIError(
             //         "Invalid Offset or limit: these two must be positive number",
             //         400
             //     );
@@ -151,6 +150,25 @@ class TornadoUserService {
         }
     }
 
+    static async updateBrief(userId, newBrief) {
+        try {
+            const affectedRows = await TornadoUser.update(
+                {
+                    brief: newBrief,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     // To get users data for admin
     static async getUsersData(
         offset = 0,
@@ -178,6 +196,45 @@ class TornadoUserService {
             throw err;
         }
     }
+
+    static async setProfilePhoto(userId, newPic) {
+        try {
+            const affectedRows = await TornadoUser.update(
+                {
+                    profilePic: newPic,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateUserName(userId, newName) {
+        try {
+            const affectedRows = await TornadoUser.update(
+                { fullName: newName },
+                {
+                    where: {
+                        id: userId,
+                    },
+                    returning: true,
+                }
+            );
+            if (affectedRows[0] === 0)
+                throw ErrorEnum.NO_USER_WITH(userId, false);
+
+            return affectedRows[1][0].dataValues.fullName;
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 
-export default TornadoUser;
+export default TornadoUserService;

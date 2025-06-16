@@ -1,13 +1,13 @@
-import { Request, Response } from "express";
 import { unlink } from "fs/promises";
-import { join } from "path";
-import isFileExists from "../../../util/isFileExists";
-import TornadoUserService from "../services/tornadoUserService";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import isFileExists from "../../../util/isFileExists.js";
+import TornadoUserService from "../services/tornadoUserService.js";
 
 /**
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function changeProfilePic(req, res, next) {
     try {
@@ -27,6 +27,7 @@ async function changeProfilePic(req, res, next) {
         // Set the new photo
         await TornadoUserService.setProfilePhoto(userId, newPic);
 
+        const __dirname = dirname(fileURLToPath(import.meta.url));
         // Remove the old profile pic if exists
         if (oldPhotoUrl !== null) {
             const picPth = join(
@@ -45,6 +46,7 @@ async function changeProfilePic(req, res, next) {
             },
         });
     } catch (err) {
+        const __dirname = getDirName(import.meta.url);
         // If faced some errors therefore delete the uploaded photo
         // Build the URL
         const p = join(

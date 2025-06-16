@@ -1,6 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../../../config/sequelize";
-import Category from "./category";
+import { sequelize } from "../../../config/sequelize.js";
 
 class UserPreference extends Model {}
 
@@ -32,10 +31,5 @@ UserPreference.init(
         timestamps: false,
     }
 );
-
-// Just to be able to get the categories from junction table
-UserPreference.belongsTo(Category, {
-    foreignKey: "categoryId",
-});
 
 export default UserPreference;
