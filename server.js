@@ -1,35 +1,45 @@
-const path = require("path");
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
+import  { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
-// Read the config file
-dotenv.config({
-    path: path.join(__dirname, "./config.env"),
-});
+async function main() {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Now after reading dotEnv require the sequelize module
-const { connectDB } = require("./config/sequelize");
+    // Read the config file
+    dotenv.config({
+        path: join(__dirname, "./config.env"),
+    });
 
-// Connect to the database
-connectDB();
+    // All these files access .env variables so lazy import saves me again
+    const { connectDB } = await import("./config/sequelize.js");
+    // Connect to the database
+    connectDB();
 
-// Get the app
-const app = require("./app");
+    // Get the app
+    const app = await import("./app.js");
 
-let server = app.listen(process.env.PORT, process.env.HOST_NAME, () => {
-    console.log(
-        `Start listenting at http://${process.env.HOST_NAME}:${process.env.PORT}`
+    let server = app.default.listen(
+        process.env.PORT,
+        process.env.HOST_NAME,
+        () => {
+            console.log(
+                `Start listenting at http://${process.env.HOST_NAME}:${process.env.PORT}`
+            );
+        }
     );
-});
 
-// Handle unhandled promise rejection
-process.on("unhandledRejection", function (err) {
-    console.log(err.message);
-    // close the server
-    server.close();
-    // Shut down the app
-    process.exit(1); // 0 success, 1 unhandled exception
-});
+    // Handle unhandled promise rejection
+    process.on("unhandledRejection", function (err) {
+        console.log(err);
+        // close the server
+        server.close();
+        // Shut down the app
+        process.exit(1); // 0 success, 1 unhandled exception
+    });
 
-process.on("uncaughtException", function (err) {
-    console.log(err.message); // this will not crash the app
-});
+    process.on("uncaughtException", function (err) {
+        console.log(err); // this will not crash the app
+    });
+}
+
+main();

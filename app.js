@@ -1,12 +1,15 @@
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const errorHandler = require("./middlewares/errorHandler");
-const authRouter = require("./routes/authRoutes");
-const articleRouter = require("./routes/artcileRoutes");
-const OperationError = require("./util/operationError");
-const path = require("path");
-const userRoutes = require("./routes/userRoutes");
-const categoryRoutes = require("./routes/categoryRoutes");
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import express from "express";
+import device from "express-device";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import errorHandler from "./publicMiddlewares/errorHandler.js";
+import authRouter from "./src/auth/route/authRoutes.js";
+import articleRouter from "./src/tornadoArticles/routes/artcileRoutes.js";
+import categoryRoutes from "./src/tornadoCategories/routes/categoryRoutes.js";
+import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
+import APIError from "./util/APIError.js";
 
 let app = express();
 
@@ -14,6 +17,18 @@ let app = express();
 app.use(express.json({ limit: "5MB" }));
 
 app.use(cookieParser());
+
+app.use(device.capture());
+
+// app.use(express.urlencoded({ extended: true }));
+
+const corsConfig = {
+    origin: "http://127.0.0.1:5500",
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+};
+
+app.use(cors(corsConfig));
 
 // API versions will be very usefull in future like adding ML to recommend articles
 // While keep the choice for the user if he wants only see what is he prefered without making assumptions
@@ -31,7 +46,7 @@ app.use("/api/v1", articleRouter);
 app.use("/api/v1", categoryRoutes); // like admin/categories and /categories
 
 // Users
-app.use("/api/v1", userRoutes); // may have search so ?=''
+app.use("/api/v1", TornadoUserRoutes); // may have search so ?=''
 // It have two things admin can block users
 // api/v1/admin/users or api/v1/users
 
@@ -39,14 +54,16 @@ app.use("/api/v1", userRoutes); // may have search so ?=''
 // app.use('/api/v1/users/:userId/notifications')
 
 // Static files like photos, Js, CSS and HTML
-app.use("/uploads", express.static(path.join(__dirname, "./uploads")));
+const __dirname = dirname(fileURLToPath(import.meta.url));
+app.use("/uploads", express.static(join(__dirname, "./uploads")));
 
 // Not Found
 app.all("{/*root}", function (req, res, next) {
     return next(
-        new OperationError(
+        new APIError(
             "The resource you are trying to access isn't found",
-            404
+            404,
+            "RESOURCE_NOT_FOUND"
         )
     );
 });
@@ -54,4 +71,4 @@ app.all("{/*root}", function (req, res, next) {
 // Error handler middleware
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
