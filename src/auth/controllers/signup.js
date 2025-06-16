@@ -153,12 +153,13 @@ async function signup(req, res, next) {
 
         // Delete some info
         sanitize(user, [
-            "changeDate",
             "role",
             "createdAt",
             "updatedAt",
             "email",
             "allowCookies",
+            "passwordChangeAt",
+            "fullNameChangeAt",
         ]);
 
         // Send the access token via data

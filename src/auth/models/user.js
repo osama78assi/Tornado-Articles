@@ -97,8 +97,13 @@ User.init(
         profilePic: {
             type: DataTypes.STRING(150),
         },
-        changeDate: {
-            // To keep track of chaing email and password timestamp
+        passwordChangeAt: {
+            // To keep track of changing timestamp
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: new Date(),
+        },
+        fullNameChangeAt: {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: new Date(),

@@ -51,9 +51,9 @@ async function isAuthenticated(req, res, next) {
         // Check if the user is exist in database
         const user = await TornadoUserService.getUserById(payload?.id);
 
-        // Check if there is something changed (Password or email)
+        // Check if there is something changed password
         // When the date is after the initilize of the token
-        if (user.dataValues.changeDate > new Date(payload.iat * 1000)) {
+        if (user.dataValues.passwordChangeAt > new Date(payload.iat * 1000)) {
             return next(ErrorsEnum.CHANGES_HAPPENED);
         }
 

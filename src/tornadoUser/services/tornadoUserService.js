@@ -68,7 +68,8 @@ class TornadoUserService {
                     exclude: [
                         "role",
                         "allowCookies",
-                        "changeDate",
+                        "passwordChangeAt",
+                        "fullNameChangeAt",
                         "updatedAt",
                         "email",
                     ],
