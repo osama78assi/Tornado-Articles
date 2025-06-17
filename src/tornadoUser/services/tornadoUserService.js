@@ -1,13 +1,12 @@
 import { Op } from "sequelize";
 import validator from "validator";
-import { MIN_RESULTS } from "../../../config/settings.js";
+import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
+import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
-import {
-    default as TornadoUser,
-} from "../../auth/models/user.js";
+import User, { default as TornadoUser } from "../../auth/models/user.js";
 
-class ErrorEnum {
+class ErrorsEnum {
     static USER_NOT_FOUND = new APIError(
         "User not found.",
         404,
@@ -41,17 +40,23 @@ class ErrorEnum {
         400,
         "SERVER_ERROR"
     );
+
+    static CHANGE_NAME_LIMIT = new APIError(
+        `You can change name once every ${UPDATE_NAME_LIMIT}`,
+        429,
+        "TOO_AERLY_CHANGE"
+    );
 }
 
 class TornadoUserService {
     static async getUserById(id) {
         try {
             // Check if id is UUIDv4
-            if (!validator.isUUID(id, "4")) throw ErrorEnum.UNVALID_ID;
+            if (!validator.isUUID(id, "4")) throw ErrorsEnum.UNVALID_ID;
 
             const user = await TornadoUser.findByPk(id);
 
-            if (user === null) throw ErrorEnum.NO_USER_WITH_ID(id);
+            if (user === null) throw ErrorsEnum.NO_USER_WITH_ID(id);
 
             return user;
         } catch (err) {
@@ -76,7 +81,7 @@ class TornadoUserService {
                 },
             });
 
-            if (userData.length === 0) throw ErrorEnum.NO_USER_WITH_ID(userId);
+            if (userData.length === 0) throw ErrorsEnum.NO_USER_WITH_ID(userId);
 
             return userData[0];
         } catch (err) {
@@ -219,8 +224,24 @@ class TornadoUserService {
 
     static async updateUserName(userId, newName) {
         try {
+            const user = await User.findByPk(userId, {
+                attributes: ["fullNameChangeAt"],
+            });
+
+            // User can change his name once every month (due to my settings)
+            if (
+                user.dataValues.fullNameChangeAt !== null &&
+                !isPassedTimeBy(
+                    new Date(),
+                    user.dataValues.fullNameChangeAt,
+                    UPDATE_NAME_LIMIT
+                )
+            ) {
+                throw ErrorsEnum.CHANGE_NAME_LIMIT;
+            }
+
             const affectedRows = await TornadoUser.update(
-                { fullName: newName },
+                { fullName: newName, fullNameChangeAt: new Date() },
                 {
                     where: {
                         id: userId,
@@ -229,7 +250,7 @@ class TornadoUserService {
                 }
             );
             if (affectedRows[0] === 0)
-                throw ErrorEnum.NO_USER_WITH(userId, false);
+                throw ErrorsEnum.NO_USER_WITH(userId, false);
 
             return affectedRows[1][0].dataValues.fullName;
         } catch (err) {

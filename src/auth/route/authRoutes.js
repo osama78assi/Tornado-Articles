@@ -19,15 +19,16 @@ import validateSession from "../middlewares/validateSession.js";
 
 import getLoggedInDevices from "../controllers/getLoggedInDevices.js";
 import logoutFromDevice from "../controllers/logoutFromDevice.js";
+import isThereSession from "../middlewares/isThereSession.js";
 
 const authRouter = Router();
 
-authRouter.post("/signin", signin);
-authRouter.post("/signup", validateSession, uploadProfilePic, signup);
+authRouter.post("/signin", isThereSession, signin);
+authRouter.post("/signup", isThereSession, uploadProfilePic, signup);
 // The user must be logged in to be able to logout
 authRouter.get("/logout", isAuthenticated, validateSession, logout);
 
-authRouter.get("/forget-password", forgetPassword);
+authRouter.get("/forget-password", isThereSession, forgetPassword);
 
 // The user can reset the password when he is logged in
 authRouter.post("/reset-password/:tokenId", resetPasswordByToken);
@@ -40,8 +41,8 @@ authRouter.post(
     measureHandlerTime(resetPassword, "Reset password")
 );
 
-// User can delete his/her account
-authRouter.delete("/users", isAuthenticated, deleteAccount);
+// User can delete his/her account. With these middlewares we make sure that the user should have both tokens valid
+authRouter.delete("/users", isAuthenticated, isThereSession, deleteAccount);
 
 // Admin can delete user account
 authRouter.delete(

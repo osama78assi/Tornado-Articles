@@ -1,6 +1,8 @@
 import { compare } from "bcryptjs";
 import redis from "../../../config/redisConfig.js";
+import { UPDATE_PASSWORD_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
+import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import AuthUserService from "../services/AuthUserService.js";
 
 class ErrorsEnum {
@@ -27,6 +29,12 @@ class ErrorsEnum {
         401,
         "NO_REFRESH_TOKEN"
     );
+
+    static TOO_EARLY_CHANGE = new APIError(
+        `You can change your password one every ${UPDATE_PASSWORD_LIMIT}`,
+        429, // It considerd too many requests
+        "TOO_AERLY_CHANGE"
+    );
 }
 
 /**
@@ -45,6 +53,19 @@ async function resetPassword(req, res, next) {
         const userId = req.userInfo.id;
 
         const user = await AuthUserService.getUserBy(userId, false);
+
+        // The user can change password once in 15 days (according to my settings)
+        // This logic must be at databse table service but due to the expensive operation it's made here
+        if (
+            user.dataValues.passwordChangeAt !== null &&
+            !isPassedTimeBy(
+                new Date(),
+                user.dataValues.passwordChangeAt,
+                UPDATE_PASSWORD_LIMIT
+            )
+        ) {
+            return next(ErrorsEnum.TOO_EARLY_CHANGE);
+        }
 
         // This must be tested with server hosting to give better insights
         const [isCorrectPassword, isSamePassword] = await Promise.all([

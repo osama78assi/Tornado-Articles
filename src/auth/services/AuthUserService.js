@@ -1,7 +1,7 @@
 import APIError from "../../../util/APIError.js";
 import User from "../models/user.js";
 
-class ErrorEnum {
+class ErrorsEnum {
     static NO_USER_WITH = (getBy, isEmail = true) =>
         new APIError(
             `There is no user with ${isEmail ? "email" : "id"} '${
@@ -68,13 +68,15 @@ class AuthUserService {
                     "followerCounts",
                     "followingCounts",
                     "articleCounts",
+                    "fullNameChangeAt",
+                    "passwordChangeAt",
                 ],
                 where: {
                     ...getBy,
                 },
             });
 
-            if (!user) throw ErrorEnum.NO_USER_WITH(getBy, isEmail);
+            if (!user) throw ErrorsEnum.NO_USER_WITH(getBy, isEmail);
 
             return user;
         } catch (err) {
@@ -85,7 +87,7 @@ class AuthUserService {
     static async updateUserPassword(userId, newPassword) {
         try {
             const affectedRows = await User.update(
-                { password: newPassword },
+                { password: newPassword, passwordChangeAt: new Date() },
                 {
                     where: {
                         id: userId,
@@ -94,7 +96,7 @@ class AuthUserService {
             );
 
             if (affectedRows[0] === 0)
-                throw ErrorEnum.NO_USER_WITH(userId, false);
+                throw ErrorsEnum.NO_USER_WITH(userId, false);
 
             return affectedRows;
         } catch (err) {
@@ -110,7 +112,7 @@ class AuthUserService {
                 },
             });
 
-            if (affectedRows === 0) throw ErrorEnum.COULD_NOT_DELETE;
+            if (affectedRows === 0) throw ErrorsEnum.COULD_NOT_DELETE;
 
             return affectedRows;
         } catch (err) {

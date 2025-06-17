@@ -25,6 +25,13 @@ const MAX_CATEGORIES_ARTICLE_COUNT = 5;
 // The maximum number of tags that the article can have
 const MAX_TAGS_ARTICLE_COUNT = 10;
 
+// Some limits for the user. Here how many times you want the user to be able to update the password
+const UPDATE_PASSWORD_LIMIT = "15 days";
+
+// How many times he can change his name
+const UPDATE_NAME_LIMIT = "1 month";
+
+
 // In my recommendation system I will give score high priority over read counts
 // but also consider it in my equation. As artilces the reads aren't a good way to rank
 // an article or not it's really depend on likes and dislikes
@@ -56,14 +63,16 @@ const RDUCE_SINCE_BY = 6;
 const REDUCE_SINCE_TIMES = 8;
 
 export {
-    MAX_RESULTS,
-    MIN_RESULTS,
-    MAX_PROFILE_PIC_SIZE_MB,
-    MAX_ARTICLE_PICS_SIZE_MB,
     MAX_ARTICLE_CONTENT_PICS_COUNT,
+    MAX_ARTICLE_PICS_SIZE_MB,
     MAX_CATEGORIES_ARTICLE_COUNT,
+    MAX_PROFILE_PIC_SIZE_MB,
+    MAX_RESULTS,
     MAX_TAGS_ARTICLE_COUNT,
-    UPDATE_RANK,
+    MIN_RESULTS,
     RDUCE_SINCE_BY,
     REDUCE_SINCE_TIMES,
+    UPDATE_NAME_LIMIT,
+    UPDATE_PASSWORD_LIMIT,
+    UPDATE_RANK,
 };

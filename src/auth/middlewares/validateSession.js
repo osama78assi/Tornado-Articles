@@ -34,7 +34,7 @@ async function validateSession(req, res, next) {
         if (refreshToken === null)
             return next(ErrorsEnum.MISSING_REFRESH_TOKEN);
 
-        // Verify the token before takeing any action
+        // Verify the token before taking any action
         jwt.verify(refreshToken, process.env.REFRESH_SECRET_STRING);
 
         // Decode the token and extract jti
@@ -90,10 +90,28 @@ async function validateSession(req, res, next) {
 
         return next();
     } catch (err) {
-        if (err instanceof jwt.JsonWebTokenError)
-            return next(ErrorsEnum.INVALID_REFRESH_TOKEN);
-        if (err instanceof jwt.TokenExpiredError)
-            return next(ErrorsEnum.EXPIRED_TOKEN);
+        let toPass = null;
+        if (err instanceof jwt.JsonWebTokenError) {
+            toPass = ErrorsEnum.INVALID_REFRESH_TOKEN;
+        } else if (err instanceof jwt.TokenExpiredError) {
+            toPass = ErrorsEnum.EXPIRED_TOKEN;
+        }
+
+        // Clear the tokens
+        if (toPass === null) {
+            res.clearCookie("accessToken", {
+                httpOnly: true,
+                secure: true,
+            });
+
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: true,
+            });
+        } else {
+            toPass = err;
+        }
+
         next(err);
     }
 }

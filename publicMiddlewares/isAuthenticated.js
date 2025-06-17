@@ -35,14 +35,14 @@ async function isAuthenticated(req, res, next) {
 
     try {
         const token = req?.cookies?.accessToken || null;
-        
+
         if (token === null && refreshToken === null) {
             return next(ErrorsEnum.NO_TOKEN);
         }
-        
+
         // Check the refresh to know if it's not really authenticated
-        if(token === null && refreshToken !== null) {
-            return next(ErrorsEnum.EXPIRED_TOKEN)
+        if (token === null && refreshToken !== null) {
+            return next(ErrorsEnum.EXPIRED_TOKEN);
         }
 
         // Verfiy the token
@@ -53,7 +53,10 @@ async function isAuthenticated(req, res, next) {
 
         // Check if there is something changed password
         // When the date is after the initilize of the token
-        if (user.dataValues.passwordChangeAt > new Date(payload.iat * 1000)) {
+        if (
+            user.dataValues.passwordChangeAt !== null &&
+            user.dataValues.passwordChangeAt > new Date(payload.iat * 1000)
+        ) {
             return next(ErrorsEnum.CHANGES_HAPPENED);
         }
 

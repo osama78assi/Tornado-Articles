@@ -158,8 +158,6 @@ async function signup(req, res, next) {
             "updatedAt",
             "email",
             "allowCookies",
-            "passwordChangeAt",
-            "fullNameChangeAt",
         ]);
 
         // Send the access token via data
@@ -174,7 +172,7 @@ async function signup(req, res, next) {
             await unlink(
                 join(
                     __dirname,
-                    "../../uploads/profilePics",
+                    "../../../uploads/profilePics",
                     req?.file?.filename
                 ),
                 function (err) {

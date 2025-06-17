@@ -10,7 +10,9 @@ class User extends Model {
     toJSON() {
         const values = { ...this.get() };
         delete values.password;
-        delete values.changeDate; // No one must know or care when the user changed his password or email
+        delete values.passwordChangeAt; // No one must know or care when the user changed his password or email
+        delete values.fullNameChangeAt; // Same here
+        delete values.articlePublishedAt;
         return values;
     }
 }
@@ -75,7 +77,6 @@ User.init(
             validate: {
                 isValidDate(value) {
                     const date = new Date(value);
-
                     // Extra condition
                     if (String(date) === "Invalid Date")
                         throw new APIError(
@@ -100,13 +101,15 @@ User.init(
         passwordChangeAt: {
             // To keep track of changing timestamp
             type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: new Date(),
+            allowNull: true,
         },
         fullNameChangeAt: {
             type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: new Date(),
+            allowNull: true,
+        },
+        articlePublishedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
         },
         brief: {
             type: DataTypes.STRING(150),

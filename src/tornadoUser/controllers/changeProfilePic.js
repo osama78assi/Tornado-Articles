@@ -32,7 +32,7 @@ async function changeProfilePic(req, res, next) {
         if (oldPhotoUrl !== null) {
             const picPth = join(
                 __dirname,
-                "../../uploads/profilePics",
+                "../../../uploads/profilePics",
                 oldPhotoUrl.split("/").at(-1) // extract the path in the server
             );
             await unlink(picPth);
@@ -46,12 +46,12 @@ async function changeProfilePic(req, res, next) {
             },
         });
     } catch (err) {
-        const __dirname = getDirName(import.meta.url);
+        const __dirname = dirname(fileURLToPath(import.meta.url));
         // If faced some errors therefore delete the uploaded photo
         // Build the URL
         const p = join(
             __dirname,
-            "../../uploads/profilePics",
+            "../../../uploads/profilePics",
             req?.file?.filename
         );
         if (await isFileExists(p)) await unlink(p);
