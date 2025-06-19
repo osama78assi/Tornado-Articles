@@ -1,9 +1,9 @@
 import { Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
 import Category from "../../tornadoCategories/models/category.js";
 import UserPreference from "../models/userPreference.js";
+import loggingService from "../../../services/loggingService.js";
 
 class UserPreferenceService {
     static async addPreferredCategories(userId, categoriesIds) {
@@ -67,15 +67,20 @@ class UserPreferenceService {
 
     static async getPreferredCategories(
         userId,
-        offset = 0,
+        entryItemTitle,
+        getAfter,
         limit = MIN_RESULTS
     ) {
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
+            const dir = getAfter
+                ? { [Op.gt]: entryItemTitle }
+                : { [Op.lt]: entryItemTitle };
+
             const preferredCategories = await UserPreference.findAll({
                 attributes: [],
                 where: {
                     userId,
+                    "$Category.title$": dir,
                 },
                 include: {
                     model: Category,
@@ -83,8 +88,12 @@ class UserPreferenceService {
                         exclude: ["createdAt"],
                     },
                 },
-                offset,
+                order: [[{ model: Category }, "title", "ASC"]],
                 limit,
+                // benchmark: true,
+                // logging: function (sql, timeMs) {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
             });
 
             return preferredCategories.map((prefCategory) => {

@@ -23,13 +23,7 @@ class ErrorsEnum {
         400,
         "SAME_PASSWORD"
     );
-
-    static MISSING_REFRESH_TOKEN = new APIError(
-        "No refresh token provided. Please login again",
-        401,
-        "NO_REFRESH_TOKEN"
-    );
-
+    
     static TOO_EARLY_CHANGE = new APIError(
         `You can change your password one every ${UPDATE_PASSWORD_LIMIT}`,
         429, // It considerd too many requests

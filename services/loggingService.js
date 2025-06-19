@@ -37,4 +37,14 @@ loggingService.addListener(
     }
 );
 
+// For logging some queries time consuming
+loggingService.addListener("query-time-usage", function ({ sql, timeMs }) {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+
+    appendFile(
+        join(__dirname, "../logs/sql_usage.log"),
+        `SQL:\n${sql}\n\nTOOK: ${timeMs}ms\n\n-----------\n`
+    );
+});
+
 export default loggingService;

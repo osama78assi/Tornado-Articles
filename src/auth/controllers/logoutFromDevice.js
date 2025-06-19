@@ -13,12 +13,6 @@ class ErrorsEnum {
         404,
         "DEVICE_NOT_EXISTS"
     );
-
-    static INVALID_DEVICE = new APIError(
-        "Invalid device index.",
-        400,
-        "INVALID_DEVICE_INDEX"
-    );
 }
 
 /**

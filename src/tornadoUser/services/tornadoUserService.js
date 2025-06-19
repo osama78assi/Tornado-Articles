@@ -2,45 +2,11 @@ import { Op } from "sequelize";
 import validator from "validator";
 import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
 import User, { default as TornadoUser } from "../../auth/models/user.js";
 
 class ErrorsEnum {
-    static USER_NOT_FOUND = new APIError(
-        "User not found.",
-        404,
-        "USER_NOT_FOUND"
-    );
-
-    static UNVALID_ID = new APIError(
-        "The provided ID isn't valid",
-        400,
-        "INVALID_ID"
-    );
-
-    static NO_USER_WITH_ID = (id) =>
-        new APIError(`There is no user with ID ${id}`, 404, "NO_USER_WITH_ID");
-
-    static NO_USER_WITH = (getBy, isEmail = true) =>
-        new APIError(
-            `There is no user with ${isEmail ? "email" : "id"} "${getBy}".`,
-            404,
-            "USER_NOT_FOUND"
-        );
-
-    static COULD_NOT_UPDATE = new APIError(
-        "Couldn't update",
-        400,
-        "SERVER_ERROR"
-    );
-
-    static COULD_NOT_DELETE = new APIError(
-        "Couldn't delete. The user maybe not existed",
-        400,
-        "SERVER_ERROR"
-    );
-
     static CHANGE_NAME_LIMIT = new APIError(
         `You can change name once every ${UPDATE_NAME_LIMIT}`,
         429,
@@ -52,11 +18,11 @@ class TornadoUserService {
     static async getUserById(id) {
         try {
             // Check if id is UUIDv4
-            if (!validator.isUUID(id, "4")) throw ErrorsEnum.UNVALID_ID;
+            if (!validator.isUUID(id, "4")) throw GlobalErrorsEnum.INVALID_ID;
 
             const user = await TornadoUser.findByPk(id);
 
-            if (user === null) throw ErrorsEnum.NO_USER_WITH_ID(id);
+            if (user === null) throw GlobalErrorsEnum.NO_USER_WITH(id, false);
 
             return user;
         } catch (err) {
@@ -77,11 +43,14 @@ class TornadoUserService {
                         "fullNameChangeAt",
                         "updatedAt",
                         "email",
+                        "banTill",
+                        "articlePublishedAt",
                     ],
                 },
             });
 
-            if (userData.length === 0) throw ErrorsEnum.NO_USER_WITH_ID(userId);
+            if (userData.length === 0)
+                throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
             return userData[0];
         } catch (err) {
@@ -92,33 +61,41 @@ class TornadoUserService {
     static async searchByName(
         query,
         limit = MIN_RESULTS,
-        offset = 0,
-        exclude = null
+        entryItemDate,
+        getAfter,
+        excludeId = null
     ) {
-        // Normalize (below the zero or limit very large)
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
-            // You can make the API throw error here. I preferred to use the default
-            // if (limit < 0 || offset < 0)
-            //     throw new APIError(
-            //         "Invalid Offset or limit: these two must be positive number",
-            //         400
-            //     );
-            /// Exclude the user if provided
-            exclude = exclude !== null ? { id: { [Op.ne]: exclude } } : {};
+            // Chose the direction
+            const dir = getAfter
+                ? { [Op.lt]: entryItemDate }
+                : { [Op.gt]: entryItemDate };
+
             const results = await TornadoUser.findAll({
-                attributes: ["id", "fullName", "profilePic", "gender"],
+                attributes: [
+                    "id",
+                    "fullName",
+                    "profilePic",
+                    "gender",
+                    "createdAt",
+                ],
                 where: {
                     fullName: {
-                        [Op.iLike]: `%${query}%`,
+                        [Op.iLike]: `${query}%`, // More friendly with BTREE index
                     },
-                    ...exclude,
+                    createdAt: dir,
                 },
+                order: [["createdAt", "DESC"]],
                 limit,
-                offset,
+                // FOR TESTING
+                // benchmark: true,
+                // logging: (sql, timeMs) => {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
             });
 
-            return results;
+            // Exclude in js not in db
+            return results.filter((user) => user.dataValues.id !== excludeId);
         } catch (err) {
             throw err;
         }
@@ -177,27 +154,31 @@ class TornadoUserService {
 
     // To get users data for admin
     static async getUsersData(
-        offset = 0,
         limit = MIN_RESULTS,
-        sortBy = "createdAt",
-        sortDir = "DESC",
+        entryItemName,
+        getAfter,
         exclude = null
     ) {
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
-
-        // If want to exclude a record
-        const ex =
-            exclude !== null ? { where: { id: { [Op.ne]: exclude } } } : {};
+        // Specify backward or forward (according to the nature of alphabetic b is larger than a)
+        const dir = getAfter
+            ? { [Op.gt]: entryItemName }
+            : { [Op.lt]: entryItemName };
 
         try {
             const users = await TornadoUser.findAll({
-                ...ex,
-                offset,
+                where: {
+                    fullName: dir,
+                },
                 limit,
-                order: [[sortBy, sortDir]],
+                order: [["fullName", "ASC"]],
+                // benchmark: true,
+                // logging(sql, timeMs) {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
             });
 
-            return users;
+            // Exclude the given id
+            return users.filter((user) => user.dataValues.id !== exclude);
         } catch (err) {
             throw err;
         }
@@ -250,7 +231,7 @@ class TornadoUserService {
                 }
             );
             if (affectedRows[0] === 0)
-                throw ErrorsEnum.NO_USER_WITH(userId, false);
+                throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
             return affectedRows[1][0].dataValues.fullName;
         } catch (err) {

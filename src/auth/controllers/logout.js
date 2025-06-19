@@ -1,20 +1,4 @@
-import jwt from "jsonwebtoken";
 import redis from "../../../config/redisConfig.js";
-import APIError from "../../../util/APIError.js";
-
-class ErrorsEnum {
-    static MISSING_REFRESH_TOKEN = new APIError(
-        "You aren't logged in.",
-        401,
-        "NOT_LOGGED_IN"
-    );
-
-    static INVALID_REFRESH_TOKEN = new APIError(
-        "Invalid refresh token. Please login again",
-        401,
-        "INVALID_REFRESH_TOKEN"
-    );
-}
 
 /**
  *
@@ -48,8 +32,6 @@ async function logout(req, res, next) {
             message: "Logout successfully.",
         });
     } catch (err) {
-        if (err instanceof jwt.JsonWebTokenError)
-            return next(ErrorsEnum.INVALID_REFRESH_TOKEN);
         next(err);
     }
 }

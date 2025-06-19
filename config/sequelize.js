@@ -14,7 +14,8 @@ async function connectDB() {
 
         // Sync the current models with tables in database (if something not found in model add it to database not the opposite)
         await sequelize.sync({ alter: true });
-        addGinIndex();
+        addGinIndexToArticles();
+        // addTrigramIndexUser();
         // dropGinIndex() // RUNS when you want to delete
         // await sequelize.sync({ force: true });
         console.log("connected to database successfully");
@@ -24,11 +25,8 @@ async function connectDB() {
 }
 
 // Add GIN index in article's title for fast search
-async function addGinIndex() {
+async function addGinIndexToArticles() {
     try {
-        // Enable pg_trgm extension to be able to use GIN index for flexible searching in titles
-        await sequelize.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
-
         // add the index on title of the article
         await sequelize.query(`
             CREATE INDEX IF NOT EXISTS article_title_fts_idx
@@ -41,7 +39,7 @@ async function addGinIndex() {
 }
 
 // Drop the GIN index
-async function dropGinIndex() {
+async function dropGinIndexFromArticles() {
     try {
         await sequelize.query(`DROP INDEX IF EXISTS article_title_trgm_idx;`);
     } catch (err) {
@@ -53,7 +51,7 @@ async function dropGinIndex() {
 // articles to make their query faster
 async function addPartialIndexArticle() {
     try {
-        // This will be very helpfull in guests
+        // This will be very helpfull
         await sequelize.query(`
             CREATE INDEX IF NOT EXISTS "public_artilce_btree_index"
             ON "Articles" (rank DESC, "createdAt" DESC)
@@ -64,4 +62,33 @@ async function addPartialIndexArticle() {
     }
 }
 
-export { sequelize, connectDB };
+// For making search for user name more efficient using and specially
+// Fuzzy search with partial or misspelled names
+async function addTrigramIndexUser() {
+    try {
+        // Add the extension
+        await sequelize.query(`
+            CREATE EXTENSION IF NOT EXISTS pg_trgm;
+        `);
+
+        // Add the index
+        await sequelize.query(`
+            CREATE INDEX IF NOT EXISTS fullName_trgm_idx
+            ON "Users"
+            USING GIN ("fullName" gin_trgm_ops);
+        `);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+async function dropTrigramIndexUser() {
+    try {
+        // Add the index
+        await sequelize.query(`DROP INDEX IF EXISTS fullName_trgm_idx;`);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export { connectDB, sequelize };

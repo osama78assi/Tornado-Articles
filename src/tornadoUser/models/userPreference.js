@@ -28,7 +28,8 @@ UserPreference.init(
     },
     {
         sequelize,
-        timestamps: false,
+        createdAt: true,
+        updatedAt: false,
     }
 );
 

@@ -1,19 +1,6 @@
-import { MIN_RESULTS } from "../../../config/settings.js";
-import APIError from "../../../util/APIError.js";
+import { MAX_RESULTS, MIN_RESULTS } from "../../../config/settings.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import TornadoUserService from "../services/tornadoUserService.js";
-
-class ErrorEnum {
-    static FIELD_NOT_EXISTS = new APIError(
-        "The field must be either `fullName` or `createAt`.",
-        400,
-        "INVALID_FIELD"
-    );
-    static WRONG_DIRECTION = new APIError(
-        "The sort direction must be either ASC or DESC",
-        400,
-        "INVALID_DIRECTION"
-    );
-}
 
 /**
  *
@@ -22,26 +9,28 @@ class ErrorEnum {
  */
 async function adminGetUsers(req, res, next) {
     try {
-        const {
-            offset = 0,
+        let {
+            getAfter = 1,
             limit = MIN_RESULTS,
-            sortBy = "fullName",
-            sortDir = "ASC",
+            entryItemName = "",
         } = req?.query;
 
-        if (!["ASC", "DESC"].includes(sortDir.toLocaleUpperCase()))
-            return next(ErrorEnum.WRONG_DIRECTION);
+        getAfter = Number(getAfter);
 
-        if (!["fullname", "createdat"].includes(sortBy.toLocaleLowerCase()))
-            return next(ErrorEnum.FIELD_NOT_EXISTS);
+        if (![0, 1].includes(getAfter))
+            return next(GlobalErrorsEnum.INVALID_DIRECTION);
+
+        limit = Number(limit);
+
+        if (limit <= 0 || limit > MAX_RESULTS)
+            return next(GlobalErrorsEnum.INVALID_LIMIT);
 
         const currentId = req.userInfo.id;
 
         const users = await TornadoUserService.getUsersData(
-            offset,
             limit,
-            sortBy,
-            sortDir,
+            entryItemName,
+            getAfter,
             currentId
         );
 

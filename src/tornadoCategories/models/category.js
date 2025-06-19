@@ -23,6 +23,13 @@ Category.init(
         sequelize,
         timestamps: true, // No need to updatedAt
         updatedAt: false,
+        indexes: [
+            {
+                name: "category_title_category_btree_index",
+                fields: ['title'],
+                type: "BTREE"
+            }
+        ],
         hooks: {
             beforeBulkCreate(categories) {
                 categories.forEach((category) => {
