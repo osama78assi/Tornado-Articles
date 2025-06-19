@@ -1,7 +1,15 @@
+import { Op } from "sequelize";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
 import Category from "../models/category.js";
+
+class ErrorsEnum {
+    static COULDNOT_DELETE = new APIError(
+        "Category isn't exist or it's already deleted.",
+        400,
+        "CATEGORY_NOT_FOUND"
+    );
+}
 
 class CategoryService {
     static async addCategories(categoriesTitles) {
@@ -28,12 +36,7 @@ class CategoryService {
                 },
             });
 
-            if (affectedRows === 0)
-                throw new APIError(
-                    "Category isn't exist or it's already deleted.",
-                    400,
-                    "CATEGORY_NOT_FOUND"
-                );
+            if (affectedRows === 0) throw ErrorsEnum.COULDNOT_DELETE;
 
             return affectedRows;
         } catch (err) {
@@ -61,12 +64,18 @@ class CategoryService {
         }
     }
 
-    static async getCategories(offset = 0, limit = MIN_RESULTS) {
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
+    static async getCategories(entryItemTitle, getAfter, limit = MIN_RESULTS) {
         try {
+            const dir = getAfter
+                ? { [Op.gt]: entryItemTitle }
+                : { [Op.lt]: entryItemTitle };
+
             const categories = await Category.findAll({
-                offset,
+                where: {
+                    title: dir,
+                },
                 limit,
+                order: [["title", "ASC"]],
             });
 
             return categories;

@@ -29,11 +29,11 @@ FollowedFollower.init(
         indexes: [
             {
                 // This will help in recommendation system (get the following for certain user)
+                name: "follower_id_follower_following_btree_index",
                 fields: [
                     { name: "followerId" },
                     { name: "createdAt", order: "DESC" },
                 ],
-                name: "follower_id_follower_following_btree_index",
                 using: "BTREE",
             },
         ],

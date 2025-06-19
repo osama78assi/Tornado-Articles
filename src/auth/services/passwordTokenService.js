@@ -5,7 +5,7 @@ class ErrorEnums {
     static NO_TOKEN = new APIError(
         "There is no token with that ID.",
         404,
-        "TOKEN_NOT_FOUND"
+        "PASSWORD_TOKEN_NOT_FOUND"
     );
 
 }

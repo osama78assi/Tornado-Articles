@@ -1,26 +1,7 @@
 import jwt from "jsonwebtoken";
 import redis from "../../../config/redisConfig.js";
-import loggingService from "../../../services/logginnService.js";
-import APIError from "../../../util/APIError.js";
-
-class ErrorsEnum {
-    static MISSING_REFRESH_TOKEN = new APIError(
-        "No refresh token provided. Please login again",
-        401,
-        "NO_REFRESH_TOKEN"
-    );
-
-    static INVALID_REFRESH_TOKEN = new APIError(
-        "Invalid refresh token. Please login again",
-        401,
-        "INVALID_REFRESH_TOKEN"
-    );
-
-    static EXPIRED_TOKEN = new APIError(
-        "The refresh token is expired. Please login again",
-        401
-    );
-}
+import loggingService from "../../../services/loggingService.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 /**
  * validated the session by checking both refresh token and the user session in the server
@@ -32,7 +13,7 @@ async function validateSession(req, res, next) {
         // Must get the refresh token from the user. VIA httpOnly cookie
         const refreshToken = req.cookies?.refreshToken || null;
         if (refreshToken === null)
-            return next(ErrorsEnum.MISSING_REFRESH_TOKEN);
+            return next(GlobalErrorsEnum.MISSING_REFRESH_TOKEN);
 
         // Verify the token before taking any action
         jwt.verify(refreshToken, process.env.REFRESH_SECRET_STRING);
@@ -62,7 +43,7 @@ async function validateSession(req, res, next) {
                 isFirstTime: true,
             });
 
-            return next(ErrorsEnum.INVALID_REFRESH_TOKEN); // Normal message really
+            return next(GlobalErrorsEnum.INVALID_REFRESH_TOKEN); // Normal message really
         }
 
         // Wrong jti but the same ip and user
@@ -78,7 +59,7 @@ async function validateSession(req, res, next) {
                 requestedAt: new Date().toISOString(),
                 isFirstTime: false,
             });
-            return next(ErrorsEnum.INVALID_REFRESH_TOKEN);
+            return next(GlobalErrorsEnum.INVALID_REFRESH_TOKEN);
         }
 
         // If it's valid let's save the user session in the request object and pass to the next middleware
@@ -92,9 +73,9 @@ async function validateSession(req, res, next) {
     } catch (err) {
         let toPass = null;
         if (err instanceof jwt.JsonWebTokenError) {
-            toPass = ErrorsEnum.INVALID_REFRESH_TOKEN;
+            toPass = GlobalErrorsEnum.INVALID_REFRESH_TOKEN;
         } else if (err instanceof jwt.TokenExpiredError) {
-            toPass = ErrorsEnum.EXPIRED_TOKEN;
+            toPass = GlobalErrorsEnum.REFRESH_TOKEN_EXPIRED;
         }
 
         // Clear the tokens

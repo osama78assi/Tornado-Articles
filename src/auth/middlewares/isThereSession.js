@@ -1,26 +1,9 @@
 import jwt from "jsonwebtoken";
 import redis from "../../../config/redisConfig.js";
 import APIError from "../../../util/APIError.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
-    static MISSING_REFRESH_TOKEN = new APIError(
-        "No refresh token provided. Please login again",
-        401,
-        "NO_REFRESH_TOKEN"
-    );
-
-    static INVALID_REFRESH_TOKEN = new APIError(
-        "Invalid refresh token. Please login again",
-        401,
-        "INVALID_REFRESH_TOKEN"
-    );
-
-    static EXPIRED_TOKEN = new APIError(
-        "The refresh token is expired. Please login again",
-        401,
-        "EXPIRED_TOKEN"
-    );
-
     static ALREADY_LOGGEDIN = new APIError(
         "You've already loggedin. Please logout first.",
         400,
@@ -48,7 +31,7 @@ async function isThereSession(req, res, next) {
 
         // Throw a not valid token.
         if (!(await redis.exists(`refresh:${jti}`))) {
-            return next(ErrorsEnum.INVALID_REFRESH_TOKEN);
+            throw GlobalErrorsEnum.INVALID_REFRESH_TOKEN;
         }
 
         // He is logged in
@@ -56,12 +39,12 @@ async function isThereSession(req, res, next) {
     } catch (err) {
         let toPass = null;
         if (err instanceof jwt.JsonWebTokenError) {
-            toPass = ErrorsEnum.INVALID_REFRESH_TOKEN;
+            toPass = GlobalErrorsEnum.INVALID_REFRESH_TOKEN;
         } else if (err instanceof jwt.TokenExpiredError) {
-            toPass = ErrorsEnum.EXPIRED_TOKEN;
+            toPass = GlobalErrorsEnum.REFRESH_TOKEN_EXPIRED;
         }
 
-        // Clear the tokens
+        // Clear the tokens. When the tokens are invalid
         if (toPass === null) {
             res.clearCookie("accessToken", {
                 httpOnly: true,

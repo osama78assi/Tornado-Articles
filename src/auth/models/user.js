@@ -10,9 +10,9 @@ class User extends Model {
     toJSON() {
         const values = { ...this.get() };
         delete values.password;
-        delete values.passwordChangeAt; // No one must know or care when the user changed his password or email
-        delete values.fullNameChangeAt; // Same here
-        delete values.articlePublishedAt;
+        // delete values.passwordChangeAt; // No one must know or care when the user changed his password or email
+        // delete values.fullNameChangeAt; // Same here
+        // delete values.articlePublishedAt;
         return values;
     }
 }
@@ -111,6 +111,10 @@ User.init(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        banTill: { // Like a warnning to the user ban about 7 months from publishing articles
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
         brief: {
             type: DataTypes.STRING(150),
         },
@@ -152,6 +156,17 @@ User.init(
                 exclude: ["password"], // Exclude it from the object also
             },
         },
+        indexes: [
+            {
+                // This will be great for searching for users by names. browse users, get followers & followings etc...
+                name: "full_name_created_at_users_btree_index",
+                fields: [
+                    { name: "fullName" },
+                    { name: "createdAt", order: "DESC" },
+                ],
+                type: "BTREE",
+            },
+        ],
         hooks: {
             async beforeCreate(user) {
                 try {

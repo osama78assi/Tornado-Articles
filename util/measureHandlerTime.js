@@ -1,4 +1,4 @@
-import loggingService from "../services/logginnService.js";
+import loggingService from "../services/loggingService.js";
 
 /**
  * In short it take your handler and return a function to call it But in addition to that it measure the time taken to achieve it.

@@ -1,22 +1,9 @@
 import APIError from "../../../util/APIError.js";
+import validator from "validator";
 import User from "../models/user.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
-    static NO_USER_WITH = (getBy, isEmail = true) =>
-        new APIError(
-            `There is no user with ${isEmail ? "email" : "id"} '${
-                isEmail ? getBy.email : getBy.id
-            }'.`,
-            404,
-            "USER_NOT_FOUND"
-        );
-
-    static COULD_NOT_UPDATE = new APIError(
-        "Couldn't update",
-        400,
-        "SERVER_ERROR"
-    );
-
     static COULD_NOT_DELETE = new APIError(
         "Couldn't delete the user or the user has been already deleted.",
         400,
@@ -54,7 +41,10 @@ class AuthUserService {
     // Get user by email or id (for auth meaning it will include password)
     static async getUserBy(getBy, isEmail = true) {
         try {
-            getBy = isEmail ? { email: getBy } : { id: getBy };
+            if (!isEmail && !validator.isUUID(id, "4"))
+                throw GlobalErrorsEnum.INVALID_ID;
+
+            let getByObj = isEmail ? { email: getBy } : { id: getBy };
             const user = await User.findOne({
                 attributes: [
                     "id",
@@ -70,13 +60,15 @@ class AuthUserService {
                     "articleCounts",
                     "fullNameChangeAt",
                     "passwordChangeAt",
+                    "banTill",
+                    "articlePublishedAt",
                 ],
                 where: {
-                    ...getBy,
+                    ...getByObj,
                 },
             });
 
-            if (!user) throw ErrorsEnum.NO_USER_WITH(getBy, isEmail);
+            if (!user) throw GlobalErrorsEnum.NO_USER_WITH(getBy, isEmail);
 
             return user;
         } catch (err) {
@@ -96,7 +88,7 @@ class AuthUserService {
             );
 
             if (affectedRows[0] === 0)
-                throw ErrorsEnum.NO_USER_WITH(userId, false);
+                throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
             return affectedRows;
         } catch (err) {

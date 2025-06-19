@@ -2,7 +2,6 @@ import { ForeignKeyConstraintError, Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
-import normalizeOffsetLimit from "../../../util/normalizeOffsetLimit.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
 import Article from "../models/article.js";
@@ -227,7 +226,6 @@ class ArticleService {
         limit = MIN_RESULTS,
         since
     ) {
-        ({ offset, limit } = normalizeOffsetLimit(offset, limit));
         try {
             const articles = await Article.findAll({
                 attributes: [

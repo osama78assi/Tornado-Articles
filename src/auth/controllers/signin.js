@@ -31,12 +31,6 @@ class ErrorsEnum {
         400,
         "INCORRECT_PASSWORD"
     );
-
-    static ALREADY_SIGNEDIN = new APIError(
-        "You've already signed in.",
-        400,
-        "ALREADY_SIGNEDIN"
-    );
 }
 
 /**
@@ -55,15 +49,6 @@ async function signin(req, res, next) {
         // Some validation
         if (email === null) return next(ErrorsEnum.EMIAL_MISSING);
         if (password === null) return next(ErrorsEnum.PASSWORD_MISSING);
-
-        // For now we don't have devices. So let's just check the current session if there is. Don't create
-        let oldRefreshToken = req?.cookies?.refreshToken || null;
-        if (oldRefreshToken !== null) {
-            // Check the session in the server
-            const { jti } = jwt.decode(oldRefreshToken);
-            if (await redis.exists(`refresh:${jti}`))
-                return next(ErrorsEnum.ALREADY_SIGNEDIN);
-        }
 
         // Check the validation of the email
         if (!validator.isEmail(email)) return next(ErrorsEnum.INVALID_EMAIL);
