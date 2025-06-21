@@ -13,7 +13,7 @@ async function getArticles(req, res, next) {
             since = new Date().toISOString(), // default value current time for the server
             reducedTimes = null,
             lastPublisher = null,
-        } = req?.query;
+        } = req?.query ?? {};
 
         // 1. If this is first time requesting then I don't have lastPublisher
         if (lastPublisher === null) {

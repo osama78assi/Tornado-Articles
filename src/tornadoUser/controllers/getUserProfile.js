@@ -7,7 +7,7 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function getUserProfile(req, res, next) {
     try {
-        const { userId } = req?.params || {};
+        const { userId } = req?.params;
 
         // get the details
         const user = await TornadoUserService.getUserDetails(userId);

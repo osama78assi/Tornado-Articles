@@ -27,7 +27,7 @@ async function logoutFromDevice(req, res, next) {
 
         const { id } = req.userInfo;
 
-        const { deviceName = "" } = req?.query || {};
+        const { deviceName = "" } = req?.query ?? {};
 
         if (deviceName === "") return next(ErrorsEnum.MISSING_DEVICE);
 

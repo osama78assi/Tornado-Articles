@@ -44,7 +44,7 @@ async function signin(req, res, next) {
     let userId = null;
 
     try {
-        let { email = null, password = null } = req?.body || {};
+        let { email = null, password = null } = req?.body ?? {};
 
         // Some validation
         if (email === null) return next(ErrorsEnum.EMIAL_MISSING);

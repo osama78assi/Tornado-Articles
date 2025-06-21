@@ -22,7 +22,7 @@ class ErrorEnum {
  */
 async function adminAddCategories(req, res, next) {
     try {
-        const { titles = [] } = req?.body || {};
+        const { titles = [] } = req?.body ?? {};
 
         if (titles.length === 0) return next(ErrorEnum.CATEGORIES_NOT_PROVIDED);
 

@@ -13,7 +13,7 @@ async function adminGetUsers(req, res, next) {
             getAfter = 1,
             limit = MIN_RESULTS,
             entryItemName = "",
-        } = req?.query;
+        } = req?.query ?? {};
 
         getAfter = Number(getAfter);
 

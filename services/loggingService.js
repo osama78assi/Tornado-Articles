@@ -47,4 +47,13 @@ loggingService.addListener("query-time-usage", function ({ sql, timeMs }) {
     );
 });
 
+loggingService.addListener("unexpected-rejection", function ({ error }) {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+
+    appendFile(
+        join(__dirname, "../logs/unexpected_rejection.log"),
+        `Error:\n${error}\n\n---------------\n\n`
+    );
+});
+
 export default loggingService;

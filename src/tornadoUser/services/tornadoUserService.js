@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import validator from "validator";
+import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
@@ -11,6 +12,12 @@ class ErrorsEnum {
         `You can change name once every ${UPDATE_NAME_LIMIT}`,
         429,
         "TOO_AERLY_CHANGE"
+    );
+
+    static ALREADY_BANNED = new APIError(
+        "The user has already banned (the duration hasn't passed yet)",
+        400,
+        "ALREADY_BANNED"
     );
 }
 
@@ -221,7 +228,7 @@ class TornadoUserService {
                 throw ErrorsEnum.CHANGE_NAME_LIMIT;
             }
 
-            const affectedRows = await TornadoUser.update(
+            const [affectedRows, newRowData] = await TornadoUser.update(
                 { fullName: newName, fullNameChangeAt: new Date() },
                 {
                     where: {
@@ -230,10 +237,63 @@ class TornadoUserService {
                     returning: true,
                 }
             );
-            if (affectedRows[0] === 0)
+            if (affectedRows === 0)
                 throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
-            return affectedRows[1][0].dataValues.fullName;
+            return newRowData[0].dataValues.fullName;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async banUserFor(userId, banTill) {
+        try {
+            const userData = await TornadoUser.findByPk(userId, {
+                attributes: ["banTill"],
+            });
+
+            // Check if the user is already banned then don't take an action
+            if (userData.dataValues.banTill > new Date())
+                throw ErrorsEnum.ALREADY_BANNED;
+
+            const [affectedRows, newRowData] = await TornadoUser.update(
+                {
+                    banTill,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                    returning: true,
+                }
+            );
+
+            return newRowData[0].dataValues.banTill;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async addNewArticle(userId, articleCounts, t) {
+        try {
+            // This transaction must be managed by the function which passed it
+            // await User.increment("articleCounts", {
+            //     where: { id: userId },
+            //     transaction: t,
+            // });
+
+            // Update also the publish time maybe in one query
+            await User.update(
+                {
+                    articleCounts: articleCounts + 1,
+                    articlePublishedAt: new Date(),
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
         } catch (err) {
             throw err;
         }

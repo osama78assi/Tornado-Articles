@@ -4,7 +4,7 @@
 // Allow users pick how many rows he wants but really not more than 25
 // It's good if we don't have CROS and someone tried to hungup our server by sending
 // he wants 1000 rows. You can call it extra semi-security
-const MAX_RESULTS = 25;
+const MAX_RESULTS = 100;
 
 // When the client send a request with negative number as limit.
 // I prefere to send the min results instead of error
@@ -31,6 +31,8 @@ const UPDATE_PASSWORD_LIMIT = "15 days";
 // How many times he can change his name
 const UPDATE_NAME_LIMIT = "1 month";
 
+// How many times the user can publsih an article
+const PUBLISH_ARTICLE_LIMIT = "30 minutes";
 
 // In my recommendation system I will give score high priority over read counts
 // but also consider it in my equation. As artilces the reads aren't a good way to rank
@@ -70,6 +72,7 @@ export {
     MAX_RESULTS,
     MAX_TAGS_ARTICLE_COUNT,
     MIN_RESULTS,
+    PUBLISH_ARTICLE_LIMIT,
     RDUCE_SINCE_BY,
     REDUCE_SINCE_TIMES,
     UPDATE_NAME_LIMIT,

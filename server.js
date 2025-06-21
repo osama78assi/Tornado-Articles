@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
-import  { dirname, join } from "path";
+import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import loggingService from "./services/loggingService.js";
 
 async function main() {
     const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -31,10 +32,8 @@ async function main() {
     // Handle unhandled promise rejection
     process.on("unhandledRejection", function (err) {
         console.log(err);
-        // close the server
-        server.close();
-        // Shut down the app
-        process.exit(1); // 0 success, 1 unhandled exception
+        // log it to the logs file
+        loggingService.emit("unexpected-rejection", { error: err });
     });
 
     process.on("uncaughtException", function (err) {

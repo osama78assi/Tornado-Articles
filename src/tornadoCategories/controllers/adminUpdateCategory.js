@@ -10,7 +10,7 @@ async function adminUpdateCategory(req, res, next) {
     try {
         const { categoryId } = req?.params;
 
-        const { categoryTitle = null } = req?.body || {};
+        const { categoryTitle = null } = req?.body ?? {};
 
         if (categoryTitle === null)
             return next(

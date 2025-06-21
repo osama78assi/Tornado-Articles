@@ -16,7 +16,7 @@ async function getFollowers(req, res, next) {
             limit = MIN_RESULTS,
             entryItemName = "",
             getAfter = 1,
-        } = req?.query || {};
+        } = req?.query ?? {};
 
         getAfter = Number(getAfter);
 

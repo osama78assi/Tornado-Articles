@@ -1,3 +1,5 @@
+import parseStrPeriod from "./parseStrPeriod.js";
+
 /**
  * Check if the given future date is have a 'duration' difference between it and the past date
  * @param {Date} futureDate
@@ -21,36 +23,38 @@ export default function isPassedTimeBy(futureDate, pastDate, duration) {
         throw new Error("Both `futureDate` and `pastDate` must be date object");
     }
 
-    let wantedPassedTime = null;
+    const { keyword, period } = parseStrPeriod(duration);
     let passed = null;
 
-    if (/^\d+\s*(m|M)(inutes?)?$/.test(duration)) {
-        wantedPassedTime = parseInt(duration);
-        passed = parseInt((futureDate - pastDate) / 1000 / 60);
-    } else if (/^\d+\s*(h|H)(ours?)?$/.test(duration)) {
-        wantedPassedTime = parseInt(duration);
-        passed = parseInt((futureDate - pastDate) / 1000 / 60 / 60);
-    } else if (/^\d+\s*(d|D)(ays?)?$/.test(duration)) {
-        wantedPassedTime = parseInt(duration);
-        passed = parseInt((futureDate - pastDate) / 1000 / 60 / 60 / 24);
-    } else if (/^\d+\s*(w|W)(eeks?)?$/.test(duration)) {
-        wantedPassedTime = parseInt(duration);
-        passed = parseInt((futureDate - pastDate) / 1000 / 60 / 60 / 24 / 7);
-    } else if (/^\d+\s*(m|M)(onths?)?$/.test(duration)) {
-        wantedPassedTime = parseInt(duration);
-        passed = parseInt((futureDate - pastDate) / 1000 / 60 / 60 / 24 / 30);
-    } else if (/^\d+\s*(y|Y(ears?)?)$/.test(duration)) {
-        wantedPassedTime = parseInt(duration);
-        passed = parseInt(
-            (futureDate - pastDate) / 1000 / 60 / 60 / 24 / 30 / 12
-        ); // May have a few error boundray
-    }
-
-    if (passed === null && wantedPassedTime === null) {
-        throw new Error("Passed duration doesn't matched any pattern.");
+    switch (keyword) {
+        case "minute":
+            passed = parseInt((futureDate - pastDate) / 1000 / 60);
+            break;
+        case "hour":
+            passed = parseInt((futureDate - pastDate) / 1000 / 60 / 60);
+            break;
+        case "day":
+            passed = parseInt((futureDate - pastDate) / 1000 / 60 / 60 / 24);
+            break;
+        case "week":
+            passed = parseInt(
+                (futureDate - pastDate) / 1000 / 60 / 60 / 24 / 7
+            );
+            break;
+        case "month":
+            // Months and years are considered the normalized time like month 30 days. Year 365 just for consistency
+            passed = parseInt(
+                (futureDate - pastDate) / 1000 / 60 / 60 / 24 / 30
+            );
+            break;
+        case "year":
+            passed = parseInt(
+                (futureDate - pastDate) / 1000 / 60 / 60 / 24 / 365
+            );
+            break;
     }
 
     // If only it's equal or larger. Those will be null if the passed duration isn't correct
-    if (passed >= wantedPassedTime) return true;
+    if (passed >= period) return true;
     return false;
 }

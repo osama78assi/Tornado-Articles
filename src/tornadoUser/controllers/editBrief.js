@@ -8,7 +8,7 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function editBrief(req, res, next) {
     try {
-        const { newBrief = null } = req?.body || {};
+        const { newBrief = null } = req?.body ?? {};
         const userId = req.userInfo.id;
 
         if (newBrief === null)

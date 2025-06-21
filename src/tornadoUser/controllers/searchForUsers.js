@@ -29,7 +29,7 @@ async function searchForUsers(req, res, next) {
             getAfter = 1, // This will specify the order. forward and backward
             limit = MIN_RESULTS,
             entryItemDate = new Date().toISOString(),
-        } = req?.query || {};
+        } = req?.query ?? {};
 
         if (query === null) return next(ErrorsEnum.INVALID_QUERY);
 

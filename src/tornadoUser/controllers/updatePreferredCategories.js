@@ -23,7 +23,7 @@ class ErrorEnum {
  */
 async function updatePreferredCategories(req, res, next) {
     try {
-        let { toDelete = [], toAdd = [] } = req?.body || {};
+        let { toDelete = [], toAdd = [] } = req?.body ?? {};
 
         const userId = req.userInfo.id;
 

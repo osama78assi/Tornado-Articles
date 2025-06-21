@@ -16,7 +16,7 @@ class ErrorEnum {
  */
 async function updateCookiesAccess(req, res, next) {
     try {
-        const { allow = null } = req?.body || {};
+        const { allow = null } = req?.body ?? {};
 
         if (allow === null || typeof allow !== "boolean")
             return next(ErrorEnum.INVALID_DATA_TYPE);

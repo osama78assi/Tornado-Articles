@@ -13,7 +13,7 @@ async function forgetPassword(req, res, next) {
     let tokenId = null;
 
     try {
-        const { email = null } = req?.query || {};
+        const { email = null } = req?.query ?? {};
 
         if (email === null)
             return next(
@@ -38,8 +38,8 @@ async function forgetPassword(req, res, next) {
         // Store the hashed one (to not allow anyone to know it except users)
         ({ tokenId } = await PasswordTokenService.createToken(id, hashedToken));
 
-        // Send the token
-        await sendResetPassURL(
+        // Send the token (without await)
+        sendResetPassURL(
             { userName: fullName, userEmail: email },
             {
                 user: process.env.GOOGLE_EMAIL,

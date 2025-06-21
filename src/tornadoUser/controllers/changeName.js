@@ -16,7 +16,7 @@ class ErrorEnum {
  */
 async function changeName(req, res, next) {
     try {
-        const { newName = null } = req?.body || {};
+        const { newName = null } = req?.body ?? {};
         // Get the id
         const userId = req?.userInfo.id;
 

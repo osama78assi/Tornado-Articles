@@ -1,6 +1,13 @@
 import nodemailer from "nodemailer";
 import sendEmailService from "./sendEmailService.js";
 
+/**
+ * Send for a use an email containing the reason for deleting his/her account
+ * @param {import('./sendEmailService.js').UserData} param0
+ * @param {import('./sendEmailService.js').Auth} auth
+ * @param {string} resetToken the reset token that will be added to the URL where the user want to reset his/her password
+ * * @returns {Promise} The info of the email result (after sending it)
+ */
 async function sendResetPassURL({ userName, userEmail }, auth, resetToken) {
     try {
         // Create a transporter
@@ -35,7 +42,7 @@ async function sendResetPassURL({ userName, userEmail }, auth, resetToken) {
 
         // Set the email options
         const mailOptions = {
-            from: `Tornado Article Authentication" <${auth.user}>`,
+            from: `Tornado Articles Authentication Service" <${auth.user}>`,
             to: userEmail,
             subject: "Reset Password URL",
             html,

@@ -25,8 +25,8 @@ class ErrorEnum {
  */
 async function resetPasswordByToken(req, res, next) {
     try {
-        const { tokenId } = req?.params || {};
-        const { newPassword = null } = req?.body || {};
+        const { tokenId } = req?.params;
+        const { newPassword = null } = req?.body ?? {};
 
         if (newPassword === null || newPassword === "")
             return next(ErrorEnum.MISSING_PASSWORD);

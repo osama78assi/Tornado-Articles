@@ -58,7 +58,7 @@ async function publishArticle(req, res, next) {
             language = "english",
             categories = [],
             tags = [],
-        } = req?.body || {};
+        } = req?.body ?? {};
 
         // Normal validation
         if (title === null) return next(ErrorEnums.MISSING_TITLE);

@@ -23,7 +23,7 @@ class ErrorsEnum {
  */
 async function setPreferredCategories(req, res, next) {
     try {
-        let { categories = null } = req?.body || {};
+        let { categories = null } = req?.body ?? {};
 
         const userId = req.userInfo.id;
 

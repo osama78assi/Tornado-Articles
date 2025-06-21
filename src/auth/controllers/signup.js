@@ -74,7 +74,7 @@ async function signup(req, res, next) {
             password = null,
             birthDate = null,
             gender = null,
-        } = req?.body || {};
+        } = req?.body ?? {};
 
         // Some validation
         if (fullName === null) return next(ErrorsEnum.NAME_MISSING);

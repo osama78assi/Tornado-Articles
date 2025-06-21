@@ -38,7 +38,7 @@ class ErrorsEnum {
  */
 async function resetPassword(req, res, next) {
     try {
-        const { oldPassword = null, newPassword = null } = req?.body || {};
+        const { oldPassword = null, newPassword = null } = req?.body ?? {};
 
         if (oldPassword === null || newPassword === null)
             return next(ErrorsEnum.MISSING_DATA);

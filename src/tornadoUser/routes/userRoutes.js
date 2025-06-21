@@ -21,6 +21,7 @@ import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
+import adminBanUser from "../controllers/adminBanUser.js";
 
 const userRoutes = Router();
 
@@ -79,5 +80,13 @@ userRoutes.get("/users/:userId/followings", getFollowings);
 
 // Admin can browse users
 userRoutes.get("/admin/users", isAuthenticated, isAdmin, adminGetUsers);
+
+// Admin can ban users from publishing articles
+userRoutes.post(
+    "/admin/users/ban/:userId",
+    isAuthenticated,
+    isAdmin,
+    adminBanUser
+);
 
 export default userRoutes;

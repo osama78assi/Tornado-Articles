@@ -1,9 +1,14 @@
 import { ForeignKeyConstraintError, Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import { MIN_RESULTS } from "../../../config/settings.js";
+import {
+    MIN_RESULTS,
+    PUBLISH_ARTICLE_LIMIT,
+} from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
+import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
+import TornadoUserService from "../../tornadoUser/services/tornadoUserService.js";
 import Article from "../models/article.js";
 import ArticleCategory from "../models/articleCategory.js";
 import ArticleImage from "../models/articleImage.js";
@@ -50,6 +55,32 @@ async function searchByTitle() {
     }
 }
 
+class ErrorsEnum {
+    static CATEGORY_NOT_FOUND = new APIError(
+        "One of the categroies isn't exists",
+        404,
+        "CATEGORY_NOT_FOUND"
+    );
+
+    static ARTICLE_NOT_FOUND = new APIError(
+        "The article either deleted or not existed in first place.",
+        404,
+        "ARTICLE_NOT_FOUND"
+    );
+
+    static ARTICLE_PUBLISH_LIMIT = new APIError(
+        `You can't publish new article now. Every ${PUBLISH_ARTICLE_LIMIT} you can publish a new article.`,
+        429,
+        "PUBLISH_LIMIT_EXCEEDED"
+    );
+
+    static BANNED_FROM_PUBLISH = new APIError(
+        `Sorry you are banned from publishing any new article right now`,
+        403,
+        "BANNED"
+    );
+}
+
 class ArticleService {
     static async publishArticle(
         userId,
@@ -65,6 +96,26 @@ class ArticleService {
         // Start unmanaged transaction
         const t = await sequelize.transaction();
         try {
+            // Get the user data. There is two limitation (last publishing time and ban)
+            // And I will be able to get the old article counts (because I want to add the date of publishing with it)
+            const userData = await TornadoUserService.getUserById(userId);
+
+            if (
+                userData.dataValues.articlePublishedAt !== null &&
+                !isPassedTimeBy(
+                    new Date(),
+                    userData.dataValues.articlePublishedAt,
+                    PUBLISH_ARTICLE_LIMIT
+                )
+            )
+                throw ErrorsEnum.ARTICLE_PUBLISH_LIMIT;
+
+            if (
+                userData.dataValues.banTill !== null &&
+                userData.dataValues.banTill < new Date()
+            )
+                throw ErrorsEnum.BANNED_FROM_PUBLISH;
+
             // Add the article
             const article = await Article.create(
                 {
@@ -142,10 +193,11 @@ class ArticleService {
             }
 
             // Increase the articles count by 1
-            await User.increment("articleCounts", {
-                where: { id: userId },
-                transaction: t,
-            });
+            await TornadoUserService.addNewArticle(
+                userId,
+                userData.dataValues.articleCounts,
+                t
+            );
 
             await t.commit();
             return article.dataValues.id;
@@ -154,11 +206,7 @@ class ArticleService {
             // Due to complex relation I will make some of them readable
             if (err instanceof ForeignKeyConstraintError) {
                 if (err.table === "ArticleCategories")
-                    throw new APIError(
-                        "One of the categroies isn't exists",
-                        404,
-                        "CATEGORY_NOT_FOUND"
-                    );
+                    throw ErrorsEnum.CATEGORY_NOT_FOUND;
             }
             throw err;
         }
@@ -208,12 +256,7 @@ class ArticleService {
                 ],
             });
 
-            if (!article)
-                throw new APIError(
-                    "The article either deleted or not existed in first place.",
-                    404,
-                    "ARTICLE_NOT_FOUND"
-                );
+            if (!article) throw ErrorsEnum.ARTICLE_NOT_FOUND;
 
             return article;
         } catch (err) {
