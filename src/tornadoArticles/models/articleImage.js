@@ -13,10 +13,12 @@ ArticleImage.init(
             },
             onDelete: "CASCADE",
             allowNull: false,
+            primaryKey: true,
         },
         image: {
             type: DataTypes.STRING(150),
             allowNull: false,
+            primaryKey: true,
         },
     },
     {

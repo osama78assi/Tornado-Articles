@@ -164,6 +164,12 @@ async function addAssociations() {
     Article.hasMany(ArticleImage, {
         foreignKey: "articleId",
         onDelete: "CASCADE",
+        as: "articleImages",
+    });
+
+    ArticleImage.belongsTo(Article, {
+        foreignKey: "articleId",
+        onDelete: "CASCADE",
     });
 
     ///// Articles Publisher
@@ -190,6 +196,7 @@ async function addAssociations() {
         through: ArticleCategory,
         foreignKey: "articleId",
         onDelete: "CASCADE",
+        as: "categories",
     });
 
     Category.belongsToMany(Article, {
@@ -203,6 +210,7 @@ async function addAssociations() {
         through: ArticleTag,
         foreignKey: "articleId",
         onDelete: "CASCADE",
+        as: "tags",
     });
 
     Tag.belongsToMany(Article, {

@@ -7,12 +7,12 @@ class LoggingService extends EventEmitter {}
 
 const loggingService = new LoggingService();
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 // Listening to logging some info about generating access tokens
 loggingService.addListener(
     "refresh-tokens-log",
     function ({ userId, ip, requestedAt, isFirstTime = false }) {
-        const __dirname = dirname(fileURLToPath(import.meta.url));
-
         appendFile(
             join(__dirname, "../logs/access_token_requests.log"),
             `${
@@ -24,35 +24,40 @@ loggingService.addListener(
     }
 );
 
-// To test how much time consumed by a route
+// To measure the time that consumed by a route handler
 loggingService.addListener(
     "resource-time-usage",
     function ({ resourceName, timeMs }) {
-        const __dirname = dirname(fileURLToPath(import.meta.url));
-
         appendFile(
             join(__dirname, "../logs/resources_usage.log"),
-            `${resourceName} handler took about ${timeMs}ms to complete\n`
+            `${new Date()}\n${resourceName} handler took about ${timeMs}ms to complete\n`
+        );
+    }
+);
+
+// To measure a time taken by any function
+loggingService.addListener(
+    "function-time-usage",
+    function ({ header, timeMs }) {
+        appendFile(
+            join(__dirname, "../logs/functions_usage.log"),
+            `${new Date()}\n${header}: Took ${timeMs}ms to complete\n\n`
         );
     }
 );
 
 // For logging some queries time consuming
 loggingService.addListener("query-time-usage", function ({ sql, timeMs }) {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-
     appendFile(
         join(__dirname, "../logs/sql_usage.log"),
-        `SQL:\n${sql}\n\nTOOK: ${timeMs}ms\n\n-----------\n`
+        `${new Date()}\nSQL:\n${sql}\n\nTOOK: ${timeMs}ms\n\n---------------\n`
     );
 });
 
 loggingService.addListener("unexpected-rejection", function ({ error }) {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-
     appendFile(
         join(__dirname, "../logs/unexpected_rejection.log"),
-        `Error:\n${error}\n\n---------------\n\n`
+        `${new Date()}\nError:\n${error}\n\n---------------\n\n`
     );
 });
 

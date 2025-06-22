@@ -127,7 +127,9 @@ class ArticleService {
                     userId,
                     titleTsVector: sequelize.fn("to_tsvector", language, title),
                 },
-                { transaction: t }
+                {
+                    transaction: t,
+                }
             );
 
             // Add the images
@@ -215,6 +217,7 @@ class ArticleService {
     static async getArticleDetails(articleId) {
         try {
             const article = await Article.findOne({
+                subQuery: false,
                 where: {
                     id: articleId,
                 },
@@ -237,6 +240,7 @@ class ArticleService {
                         attributes: {
                             exclude: ["createdAt"],
                         },
+                        as: "categories",
                     },
                     {
                         // Get the tags
@@ -247,16 +251,33 @@ class ArticleService {
                         attributes: {
                             exclude: ["createdAt"],
                         },
+                        as: "tags",
                     },
                     {
-                        // May not be used but let's get the images urls
+                        // Get the article images. If exists
                         model: ArticleImage,
                         attributes: ["image"], // Only get the image
+                        as: "articleImages",
                     },
                 ],
+                // benchmark: true,
+                // logging: function (sql, timeMs) {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
             });
 
             if (!article) throw ErrorsEnum.ARTICLE_NOT_FOUND;
+
+            console.log(
+                "\n\n###########",
+                await article.getArticleImages(),
+                "\n\n###########"
+            );
+            console.log(
+                "\n\n###########",
+                article.dataValues.articleImages,
+                "\n\n###########"
+            );
 
             return article;
         } catch (err) {

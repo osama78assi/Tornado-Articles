@@ -6,6 +6,7 @@ import {
     MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_TAGS_ARTICLE_COUNT,
 } from "../../../config/settings.js";
+import measureFuncTime from "../../../util/measureFuncTime.js";
 
 class ErrorEnums {
     static MISSING_TITLE = new APIError(
@@ -120,6 +121,23 @@ async function publishArticle(req, res, next) {
             categories,
             tags
         );
+
+        // For testing
+        // const artilceId = await measureFuncTime(
+        //     "Function for publish a new article",
+        //     ArticleService.publishArticle,
+        //     [
+        //         userId,
+        //         title,
+        //         content,
+        //         isPrivate,
+        //         language,
+        //         coverPic,
+        //         contentPics,
+        //         categories,
+        //         tags,
+        //     ]
+        // );
 
         // Because of getting the article is complex I separated them
         const articleData = await ArticleService.getArticleDetails(artilceId);
