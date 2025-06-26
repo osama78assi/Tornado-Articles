@@ -1,6 +1,5 @@
 import { Op } from "sequelize";
 import validator from "validator";
-import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";

@@ -46,7 +46,7 @@ const PUBLISH_ARTICLE_LIMIT = "30 minutes";
  */
 function UPDATE_RANK(score, readCounts) {
     const logReads = Math.log10(readCounts);
-    const readScore = (logReads <= 0 ? 0.5 : logReads) * 2;
+    const readScore = (logReads <= 0.5 ? 0.5 : logReads) * 2;
 
     // For positive score
     if (score > 0) return score * 0.5 + readScore;
@@ -55,14 +55,10 @@ function UPDATE_RANK(score, readCounts) {
     return Math.abs(score) / (1.7 + Math.abs(score) * 0.1) + readScore;
 }
 
-// I will try to have the articles fresh as possible so I will reduce the (since) time by 6 hours
-// Each time I get fewer resulsts. and I will keep reducing up to 8 times (about 2 days ago)
-// So this values can be manipulated easily here. It's a good idea to publish some articles
-// interact with it and check the recommendation from time to time and watch the memory and time
-// usage for each query to adjust these values correctly
-const RDUCE_SINCE_BY = 6;
-
-const REDUCE_SINCE_TIMES = 8;
+// To solve what called re-ranking. As the API is REST then we I will use session based but the client will save that
+// So he will tell me how many articles the user have browsed and I can't just ignore all of them they might be 10K IDK
+// So I will take last 250 article to ignore
+const ALLOWED_IGNORE_COUNT = 250;
 
 export {
     MAX_ARTICLE_CONTENT_PICS_COUNT,
@@ -73,9 +69,8 @@ export {
     MAX_TAGS_ARTICLE_COUNT,
     MIN_RESULTS,
     PUBLISH_ARTICLE_LIMIT,
-    RDUCE_SINCE_BY,
-    REDUCE_SINCE_TIMES,
     UPDATE_NAME_LIMIT,
     UPDATE_PASSWORD_LIMIT,
     UPDATE_RANK,
+    ALLOWED_IGNORE_COUNT
 };

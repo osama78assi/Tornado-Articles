@@ -1,9 +1,6 @@
 import { ForeignKeyConstraintError, Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import {
-    MIN_RESULTS,
-    PUBLISH_ARTICLE_LIMIT,
-} from "../../../config/settings.js";
+import { PUBLISH_ARTICLE_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User from "../../auth/models/user.js";
@@ -24,21 +21,21 @@ async function searchByTitle() {
     try {
         let searchFor = "HEllo there";
         // let query = `
-        // SELECT *, ts_rank(to_tsvector('english', title), to_tsquery(:searchFor)) AS rank
+        // SELECT *, ts_rank(to_tsvector('english', title), to_tsquery(:searchFor)) AS articleRank
         // from "Articles" WHERE to_tsvector('english', title) @@ to_tsquery(:searchFor)
-        // ORDER BY rank DESC ,"createdAt" DESC
+        // ORDER BY articleRank DESC ,"createdAt" DESC
         // LIMIT :results OFFSET :startAt
         // `;
 
         // Optimized query
         let query = `
-            SELECT sub.*, ts_rank(a.data, to_tsquery(:searchFor)) AS rank
+            SELECT sub.*, ts_rank(a.data, to_tsquery(:searchFor)) AS articleRank
             FROM (
                 SELECT *, to_tsvector('english', title) AS data
                 FROM "Articles"
             ) sub
             WHERE sub.data @@ to_tsquery(:searchFor)
-            ORDER BY rank DESC, "createdAt" DESC
+            ORDER BY articleRank DESC, "createdAt" DESC
             LIMIT :results OFFSET :startAt;
         `;
 
@@ -268,28 +265,13 @@ class ArticleService {
 
             if (!article) throw ErrorsEnum.ARTICLE_NOT_FOUND;
 
-            console.log(
-                "\n\n###########",
-                await article.getArticleImages(),
-                "\n\n###########"
-            );
-            console.log(
-                "\n\n###########",
-                article.dataValues.articleImages,
-                "\n\n###########"
-            );
-
             return article;
         } catch (err) {
             throw err;
         }
     }
 
-    static async getLatestArticlesGuests(
-        offset = 0,
-        limit = MIN_RESULTS,
-        since
-    ) {
+    static async getFreshArticles(limit, since, categories, ignore) {
         try {
             const articles = await Article.findAll({
                 attributes: [
@@ -299,24 +281,130 @@ class ArticleService {
                     "coverImg",
                     "language",
                     "minsToRead",
+                    "score",
                 ],
-                include: {
-                    // Get some info about the publisher
-                    model: User,
-                    as: "publisher",
-                    attributes: ["id", "fullName", "profilePic", "gender"],
-                },
+                include: [
+                    {
+                        // Get the necessary info about the publisher
+                        model: User,
+                        as: "publisher",
+                        attributes: ["id", "fullName", "profilePic", "gender"],
+                    },
+                    {
+                        model: Category,
+                        as: "categories",
+                        through: {
+                            attributes: [], // Don't include anything from junction table
+                        },
+                        ...(categories.length > 0 && {
+                            where: {
+                                id: { [Op.in]: categories },
+                            },
+                        }),
+                    },
+                    {
+                        model: Tag,
+                        as: "tags",
+                        through: {
+                            attributes: [],
+                        },
+                    },
+                ],
                 where: {
+                    ...(ignore.length !== 0 && {
+                        id: {
+                            [Op.notIn]: ignore,
+                        },
+                    }),
                     private: false,
                     createdAt: {
-                        [Op.lte]: since,
+                        [Op.lt]: since,
                     },
                 },
-                offset,
+                limit,
+                order: [["createdAt", "DESC"]],
+            });
+
+            return articles;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getOptimalArticles(
+        limit,
+        categories,
+        lastArticleId,
+        lastArticleRank = Number.POSITIVE_INFINITY,
+        ignore = []
+    ) {
+        try {
+            let compareId = {};
+            // If there is a provided id compare with it
+            if (lastArticleId !== "")
+                compareId = {
+                    articleRank: lastArticleRank, // If they have the same rank
+                    id: { [Op.lt]: lastArticleId }, // Then take where the id is less (snowflake guarantee that the id is sorted naturally by timestamp)
+                };
+
+            let articles = await Article.findAll({
+                attributes: [
+                    "id",
+                    "title",
+                    "createdAt",
+                    "coverImg",
+                    "language",
+                    "minsToRead",
+                    "score",
+                    "articleRank",
+                ],
+                include: [
+                    {
+                        // Get the necessary info about the publisher
+                        model: User,
+                        as: "publisher",
+                        attributes: ["id", "fullName", "profilePic", "gender"],
+                    },
+                    {
+                        model: Category,
+                        as: "categories",
+                        through: {
+                            attributes: [],
+                        },
+                        ...(categories.length > 0 && {
+                            where: {
+                                id: { [Op.in]: categories },
+                            },
+                        }),
+                    },
+                    {
+                        model: Tag,
+                        as: "tags",
+                        through: {
+                            attributes: [],
+                        },
+                    },
+                ],
+                where: {
+                    ...(ignore.length !== 0 && {
+                        id: {
+                            [Op.notIn]: ignore,
+                        },
+                    }),
+                    private: false,
+                    [Op.or]: [
+                        {
+                            articleRank: {
+                                [Op.lt]: lastArticleRank, // Take less than provided article
+                            },
+                        },
+                        compareId, // If there is equality take this
+                    ],
+                },
                 limit,
                 order: [
-                    ["rank", "DESC"],
-                    ["createdAt", "DESC"],
+                    ["articleRank", "DESC"],
+                    ["id", "DESC"],
                 ],
             });
 

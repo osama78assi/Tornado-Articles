@@ -4,18 +4,25 @@ import deleteArticle from "../controllers/deleteArticle.js";
 import editArticleContent from "../controllers/editArticleContent.js";
 import editArticleTitle from "../controllers/editArticleTitle.js";
 import getArticle from "../controllers/getArticle.js";
-import getArticles from "../controllers/getArticles.js";
 import getArticlesFor from "../controllers/getArticlesFor.js";
+import getFreshArticles from "../controllers/getFreshArticles.js";
 import getRecommendedArticles from "../controllers/getRecommendedArticles.js";
 import publishArticle from "../controllers/publishArticle.js";
 import searchForArticleBytTitle from "../controllers/searchForArticleByTitle.js";
 import searchForArticleByTags from "../controllers/searchForArtilcesByTags.js";
+import getOptimalArticles from "../controllers/getOptimalArticle.js"
 
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
 import downloadArticlesPics from "../middlewares/downloadArticlesPics.js";
 
 const articleRouter = Router();
+
+// Anyone can get articles (home page for guests)
+// While it must GET but I made POST because there is a complex filtering
+articleRouter.post("/articles/recommend/fresh", isLoggedIn, getFreshArticles); // WORKING
+articleRouter.post("/articles/recommend/optimal", isLoggedIn, getOptimalArticles); // WORKING
 
 // Anyone can get the articles for any user
 articleRouter.get("/articles/:userId", getArticlesFor); // TODO
@@ -62,9 +69,6 @@ articleRouter.post(
     downloadArticlesPics,
     publishArticle
 ); // DONE
-
-// Anyone can get articles (home page for guests)
-articleRouter.get("/articles", getArticles); // WORKING
 
 // Search by title
 articleRouter.get("/articles/search-by-title", searchForArticleBytTitle); // TODO

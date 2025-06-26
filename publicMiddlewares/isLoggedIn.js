@@ -38,7 +38,10 @@ async function isLoggedIn(req, res, next) {
         // Check if user exists
         const user = await TornadoUserService.getUserById(payload?.id);
 
-        if (user.dataValues.changeDate > new Date(payload.iat * 1000)) {
+        if (
+            user.dataValues.passwordChangeAt !== null &&
+            user.dataValues.passwordChangeAt > new Date(payload.iat * 1000)
+        ) {
             return next(
                 new APIError(
                     "Some changes happened to the user data. The token is no longer valid. Please login again",

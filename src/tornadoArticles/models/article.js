@@ -91,7 +91,7 @@ Article.init(
             type: DataTypes.BIGINT,
             defaultValue: 0,
         },
-        rank: {
+        articleRank: {
             // Will help in recommendation system
             type: DataTypes.FLOAT,
             defaultValue: 0,
@@ -100,13 +100,13 @@ Article.init(
     {
         sequelize,
         timestamp: true,
-        indexes: [
-            {
-                // There is two indexes here. in sequelize config file
-                name: "rank_created_at_btree_index", // Getting posts for guests now is faster
-                fields: [{ name: "rank", order: "DESC" }],
-            },
-        ],
+        // indexes: [
+        //     {
+        //         // There is two indexes here. in sequelize config file
+        //         name: "rank_created_at_btree_index", // Getting posts for guests now is faster
+        //         fields: [{ name: "rank", order: "DESC" }],
+        //     },
+        // ],
         hooks: {
             beforeCreate(article) {
                 // Trim the content and title
