@@ -3,8 +3,7 @@ import cors from "cors";
 import express from "express";
 import device from "express-device";
 import fileUpload from "express-fileupload";
-import { fileTypeFromBuffer } from "file-type";
-import path, { dirname, join } from "path";
+import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import errorHandler from "./publicMiddlewares/errorHandler.js";
 import authRouter from "./src/auth/route/authRoutes.js";
@@ -12,7 +11,6 @@ import articleRouter from "./src/tornadoArticles/routes/artcileRoutes.js";
 import categoryRoutes from "./src/tornadoCategories/routes/categoryRoutes.js";
 import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
 import APIError from "./util/APIError.js";
-import { TornadoStorage } from "./util/fileUploaderHandlers.js";
 
 let app = express();
 
