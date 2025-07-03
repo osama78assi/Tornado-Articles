@@ -6,18 +6,13 @@ import fileUpload from "express-fileupload";
 import { fileTypeFromBuffer } from "file-type";
 import path, { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import {
-    fieldsTornadoFiles,
-    SingleFileError,
-    TornadoStorage,
-} from "./util/fileUploaderHandlers.js";
 import errorHandler from "./publicMiddlewares/errorHandler.js";
 import authRouter from "./src/auth/route/authRoutes.js";
 import articleRouter from "./src/tornadoArticles/routes/artcileRoutes.js";
 import categoryRoutes from "./src/tornadoCategories/routes/categoryRoutes.js";
 import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
 import APIError from "./util/APIError.js";
-import measureHandlerTime from "./util/measureHandlerTime.js";
+import { TornadoStorage } from "./util/fileUploaderHandlers.js";
 
 let app = express();
 
@@ -59,67 +54,6 @@ app.use("/api/v1", categoryRoutes); // like admin/categories and /categories
 app.use("/api/v1", TornadoUserRoutes); // may have search so ?=''
 // It have two things admin can block users
 // api/v1/admin/users or api/v1/users
-
-const storage = new TornadoStorage({
-    destination: async (req, file) => {
-        // Check the real file type
-        if (!(await fileTypeFromBuffer(file.data)).mime.startsWith("image")) {
-            throw new APIError(
-                "Only images accepted",
-                400,
-                "INVALID_IMAGE_TYPE"
-            );
-        }
-
-        const __dirname = dirname(fileURLToPath(import.meta.url));
-
-        return path.join(__dirname, "./uploads/articles");
-    },
-    fileName: async (req, file) => {
-        return `${Date.now()}-${Math.floor(Math.random() * 10e9)}.jpg`;
-    },
-});
-
-app.post(
-    "/test",
-    measureHandlerTime(
-        async function (req, res, next) {
-            fieldsTornadoFiles({
-                storage,
-                fields: [
-                    { name: "profilePic", maxCount: 1 },
-                    { name: "cover", maxCount: 3 },
-                ],
-            })(req, res, function (err) {
-                if (err) {
-                    if (err instanceof SingleFileError) {
-                        return next(
-                            new APIError(
-                                "Expected one profile picture but recieved more than one",
-                                400,
-                                "VALIDATION_ERROR"
-                            )
-                        );
-                    }
-                    return next(err);
-                }
-                // Call the next
-                next();
-            });
-        },
-        "file uploader"
-    ),
-    async (req, res, next) => {
-        console.log("\n\n###########\n", req.files, "\n\n###########\n");
-        next();
-    },
-    (req, res) => {
-        console.log("\n\n###########\n", "END AGAIN", "\n\n###########\n");
-        res.status(200).json({
-            message: "success",
-        });
-    }
-);
 
 // Notifications
 // app.use('/api/v1/users/:userId/notifications')
