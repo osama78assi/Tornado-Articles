@@ -1,8 +1,6 @@
 import { randomUUID } from "crypto";
 import { unlink } from "fs/promises";
 import jwt from "jsonwebtoken";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 import redis from "../../../config/redisConfig.js";
 import APIError from "../../../util/APIError.js";
 import sanitize from "../../../util/sanitize.js";
@@ -10,31 +8,6 @@ import AuthUserService from "../services/AuthUserService.js";
 
 // Just for more readability
 class ErrorsEnum {
-    static NAME_MISSING = new APIError(
-        "The name is required field.",
-        400,
-        "MISSING_NAME"
-    );
-    static EMAIL_MISSING = new APIError(
-        "The email is required field.",
-        400,
-        "MISSING_EMAIL"
-    );
-    static PASSWORD_MISSING = new APIError(
-        "The Password is required field",
-        400,
-        "MISSING_PASSWORD"
-    );
-    static BIRTH_DATE_MISSING = new APIError(
-        "The birth date is required field",
-        400,
-        "MISSING_BIRTH_DATE"
-    );
-    static GENDER_MISSING = new APIError(
-        "The gender is required field.",
-        400,
-        "MISSING_GENDER"
-    );
     static SIGNEDIN_CANT_SIGNUP = new APIError(
         "Your are aleardy logged in using another account. Logout to be able to signup with new account",
         400,
@@ -58,8 +31,8 @@ async function signup(req, res, next) {
             return next(ErrorsEnum.SIGNEDIN_CANT_SIGNUP);
         }
 
-        // Get the name of the file (added by multer)
-        let profilePicName = req?.file?.filename;
+        // Get the file name if exists (added by custom config and file uploading handler)
+        let profilePicName = req?.files?.profilePic?.newName;
 
         // Build a URL
         if (profilePicName) {
@@ -68,20 +41,7 @@ async function signup(req, res, next) {
             profilePicName = `${protocol}://${host}/uploads/profilePics/${profilePicName}`;
         }
 
-        let {
-            fullName = null,
-            email = null,
-            password = null,
-            birthDate = null,
-            gender = null,
-        } = req?.body ?? {};
-
-        // Some validation
-        if (fullName === null) return next(ErrorsEnum.NAME_MISSING);
-        if (email === null) return next(ErrorsEnum.EMAIL_MISSING);
-        if (password === null) return next(ErrorsEnum.PASSWORD_MISSING);
-        if (birthDate === null) return next(ErrorsEnum.BIRTH_DATE_MISSING);
-        if (gender === null) return next(ErrorsEnum.GENDER_MISSING);
+        let { fullName, email, password, birthDate, gender } = req?.body;
 
         const user = await AuthUserService.createUser(
             fullName,
@@ -90,7 +50,7 @@ async function signup(req, res, next) {
             birthDate,
             gender,
             profilePicName,
-            "user"
+            "user" // The rule
         );
 
         // Save the id
@@ -152,13 +112,7 @@ async function signup(req, res, next) {
         });
 
         // Delete some info
-        sanitize(user, [
-            "role",
-            "createdAt",
-            "updatedAt",
-            "email",
-            "allowCookies",
-        ]);
+        sanitize(user, ["email", "canGenForgetPassAt"]);
 
         // Send the access token via data
         res.status(200).json({
@@ -166,21 +120,9 @@ async function signup(req, res, next) {
             data: user,
         });
     } catch (err) {
-        const __dirname = dirname(fileURLToPath(import.meta.url));
-        // When there is an error the user might uploaded a profile picture
-        if (req?.file?.filename) {
-            await unlink(
-                join(
-                    __dirname,
-                    "../../../uploads/profilePics",
-                    req?.file?.filename
-                ),
-                function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                }
-            );
+        // When facing the error the photo now in the dist. Delete it
+        if (req?.files?.profilePic?.diskPath) {
+            await unlink(req?.files?.profilePic?.diskPath);
         }
 
         // Clear the token from the session when there is any error

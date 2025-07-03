@@ -1,19 +1,4 @@
-import APIError from "../../../util/APIError.js";
 import CategoryService from "../services/categoryService.js";
-
-class ErrorEnum {
-    static CATEGORIES_NOT_PROVIDED = new APIError(
-        "Please provide the categories you want to add.",
-        400,
-        "MISSING_CATEGORY"
-    );
-
-    static INVALID_DATA_STRUCTURE = new APIError(
-        "Please provide the categories titles in an array",
-        400,
-        "WRONG_CATEGORIES_DATATYPE"
-    );
-}
 
 /**
  *
@@ -22,12 +7,7 @@ class ErrorEnum {
  */
 async function adminAddCategories(req, res, next) {
     try {
-        const { titles = [] } = req?.body ?? {};
-
-        if (titles.length === 0) return next(ErrorEnum.CATEGORIES_NOT_PROVIDED);
-
-        if (!Array.isArray(titles))
-            return next(ErrorEnum.INVALID_DATA_STRUCTURE);
+        const { titles = [] } = req?.body;
 
         const categories = await CategoryService.addCategories(titles);
 

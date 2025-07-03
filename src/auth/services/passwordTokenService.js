@@ -1,4 +1,7 @@
+import { Op } from "sequelize";
+import { sequelize } from "../../../config/sequelize.js";
 import APIError from "../../../util/APIError.js";
+import generateDateBefore from "../../../util/generateDateBefore.js";
 import PasswordToken from "../models/passwordToken.js";
 
 class ErrorEnums {
@@ -7,7 +10,6 @@ class ErrorEnums {
         404,
         "PASSWORD_TOKEN_NOT_FOUND"
     );
-
 }
 
 class PasswordTokenService {
@@ -36,11 +38,59 @@ class PasswordTokenService {
         }
     }
 
-    static async deleteTokenById(tokenId) {
+    static async deleteTokensById(tokenId) {
         try {
-            const affectedRows = await PasswordToken.destroy({
-                where: { tokenId },
+            // There is a possibility that the user generated many tokens so delete all of them
+            const data = await PasswordToken.findByPk(tokenId, {
+                attributes: ["userId"],
             });
+
+            // Delete all of them
+            const affectedRows = await PasswordToken.destroy({
+                where: { userId: data.dataValues.userId },
+            });
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getValidTokenCounts(userId) {
+        try {
+            const validTokensCount = await PasswordToken.count({
+                where: {
+                    userId,
+                    expiresAt: {
+                        [Op.gte]: generateDateBefore("7 hours"), // To get the tokens even expired before 7 hours
+                    },
+                },
+            });
+
+            return validTokensCount;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async invalidateTokens(userId) {
+        try {
+            // Make the time back 31 minutes
+            const affectedRows = await PasswordToken.update(
+                {
+                    expiresAt: sequelize.literal(
+                        `"expiresAt" - INTERVAL '31 minutes' `
+                    ),
+                },
+                {
+                    where: {
+                        userId,
+                        expiresAt: {
+                            [Op.gte]: new Date(),
+                        },
+                    },
+                }
+            );
 
             return affectedRows;
         } catch (err) {

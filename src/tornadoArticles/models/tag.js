@@ -13,15 +13,15 @@ Tag.init(
             primaryKey: true,
         },
         tagName: {
-            type: DataTypes.STRING(50),
+            type: DataTypes.STRING(75),
             allowNull: false,
             validate: {
-                NotEmptyString(value) {
-                    if (value.length < 0)
+                validateLength(value) {
+                    if (value.length < 0 || value > 75)
                         throw new APIError(
-                            "The tag must not be empty",
+                            "The tag must not be empty and 75 characters maximum",
                             400,
-                            "EMPTY_TAG"
+                            "VALIDATION_ERROR"
                         );
                 },
             },

@@ -12,12 +12,6 @@ class ErrorsEnum {
         "INVALID_PASSWORD"
     );
 
-    static MISSING_DATA = new APIError(
-        "Please provide both old password and new password",
-        400,
-        "MISSING_DATA"
-    );
-
     static SAME_PASSWORD = new APIError(
         "The new password is the same as old. Please choose another one",
         400,
@@ -38,10 +32,7 @@ class ErrorsEnum {
  */
 async function resetPassword(req, res, next) {
     try {
-        const { oldPassword = null, newPassword = null } = req?.body ?? {};
-
-        if (oldPassword === null || newPassword === null)
-            return next(ErrorsEnum.MISSING_DATA);
+        const { oldPassword, newPassword } = req?.body;
 
         // The user should be logged in
         const userId = req.userInfo.id;

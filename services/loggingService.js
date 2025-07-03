@@ -30,7 +30,7 @@ loggingService.addListener(
     function ({ resourceName, timeMs }) {
         appendFile(
             join(__dirname, "../logs/resources_usage.log"),
-            `${new Date()}\n${resourceName} handler took about ${timeMs}ms to complete\n`
+            `${new Date()}\n${resourceName} handler took about ${timeMs}ms to complete\n----------------\n`
         );
     }
 );

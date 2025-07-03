@@ -23,15 +23,9 @@ class ErrorEnum {
  */
 async function updatePreferredCategories(req, res, next) {
     try {
-        let { toDelete = [], toAdd = [] } = req?.body ?? {};
+        let { toDelete, toAdd } = req?.body;
 
         const userId = req.userInfo.id;
-
-        if (toAdd.length === 0 && toDelete.length === 0)
-            return next(ErrorEnum.EMPTY_DATA);
-
-        if (!Array.isArray(toAdd) || !Array.isArray(toDelete))
-            return next(ErrorEnum.INVALID_DATA_TYPE);
 
         // Same reason to get meaningful error message
         toDelete = removeDuplicated(toDelete);

@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import device from "express-device";
+import fileUpload from "express-fileupload";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import errorHandler from "./publicMiddlewares/errorHandler.js";
@@ -12,6 +13,8 @@ import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
 import APIError from "./util/APIError.js";
 
 let app = express();
+
+app.use(fileUpload());
 
 // This is the body size. Make sure to send the files using FromData to keep this for only JSON body
 app.use(express.json({ limit: "5MB" }));

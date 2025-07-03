@@ -1,0 +1,116 @@
+import {
+    array,
+    int,
+    literal,
+    object,
+    string,
+    union,
+    uuidv4,
+    ZodError,
+} from "zod/v4";
+import {
+    MAX_CATEGORIES_ARTICLE_COUNT,
+    MAX_RESULTS,
+    MIN_RESULTS,
+} from "../../../config/settings.js";
+import APIError from "../../../util/APIError.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
+
+class ErrorsEnum {
+    static INVALID_ARTICLE_ID = new APIError(
+        "Article Id is an integer number (or string int number)",
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_ARTCLE_RANK = new APIError(
+        "Article rank must be positive string number (plain no signs ex. 12.3)",
+        400,
+        "VALIDATION_ERROR"
+    );
+}
+
+/**
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function getOptimalArticlsValidate(req, res, next) {
+    try {
+        let {
+            limit = MIN_RESULTS, // How many articles you want
+            categories = [], // The categories he wants
+            lastArticleRank = Number.POSITIVE_INFINITY, // This will be used by optimal articles
+            lastArticleId = "", // To escape that id
+            ignore = [], // To ignore articles that has been recommended
+        } = req?.body ?? {};
+
+        const OptimalArticlesSchema = object({
+            limit: int().min(1).max(MAX_RESULTS),
+            categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
+
+            lastArticleRank: union([
+                // It maybe positive infinity or number
+                string().regex(/^\d+.{1}?\d+$/),
+                literal(Number.POSITIVE_INFINITY),
+            ]),
+
+            lastArticleId: union([string().regex(/^\d+$/), literal("")]), // Allow empty string (initial request)
+            ignore: array(string().regex(/^\d+$/)),
+        });
+
+        req.body = OptimalArticlesSchema.parse({
+            limit,
+            categories,
+            lastArticleRank:
+                lastArticleRank === Number.POSITIVE_INFINITY
+                    ? Number.POSITIVE_INFINITY
+                    : String(lastArticleRank), // To accept both numbers as string or numbers
+            lastArticleId: String(lastArticleId),
+            ignore,
+        });
+
+        next();
+    } catch (err) {
+        if (err instanceof ZodError) {
+            // Reduce nested 'if' as much as possible
+            const errToThrow = {
+                too_big: GlobalErrorsEnum.INVALID_LIMIT,
+                too_small: GlobalErrorsEnum.INVALID_LIMIT,
+                invalid_union: {
+                    lastArticleId: ErrorsEnum.INVALID_ARTICLE_ID,
+                    lastArticleRank: ErrorsEnum.INVALID_ARTCLE_RANK,
+                },
+
+                categories: GlobalErrorsEnum.INVALID_CATEGORIES,
+                ignore: GlobalErrorsEnum.INVALID_IGNORE,
+                lastArticleId: ErrorsEnum.INVALID_ARTICLE_ID,
+            };
+
+            // Some keywords saved for same reason
+            let pathKeywords = ["categories", "ignore", "lastArticleId"];
+
+            let code = err?.issues?.[0]?.code;
+            let path = err?.issues?.[0]?.path?.[0];
+            let expected = err?.issues?.[0]?.expected;
+
+            // For those fields which intersect by two different errors code
+            if (
+                (code === "invalid_type" || code === "invalid_format") &&
+                pathKeywords.includes(path)
+            )
+                return next(errToThrow[path]);
+
+            if (code === "invalid_type")
+                return next(GlobalErrorsEnum.INVALID_DATATYPE(path, expected));
+
+            if (code === "invalid_union") return next(errToThrow[code][path]);
+
+            if (errToThrow[code]) return next(errToThrow[code]);
+        }
+
+        next(err);
+    }
+}
+
+export default getOptimalArticlsValidate;

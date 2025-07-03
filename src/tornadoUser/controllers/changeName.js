@@ -16,11 +16,9 @@ class ErrorEnum {
  */
 async function changeName(req, res, next) {
     try {
-        const { newName = null } = req?.body ?? {};
+        const { newName } = req?.body;
         // Get the id
         const userId = req?.userInfo.id;
-
-        if (newName === null) return next(ErrorEnum.MISSING_NAME);
 
         const fullName = await TornadoUserService.updateUserName(
             userId,

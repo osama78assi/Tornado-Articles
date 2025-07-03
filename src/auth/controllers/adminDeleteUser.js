@@ -3,14 +3,6 @@ import sendReasonDeleteUser from "../../../services/sendReasonDeleteUser.js";
 import APIError from "../../../util/APIError.js";
 import AuthUserService from "../services/AuthUserService.js";
 
-class ErrorsEnum {
-    static NO_REASON_PROVIDED = new APIError(
-        "Please provide a reason for deleting that user. Note that reason will be sent to him via email",
-        400,
-        "NO_REASON"
-    );
-}
-
 /**
  *
  * @param {import('express').Request} req
@@ -20,9 +12,7 @@ async function adminDeleteUser(req, res, next) {
     try {
         const { userId } = req?.params;
 
-        const { reason = "" } = req?.body ?? {};
-
-        if (reason === "") return next(ErrorsEnum.NO_REASON_PROVIDED);
+        const { reason } = req?.body;
 
         const currentId = req.userInfo.id;
 
@@ -51,9 +41,6 @@ async function adminDeleteUser(req, res, next) {
 
             await redis.del(...JTIs, `loggedin:${userId}`);
         }
-
-        // TODO: Send an email to that user telling him that we delete it the account
-        // console.log('\n\n###########', reason, '\n\n###########')
 
         sendReasonDeleteUser(
             {

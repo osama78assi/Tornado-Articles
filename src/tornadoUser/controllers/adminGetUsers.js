@@ -9,21 +9,11 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function adminGetUsers(req, res, next) {
     try {
-        let {
-            getAfter = 1,
-            limit = MIN_RESULTS,
-            entryItemName = "",
-        } = req?.query ?? {};
-
-        getAfter = Number(getAfter);
-
-        if (![0, 1].includes(getAfter))
-            return next(GlobalErrorsEnum.INVALID_DIRECTION);
-
-        limit = Number(limit);
-
-        if (limit <= 0 || limit > MAX_RESULTS)
-            return next(GlobalErrorsEnum.INVALID_LIMIT);
+        const {
+            getAfter ,
+            limit,
+            entryItemName,
+        } = req?.query;
 
         const currentId = req.userInfo.id;
 

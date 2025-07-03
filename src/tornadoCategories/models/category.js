@@ -1,5 +1,6 @@
+import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import { Model, DataTypes } from "sequelize";
+import APIError from "../../../util/APIError.js";
 
 class Category extends Model {}
 
@@ -12,6 +13,16 @@ Category.init(
         },
         title: {
             type: DataTypes.STRING(100),
+            validate: {
+                isLengthAccpeted(title) {
+                    if (title.length < 3 || title.length > 100)
+                        throw new APIError(
+                            "The catgeory title must be at least 4 characters or 100 maximum",
+                            400,
+                            "VALIDATION_ERROR"
+                        );
+                },
+            },
             unique: {
                 name: "Unique_category",
                 msg: "This category already exists.",
@@ -26,9 +37,9 @@ Category.init(
         indexes: [
             {
                 name: "category_title_category_btree_index",
-                fields: ['title'],
-                type: "BTREE"
-            }
+                fields: ["title"],
+                type: "BTREE",
+            },
         ],
         hooks: {
             beforeBulkCreate(categories) {

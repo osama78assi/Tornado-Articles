@@ -11,7 +11,7 @@ PasswordToken.init(
         },
         expiresAt: {
             type: DataTypes.DATE,
-            defaultValue: new Date(Date.now() + +process.env.PASSWORD_TOKEN_LIFE_TIME), // 30 min in my case. Make sure it's milliseconds
+            defaultValue: () => new Date(Date.now() + +process.env.PASSWORD_TOKEN_LIFE_TIME), // 30 min in my case. Make sure it's milliseconds
             allowNull: false,
         },
         userId: {

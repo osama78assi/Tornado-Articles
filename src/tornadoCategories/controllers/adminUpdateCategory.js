@@ -10,16 +10,7 @@ async function adminUpdateCategory(req, res, next) {
     try {
         const { categoryId } = req?.params;
 
-        const { categoryTitle = null } = req?.body ?? {};
-
-        if (categoryTitle === null)
-            return next(
-                new APIError(
-                    "Please prodive a new title for the category",
-                    400,
-                    "MISSING_TITLE"
-                )
-            );
+        const { categoryTitle} = req?.body;
 
         const newDoc = await CategoryService.updateCategoryTitle(
             categoryId,

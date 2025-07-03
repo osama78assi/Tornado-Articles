@@ -6,6 +6,9 @@ import getCategories from "../controllers/getCategories.js";
 
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import adminAddCategoriesValidate from "../middlewares/adminAddCategories.validate.js";
+import adminUpdateCategoryValidate from "../middlewares/adminUpdateCategory.validate.js";
+import getCategoriesValidate from "../middlewares/getCategory.validate.js";
 
 const categoryRoutes = Router();
 
@@ -14,6 +17,7 @@ categoryRoutes.post(
     "/admin/categories",
     isAuthenticated,
     isAdmin,
+    adminAddCategoriesValidate,
     adminAddCategories
 );
 
@@ -30,10 +34,11 @@ categoryRoutes.patch(
     "/admin/categories/:categoryId",
     isAuthenticated,
     isAdmin,
+    adminUpdateCategoryValidate,
     adminUpdateCategory
 );
 
 // Anyone can see the categories
-categoryRoutes.get("/categories", getCategories);
+categoryRoutes.get("/categories", getCategoriesValidate, getCategories);
 
 export default categoryRoutes;

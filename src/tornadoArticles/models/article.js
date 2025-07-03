@@ -2,6 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import generateSnowFlakeId from "../../../config/snowFlake.js";
 import APIError from "../../../util/APIError.js";
+import { MAX_ARTICLE_CONTENT_LENGTH } from "../../../config/settings.js";
 
 class Article extends Model {}
 
@@ -13,15 +14,15 @@ Article.init(
             primaryKey: true,
         },
         title: {
-            type: DataTypes.STRING(255),
+            type: DataTypes.STRING(300),
             allowNull: false,
             validate: {
                 isLargeEnough(title) {
-                    if (title.length < 5) {
+                    if (title.length < 3) {
                         throw new APIError(
-                            "Article title should at least made of 5 chars",
+                            "Article title should at least made of 3 chars",
                             400,
-                            "SHORT_TITLE"
+                            "VALIDATION_ERROR"
                         );
                     }
                 },
@@ -43,9 +44,18 @@ Article.init(
                 isLargeEnough(title) {
                     if (title.length < 10) {
                         throw new APIError(
-                            "Title content should be at least made of 10 chars",
+                            "Article content should be at least made of 10 chars",
                             400,
-                            "SHORT_CONTENT"
+                            "VALIDATION_ERROR"
+                        );
+                    }
+                },
+                isSmallEnough(title) {
+                    if (title.length > MAX_ARTICLE_CONTENT_LENGTH) {
+                        throw new APIError(
+                            "Article content should be 20K characters maximum.",
+                            429,
+                            "VALIDATION_ERROR"
                         );
                     }
                 },

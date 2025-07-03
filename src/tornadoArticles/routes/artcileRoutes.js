@@ -6,23 +6,37 @@ import editArticleTitle from "../controllers/editArticleTitle.js";
 import getArticle from "../controllers/getArticle.js";
 import getArticlesFor from "../controllers/getArticlesFor.js";
 import getFreshArticles from "../controllers/getFreshArticles.js";
+import getOptimalArticles from "../controllers/getOptimalArticle.js";
 import getRecommendedArticles from "../controllers/getRecommendedArticles.js";
 import publishArticle from "../controllers/publishArticle.js";
 import searchForArticleBytTitle from "../controllers/searchForArticleByTitle.js";
 import searchForArticleByTags from "../controllers/searchForArtilcesByTags.js";
-import getOptimalArticles from "../controllers/getOptimalArticle.js"
 
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
-import downloadArticlesPics from "../middlewares/downloadArticlesPics.js";
+import downloadArticlesPics from "../middlewares/downloadArtilcesPics.js";
+import getFreshArticlesValidate from "../middlewares/getFreshArticles.validate.js";
+import getOptimalArticlesValidate from "../middlewares/getOptimalArticls.validate.js";
+import publishArticleValidate from "../middlewares/publishArticle.validate.js";
 
 const articleRouter = Router();
 
 // Anyone can get articles (home page for guests)
 // While it must GET but I made POST because there is a complex filtering
-articleRouter.post("/articles/recommend/fresh", isLoggedIn, getFreshArticles); // WORKING
-articleRouter.post("/articles/recommend/optimal", isLoggedIn, getOptimalArticles); // WORKING
+articleRouter.post(
+    "/articles/recommend/fresh",
+    isLoggedIn,
+    getFreshArticlesValidate,
+    getFreshArticles
+); // WORKING
+
+articleRouter.post(
+    "/articles/recommend/optimal",
+    isLoggedIn,
+    getOptimalArticlesValidate,
+    getOptimalArticles
+); // WORKING
 
 // Anyone can get the articles for any user
 articleRouter.get("/articles/:userId", getArticlesFor); // TODO
@@ -67,6 +81,7 @@ articleRouter.post(
     "/articles",
     isAuthenticated,
     downloadArticlesPics,
+    publishArticleValidate,
     publishArticle
 ); // DONE
 

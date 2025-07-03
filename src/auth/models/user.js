@@ -3,6 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import validator from "validator";
 import { sequelize } from "../../../config/sequelize.js";
 import APIError from "../../../util/APIError.js";
+import validateFullName from "../../../util/validateFullName.js";
 import validatePassword from "../../../util/validatePassword.js";
 
 class User extends Model {
@@ -25,27 +26,10 @@ User.init(
             defaultValue: DataTypes.UUIDV4,
         },
         fullName: {
-            type: DataTypes.STRING(50),
+            type: DataTypes.STRING(150),
             validate: {
-                lenWithNoSpaces(fullName) {
-                    if (
-                        fullName.trim().length < 4 ||
-                        fullName.trim().length > 50
-                    ) {
-                        throw new APIError(
-                            "Name length should be at least 4 characters and at maximum 50 characters.",
-                            400,
-                            "INVALID_NAME_LENGTH"
-                        );
-                    }
-                },
-                acceptedName(fullName) {
-                    if (!/^[a-zA-Z0-9_\-\x20]+$/.test(fullName))
-                        throw new APIError(
-                            "Name must contain only letters, numbers, hyphens (-), whitespace, or underscores (_).",
-                            400,
-                            "INVALID_NAME_FORMAT"
-                        );
+                validate(name) {
+                    validateFullName(name.trim());
                 },
             },
             allowNull: false,
@@ -111,12 +95,29 @@ User.init(
             type: DataTypes.DATE,
             allowNull: true,
         },
-        banTill: { // Like a warnning to the user ban about 7 months from publishing articles
+        banTill: {
+            // Like a warnning to the user ban about 7 months from publishing articles
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        canGenForgetPassAt: {
+            // To block user a period of time when he/she ask many times for forget password token
             type: DataTypes.DATE,
             allowNull: true,
         },
         brief: {
             type: DataTypes.STRING(150),
+            validate: {
+                validateLength(brief) {
+                    if (brief?.length < 3 || brief?.length > 150) {
+                        throw new APIError(
+                            "Brief must be at least 3 characters and 150 maximum",
+                            400,
+                            "VALIDATION_ERROR"
+                        );
+                    }
+                },
+            },
         },
         allowCookies: {
             type: DataTypes.BOOLEAN,
@@ -172,9 +173,10 @@ User.init(
                 try {
                     // Trim the spaces
                     user.fullName = user.fullName?.trim();
-                    user.email = user.email?.trim()?.toLowerCase();
+                    user.email = user.email?.trim();
                     user.gender = user.gender?.trim()?.toLowerCase();
                     user.password = user.password?.trim();
+                    user.brief = user.brief?.trim();
 
                     // Custom password validation (run here before hashing)
                     validatePassword(user.password);
@@ -190,6 +192,9 @@ User.init(
                 try {
                     // Check if the property password included in update statement
                     if (options.fields.includes("password")) {
+                        options.attributes.password =
+                            options.attributes.password?.trim();
+
                         validatePassword(options.attributes.password);
                         const salt = await genSalt(10);
                         options.attributes.password = await hash(
@@ -199,18 +204,18 @@ User.init(
                         options.attributes.changeDate = new Date(); // Save the time when password changes. Sequelize will inlude that in the update statement
                     }
 
-                    // The email
-                    if (options.fields.includes("email")) {
-                        options.attributes.email = options.attributes.email
-                            ?.trim()
-                            ?.toLowerCase();
-                        options.attributes.changeDate = new Date(); // Save the time when email changes
-                    }
-
                     // The full name
                     if (options.fields.includes("fullName")) {
                         options.attributes.fullName =
                             options.attributes.fullName?.trim();
+
+                        validateFullName(options.attributes.fullName);
+                    }
+
+                    // Brief
+                    if (options.fields.includes("brief")) {
+                        options.attributes.brief =
+                            options.attributes.brief?.trim();
                     }
                 } catch (err) {
                     throw err;

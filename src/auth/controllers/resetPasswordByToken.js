@@ -4,13 +4,7 @@ import APIError from "../../../util/APIError.js";
 import AuthUserService from "../services/AuthUserService.js";
 import passwordTokenService from "../services/passwordTokenService.js";
 
-class ErrorEnum {
-    static MISSING_PASSWORD = new APIError(
-        "Please provide the new password",
-        400,
-        "MISSING_DATA"
-    );
-
+class ErrorsEnum {
     static EXPIRED_TOKEN = new APIError(
         "The URL is expired. You are no longer can update your password by this URL. Ask for another.",
         410,
@@ -26,10 +20,7 @@ class ErrorEnum {
 async function resetPasswordByToken(req, res, next) {
     try {
         const { tokenId } = req?.params;
-        const { newPassword = null } = req?.body ?? {};
-
-        if (newPassword === null || newPassword === "")
-            return next(ErrorEnum.MISSING_PASSWORD);
+        const { newPassword } = req?.body;
 
         // Hash it
         const hashedTokenId = createHash("sha256")
@@ -43,15 +34,18 @@ async function resetPasswordByToken(req, res, next) {
 
         // Check for validation
         if (new Date(passwordToken.dataValues.expiresAt) < new Date())
-            return next(ErrorEnum.EXPIRED_TOKEN);
+            return next(ErrorsEnum.EXPIRED_TOKEN);
 
         let userId = passwordToken.dataValues.userId;
 
         // Here the token is valid and existed. update the password
         await AuthUserService.updateUserPassword(userId, newPassword);
 
-        // If the new password isn't valid the code here isn't reachable
-        await passwordTokenService.deleteTokenById(hashedTokenId);
+        // Reset the limit in case he forgot the password after 5 min in background (fish memory XD)
+        AuthUserService.resetGenPassTokenLimit(userId);
+
+        // Delete all tokens
+        await passwordTokenService.deleteTokensById(hashedTokenId);
 
         // Invalid all the sessions if exists for this user
         if (await redis.exists(`loggedin:${userId}`)) {
@@ -59,7 +53,7 @@ async function resetPasswordByToken(req, res, next) {
 
             JTIs.forEach((jti, i) => {
                 JTIs[i] = `refresh:${jti}`;
-            })
+            });
 
             await redis.del(...JTIs, `loggedin:${userId}`);
         }
