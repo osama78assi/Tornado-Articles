@@ -11,7 +11,8 @@ function errorHandler(error, req, res, next) {
         res.status(error.statusCode).json({
             success: error.success,
             message: error.message,
-            code: error.code
+            code: error.code,
+            ...error.additionalData
         });
     } else {
         console.log(error);

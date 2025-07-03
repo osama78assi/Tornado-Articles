@@ -1,32 +1,33 @@
-import upload from "../config/profilePicMulterConfig.js";
-import { MAX_PROFILE_PIC_SIZE_MB } from "../config/settings.js";
-import APIError from "../util/APIError.js";
+import profilePicStorage from "../config/profilePicStorage.js";
+import {
+    SingleFileError,
+    singleTornadoFile,
+} from "../util/fileUploaderHandlers.js";
 
 /**
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function downloadProfilePic(req, res, next) {
+async function downloadProfilePicV1(req, res, next) {
     try {
-        upload.single("profilePic")(req, res, function (err) {
+        singleTornadoFile({
+            storage: profilePicStorage,
+            fieldName: "profilePic",
+        })(req, res, function (err) {
+            // Handle the error boubled up from the middleware in here
             if (err) {
-                if (err.code === "LIMIT_FILE_SIZE") {
+                if (err instanceof SingleFileError) {
                     return next(
                         new APIError(
-                            `One of the photos excced the size limit. the maximum size is ${MAX_PROFILE_PIC_SIZE_MB}MB.`,
-                            413,
-                            "MAX_SIZE_EXCEEDED"
+                            "Expected one profile picture but recieved more than one",
+                            400,
+                            "VALIDATION_ERROR"
                         )
                     );
                 }
 
-                // This is custom error
-                if (err.code === "ONLY_IMAGES") {
-                    return next(err);
-                }
-
-                console.log(err);
+                // Log the error if you want
                 return next(
                     new APIError(
                         "Couldn't upload the photo to the server. Please try again",
@@ -35,7 +36,8 @@ async function downloadProfilePic(req, res, next) {
                     )
                 );
             }
-            // Continue the chain
+
+            // Call the next
             next();
         });
     } catch (err) {
@@ -43,4 +45,4 @@ async function downloadProfilePic(req, res, next) {
     }
 }
 
-export default downloadProfilePic;
+export default downloadProfilePicV1;

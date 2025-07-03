@@ -1,7 +1,7 @@
-import APIError from "../../../util/APIError.js";
 import validator from "validator";
-import User from "../models/user.js";
+import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
+import User from "../models/user.js";
 
 class ErrorsEnum {
     static COULD_NOT_DELETE = new APIError(
@@ -62,6 +62,8 @@ class AuthUserService {
                     "passwordChangeAt",
                     "banTill",
                     "articlePublishedAt",
+                    "canGenForgetPassAt",
+                    "allowCookies",
                 ],
                 where: {
                     ...getByObj,
@@ -105,6 +107,36 @@ class AuthUserService {
             });
 
             if (affectedRows === 0) throw ErrorsEnum.COULD_NOT_DELETE;
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async banGenPassTokenBy(userId, banTill) {
+        try {
+            await User.update(
+                {
+                    canGenForgetPassAt: banTill,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async resetGenPassTokenLimit(userId) {
+        try {
+            const affectedRows = await User.update(
+                { canGenForgetPassAt: null },
+                { where: { id: userId } }
+            );
 
             return affectedRows;
         } catch (err) {

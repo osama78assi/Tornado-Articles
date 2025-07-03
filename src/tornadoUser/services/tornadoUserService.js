@@ -51,6 +51,7 @@ class TornadoUserService {
                         "email",
                         "banTill",
                         "articlePublishedAt",
+                        "canGenForgetPassAt",
                     ],
                 },
             });
@@ -141,7 +142,7 @@ class TornadoUserService {
 
     static async updateBrief(userId, newBrief) {
         try {
-            const affectedRows = await TornadoUser.update(
+            const [affectedRows, data] = await TornadoUser.update(
                 {
                     brief: newBrief,
                 },
@@ -149,10 +150,11 @@ class TornadoUserService {
                     where: {
                         id: userId,
                     },
+                    returning: true,
                 }
             );
 
-            return affectedRows;
+            return data[0].dataValues.brief;
         } catch (err) {
             throw err;
         }
@@ -255,7 +257,7 @@ class TornadoUserService {
             if (userData.dataValues.banTill > new Date())
                 throw ErrorsEnum.ALREADY_BANNED;
 
-            const [affectedRows, newRowData] = await TornadoUser.update(
+            const [, newRowData] = await TornadoUser.update(
                 {
                     banTill,
                 },
@@ -291,6 +293,7 @@ class TornadoUserService {
                     where: {
                         id: userId,
                     },
+                    transaction: t,
                 }
             );
         } catch (err) {

@@ -1,31 +1,25 @@
 import { unlink } from "fs/promises";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 
-/**
- *
- * @param {Express.Multer.File[]} files
- */
 async function deleteFiles(files) {
-    // Delete cover image if exists
-    const fileName = files?.coverPic?.[0]?.filename;
-    const __dirname = dirname(fileURLToPath(import.meta.url))
-    if (fileName) {
-        const p = join(__dirname, "../uploads/articles", fileName);
-        await unlink(p);
-    }
+    try {
+        // This function is really for any files attached my express-fileupload and my custom configurations
+        const keys = Object.keys(files);
 
-    // Content pics
-    let contentPics = files?.contentPics;
-    if (contentPics) {
-        // Delete content images if exist
-        await Promise.all(
-            contentPics?.map(async (file) => {
-                const fileName = file?.filename;
-                const p = join(__dirname, "../uploads/articles", fileName);
-                await unlink(p);
-            })
-        );
+        for (let key of keys) {
+            if (Array.isArray(files[key])) {
+                // Remove each file
+                await Promise.all(
+                    files[key].map(async (file) => {
+                        // Check if uploaded
+                        if (file?.diskPath) await unlink(file?.diskPath);
+                    })
+                );
+            } else {
+                if (files[key]?.diskPath) await unlink(files[key]?.diskPath);
+            }
+        }
+    } catch (err) {
+        throw err;
     }
 }
 

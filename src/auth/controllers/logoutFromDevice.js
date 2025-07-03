@@ -2,12 +2,6 @@ import redis from "../../../config/redisConfig.js";
 import APIError from "../../../util/APIError.js";
 
 class ErrorsEnum {
-    static MISSING_DEVICE = new APIError(
-        "Please provide the device name you want to logout",
-        400,
-        "MISSING_DEVICE_NAME"
-    );
-
     static DEVICE_NOT_EXISTS = new APIError(
         "The device either logged out or it doesn't even exists",
         404,
@@ -27,9 +21,7 @@ async function logoutFromDevice(req, res, next) {
 
         const { id } = req.userInfo;
 
-        const { deviceName = "" } = req?.query ?? {};
-
-        if (deviceName === "") return next(ErrorsEnum.MISSING_DEVICE);
+        const { deviceName } = req?.query;
 
         // Get the authenticated sesssions
         const sessions = await redis.lrange(`loggedin:${id}`, 0, -1);

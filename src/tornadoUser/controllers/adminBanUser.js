@@ -20,11 +20,7 @@ class ErrorsEnum {
 async function adminBanUser(req, res, next) {
     try {
         const { userId } = req?.params;
-        const { banFor = "1 week", reason = "" } = req?.body ?? {};
-
-        if (reason === "") {
-            return next(ErrorsEnum.NO_REASON);
-        }
+        const { banFor, reason } = req?.body;
 
         // This will throw an error if the period isn't recognized
         const banTill = generateDateAfter(banFor);

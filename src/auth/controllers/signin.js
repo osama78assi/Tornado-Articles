@@ -1,31 +1,13 @@
 import { compare } from "bcryptjs";
 import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
-import validator from "validator";
 import redis from "../../../config/redisConfig.js";
 import APIError from "../../../util/APIError.js";
 import sanitize from "../../../util/sanitize.js";
 import AuthUserService from "../services/AuthUserService.js";
 
 class ErrorsEnum {
-    static EMIAL_MISSING = new APIError(
-        "The email is required field.",
-        400,
-        "MISSING_EMAIL"
-    );
-
-    static PASSWORD_MISSING = new APIError(
-        "The password is required field.",
-        400,
-        "MISSING_PASSWORD"
-    );
-
-    static INVALID_EMAIL = new APIError(
-        "Email isn't valid",
-        400,
-        "INVALID_EMAIL"
-    );
-
+    // 0944481011
     static INCORRECT_PASSWORD = new APIError(
         "The password isn't correct.",
         400,
@@ -44,14 +26,7 @@ async function signin(req, res, next) {
     let userId = null;
 
     try {
-        let { email = null, password = null } = req?.body ?? {};
-
-        // Some validation
-        if (email === null) return next(ErrorsEnum.EMIAL_MISSING);
-        if (password === null) return next(ErrorsEnum.PASSWORD_MISSING);
-
-        // Check the validation of the email
-        if (!validator.isEmail(email)) return next(ErrorsEnum.INVALID_EMAIL);
+        let { email, password } = req?.body;
 
         const user = await AuthUserService.getUserBy(email);
 
@@ -78,7 +53,7 @@ async function signin(req, res, next) {
 
         // Let's add the index to the key to make deleteing easier and make it unique
         let deviceIndex = 0;
-        if(await redis.exists(`loggedin:${userId}`)) {
+        if (await redis.exists(`loggedin:${userId}`)) {
             // Change it to the length if exists
             deviceIndex = await redis.llen(`loggedin:${userId}`);
         }
@@ -117,7 +92,7 @@ async function signin(req, res, next) {
             // secure: true,
         });
 
-        sanitize(user, ["email"]);
+        sanitize(user, ["email", "canGenForgetPassAt"]);
 
         return res.status(200).json({
             success: true,
@@ -130,8 +105,8 @@ async function signin(req, res, next) {
         }
 
         // Remove that device if inserted
-        if(isAdded) {
-            // Remove the last element in the array 
+        if (isAdded) {
+            // Remove the last element in the array
             await redis.rpop(`loggedin:${userId}`);
         }
 

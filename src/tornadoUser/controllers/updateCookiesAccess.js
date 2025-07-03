@@ -1,13 +1,5 @@
 import APIError from "../../../util/APIError.js";
-import TornadoUserService from "../services/tornadoUserService.js";
-
-class ErrorEnum {
-    static INVALID_DATA_TYPE = new APIError(
-        "Please provide 'allow'. It field must be either true or false",
-        400,
-        "INVALID_ALLOW_FIELD"
-    );
-}
+import TornadoUserService from "../services/tornadoUserService.js"
 
 /**
  *
@@ -16,10 +8,7 @@ class ErrorEnum {
  */
 async function updateCookiesAccess(req, res, next) {
     try {
-        const { allow = null } = req?.body ?? {};
-
-        if (allow === null || typeof allow !== "boolean")
-            return next(ErrorEnum.INVALID_DATA_TYPE);
+        const { allow } = req?.body;
 
         const userId = req.userInfo.id;
 

@@ -5,7 +5,7 @@ import parseStrPeriod from "./parseStrPeriod.js";
  * @param {string} strPeriod The period you want
  * @returns {Date} The date after the given period
  * @example
- * const dateAfterMonth = generateDateAfter('1 month', new Date('6/21/2025')); //
+ * const dateAfterMonth = generateDateAfter('1 month', new Date('6/21/2025')); // new Date('7/21/2025')
  */
 export default function generateDateAfter(strPeriod, date = new Date()) {
     const { keyword, period } = parseStrPeriod(strPeriod);

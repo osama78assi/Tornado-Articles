@@ -1,4 +1,3 @@
-import APIError from "../../../util/APIError.js";
 import TornadoUserService from "../services/tornadoUserService.js";
 
 /**
@@ -8,20 +7,11 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function editBrief(req, res, next) {
     try {
-        const { newBrief = null } = req?.body ?? {};
+        const { newBrief } = req?.body;
         const userId = req.userInfo.id;
 
-        if (newBrief === null)
-            return next(
-                new APIError(
-                    "Please provide the new brief to edit it.",
-                    400,
-                    "MISSING_BRIEF"
-                )
-            );
-
         // To delete the brief just pass empty string
-        await TornadoUserService.updateBrief(
+        const brief = await TornadoUserService.updateBrief(
             userId,
             newBrief === "" ? null : newBrief
         );
@@ -29,7 +19,7 @@ async function editBrief(req, res, next) {
         return res.status(200).json({
             success: true,
             data: {
-                breif: newBrief === "" ? null : newBrief,
+                brief,
             },
         });
     } catch (err) {

@@ -1,7 +1,7 @@
 import { unlink } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import isFileExists from "../../../util/isFileExists.js";
+import APIError from "../../../util/APIError.js";
 import TornadoUserService from "../services/tornadoUserService.js";
 
 /**
@@ -11,13 +11,23 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function changeProfilePic(req, res, next) {
     try {
-        // Get the new photo name
-        const profilePicName = req?.file?.filename;
+        let newProfilePicName = req?.files?.profilePic?.newName;
 
-        // Build the URL
-        const protocol = req.protocol;
-        const host = req.get("host");
-        const newPic = `${protocol}://${host}/uploads/profilePics/${profilePicName}`;
+        // Build a URL
+        if (newProfilePicName) {
+            const protocol = req.protocol;
+            const host = req.get("host");
+            newProfilePicName = `${protocol}://${host}/uploads/profilePics/${newProfilePicName}`;
+        } else {
+            // If the file not provided then what is the purpos of the request ?
+            return next(
+                new APIError(
+                    "Upload an image to change the old one",
+                    400,
+                    "MISSING_FIELD"
+                )
+            );
+        }
 
         const userId = req.userInfo.id;
 
@@ -25,7 +35,7 @@ async function changeProfilePic(req, res, next) {
         const oldPhotoUrl = await TornadoUserService.getProfilePic(userId);
 
         // Set the new photo
-        await TornadoUserService.setProfilePhoto(userId, newPic);
+        await TornadoUserService.setProfilePhoto(userId, newProfilePicName);
 
         const __dirname = dirname(fileURLToPath(import.meta.url));
         // Remove the old profile pic if exists
@@ -42,19 +52,13 @@ async function changeProfilePic(req, res, next) {
         return res.status(200).json({
             success: true,
             data: {
-                profilePic: newPic,
+                profilePic: newProfilePicName,
             },
         });
     } catch (err) {
-        const __dirname = dirname(fileURLToPath(import.meta.url));
         // If faced some errors therefore delete the uploaded photo
-        // Build the URL
-        const p = join(
-            __dirname,
-            "../../../uploads/profilePics",
-            req?.file?.filename
-        );
-        if (await isFileExists(p)) await unlink(p);
+        if (req?.files?.profilePic?.diskPath)
+            await unlink(req?.files?.profilePic?.diskPath); // You can run it in background (without await) but I prefer the await (not in production)
         next(err);
     }
 }
