@@ -91,4 +91,16 @@ export default class GlobalErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
+
+    static INVALID_TITLE = new APIError(
+        "Title must be string and its characters must be less than 100 and larger than 3",
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_DESCRIPTION = new APIError(
+        "The description must be string and its characters length must be less than 350 or larger than 10",
+        400,
+        "VALIDATION_ERROR"
+    );
 }

@@ -21,14 +21,11 @@ async function getDataValidate(req, res, next) {
             entryItemName: string(),
         });
 
-        Object.assign(
-            req.query,
-            GetUsersSchema.parse({
-                limit: Number(limit),
-                getAfter: Number(getAfter),
-                entryItemName,
-            })
-        );
+        req.validatedQuery = GetUsersSchema.parse({
+            limit: Number(limit),
+            getAfter: Number(getAfter),
+            entryItemName,
+        });
 
         next();
     } catch (err) {

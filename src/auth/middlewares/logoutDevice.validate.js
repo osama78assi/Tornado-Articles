@@ -26,7 +26,7 @@ async function logoutDeviceValidate(req, res, next) {
         // By the way we don't use real devices names but assusming we use it
         const DeviceName = string().trim().min(1).max(255); // Assuming there is a device with that name
 
-        Object.assign(req.query, { deviceName: DeviceName.parse(deviceName) });
+        req.validatedQuery = { deviceName: DeviceName.parse(deviceName) };
         next();
     } catch (err) {
         if (err instanceof ZodError) {

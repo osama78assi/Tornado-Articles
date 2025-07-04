@@ -23,15 +23,12 @@ async function searchForUsersValidate(req, res, next) {
             query: string().trim(),
         });
 
-        Object.assign(
-            req.query,
-            GetUsersSchema.parse({
-                limit: Number(limit),
-                getAfter: Number(getAfter),
-                entryItemDate: new Date(entryItemDate),
-                query,
-            })
-        );
+        req.validatedQuery = GetUsersSchema.parse({
+            limit: Number(limit),
+            getAfter: Number(getAfter),
+            entryItemDate: new Date(entryItemDate),
+            query,
+        });
 
         next();
     } catch (err) {

@@ -5,23 +5,23 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function getCategories(req, res, next) {
+async function userSearchCategory(req, res, next) {
     try {
-        let { limit, entryItemTitle, getAfter } = req?.validatedQuery;
+        const { query, lastEntryTitle, limit } = req?.validatedQuery;
 
-        const categories = await CategoryService.getCategories(
-            entryItemTitle,
-            getAfter,
+        const results = await CategoryService.userSearchCategories(
+            query,
+            lastEntryTitle,
             limit
         );
 
         return res.status(200).json({
             success: true,
-            data: categories,
+            data: results,
         });
     } catch (err) {
         next(err);
     }
 }
 
-export default getCategories;
+export default userSearchCategory;

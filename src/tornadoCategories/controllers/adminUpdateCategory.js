@@ -10,11 +10,12 @@ async function adminUpdateCategory(req, res, next) {
     try {
         const { categoryId } = req?.params;
 
-        const { categoryTitle} = req?.body;
+        const { categoryTitle, categoryDescription } = req?.body;
 
-        const newDoc = await CategoryService.updateCategoryTitle(
+        const newDoc = await CategoryService.updateCategory(
             categoryId,
-            categoryTitle
+            categoryTitle,
+            categoryDescription
         );
 
         if (newDoc === undefined)

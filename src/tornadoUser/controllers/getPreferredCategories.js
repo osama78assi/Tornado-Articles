@@ -9,7 +9,7 @@ async function getPreferredCategories(req, res, next) {
     try {
         const userId = req.userInfo.id;
 
-        let { limit, entryItemName, getAfter } = req?.query;
+        let { limit, entryItemName, getAfter } = req?.validatedQuery;
 
         const categories = await UserPreferenceService.getPreferredCategories(
             userId,

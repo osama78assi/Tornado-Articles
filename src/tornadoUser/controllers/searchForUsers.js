@@ -7,7 +7,7 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function searchForUsers(req, res, next) {
     try {
-        let { query, getAfter, limit, entryItemDate } = req?.query;
+        let { query, getAfter, limit, entryItemDate } = req?.validatedQuery;
 
         // If the current user is logged in we wanna remove his account from here
         let results = await TornadoUserService.searchByName(

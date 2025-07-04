@@ -21,14 +21,11 @@ async function getCategoryValidate(req, res, next) {
             getAfter: union([literal(0), literal(1)]),
         });
 
-        Object.assign(
-            req.query,
-            GetCategory.parse({
-                limit: Number(limit),
-                entryItemTitle,
-                getAfter: Number(getAfter),
-            })
-        );
+        req.validatedQuery = GetCategory.parse({
+            limit: Number(limit),
+            entryItemTitle,
+            getAfter: Number(getAfter),
+        });
 
         next();
     } catch (err) {

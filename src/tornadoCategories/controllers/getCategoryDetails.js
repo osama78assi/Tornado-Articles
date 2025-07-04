@@ -5,19 +5,19 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminAddCategories(req, res, next) {
+async function getCategoryDetails(req, res, next) {
     try {
-        const { categories: categoriesData } = req?.body;
+        const { categoryId } = req?.params;
 
-        const categories = await CategoryService.addCategories(categoriesData);
+        const category = await CategoryService.getCategoryDetails(categoryId);
 
         return res.status(200).json({
             success: true,
-            data: categories,
+            data: category.dataValues,
         });
     } catch (err) {
         next(err);
     }
 }
 
-export default adminAddCategories;
+export default getCategoryDetails;

@@ -1,5 +1,3 @@
-import { MAX_RESULTS, MIN_RESULTS } from "../../../config/settings.js";
-import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import TornadoUserService from "../services/tornadoUserService.js";
 
 /**
@@ -9,11 +7,7 @@ import TornadoUserService from "../services/tornadoUserService.js";
  */
 async function adminGetUsers(req, res, next) {
     try {
-        const {
-            getAfter ,
-            limit,
-            entryItemName,
-        } = req?.query;
+        const { getAfter, limit, entryItemName } = req?.validatedQuery;
 
         const currentId = req.userInfo.id;
 

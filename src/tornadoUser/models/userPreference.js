@@ -25,6 +25,12 @@ UserPreference.init(
             primaryKey: true,
             onDelete: "CASCADE", // When user deletes his/her account. Delete the preferences
         },
+        interestRate: {
+            // To know what is the most interested category for the user
+            type: DataTypes.FLOAT,
+            defaultValue: 0,
+            allowNull: false,
+        },
     },
     {
         sequelize,

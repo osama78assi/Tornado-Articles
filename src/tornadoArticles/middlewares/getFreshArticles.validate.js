@@ -25,7 +25,7 @@ async function getFreshArticlesValidate(req, res, next) {
             limit: int().min(1).max(MAX_RESULTS),
             since: date(),
             categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
-            ignore: array(string().regex(/^\d+$/)), // Don't allow really big string numbers
+            ignore: array(string().regex(/^\d+$/)),
         });
 
         req.body = FreshArticleSchema.parse({

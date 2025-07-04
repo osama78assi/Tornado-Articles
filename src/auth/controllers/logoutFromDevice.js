@@ -21,7 +21,7 @@ async function logoutFromDevice(req, res, next) {
 
         const { id } = req.userInfo;
 
-        const { deviceName } = req?.query;
+        const { deviceName } = req?.validatedQuery;
 
         // Get the authenticated sesssions
         const sessions = await redis.lrange(`loggedin:${id}`, 0, -1);

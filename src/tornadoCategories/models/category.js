@@ -29,6 +29,25 @@ Category.init(
             }, // Cooking must not be repeated again in the db (example)
             allowNull: false,
         },
+        description: {
+            type: DataTypes.STRING(350),
+            validate: {
+                isLengthAccpeted(description) {
+                    if (
+                        typeof description === "string" &&
+                        description.length < 10 &&
+                        description.length > 350
+                    ) {
+                        throw new Error(
+                            "Category description's characters length must be less than 350 and larger than 10",
+                            400,
+                            "VALIDATION_ERROR"
+                        );
+                    }
+                },
+            },
+            allowNull: true,
+        },
     },
     {
         sequelize,
@@ -47,6 +66,12 @@ Category.init(
                     category.dataValues.title = category.dataValues.title
                         .trim()
                         .toLocaleLowerCase();
+
+                    if (typeof category.dataValues.description === "string")
+                        category.dataValues.description =
+                            category.dataValues.description
+                                .trim()
+                                .toLocaleLowerCase();
                 });
             },
             beforeBulkUpdate(options) {
@@ -55,6 +80,16 @@ Category.init(
                     options.attributes.title = options.attributes.title
                         .trim()
                         .toLocaleLowerCase();
+                }
+
+                if (
+                    options.fields.includes("description") &&
+                    typeof options.attributes.description === "string"
+                ) {
+                    options.attributes.description =
+                        options.attributes.description
+                            .trim()
+                            .toLocaleLowerCase();
                 }
             },
         },

@@ -5,13 +5,14 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function getCategories(req, res, next) {
+async function adminGetPreferred(req, res, next) {
     try {
-        let { limit, entryItemTitle, getAfter } = req?.validatedQuery;
+        const { entryInterestedCounts, entryItemTitle, limit } =
+            req?.validatedQuery;
 
-        const categories = await CategoryService.getCategories(
+        const categories = await CategoryService.getPreferredCategories(
+            entryInterestedCounts,
             entryItemTitle,
-            getAfter,
             limit
         );
 
@@ -24,4 +25,4 @@ async function getCategories(req, res, next) {
     }
 }
 
-export default getCategories;
+export default adminGetPreferred;

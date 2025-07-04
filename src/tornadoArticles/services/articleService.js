@@ -235,7 +235,7 @@ class ArticleService {
                             attributes: [], // Don't include anything from junction table
                         },
                         attributes: {
-                            exclude: ["createdAt"],
+                            exclude: ["createdAt", "description"],
                         },
                         as: "categories",
                     },
@@ -295,6 +295,9 @@ class ArticleService {
                         as: "categories",
                         through: {
                             attributes: [], // Don't include anything from junction table
+                        },
+                        attributes: {
+                            exclude: ["createdAt", "description"],
                         },
                         ...(categories.length > 0 && {
                             where: {
@@ -370,6 +373,9 @@ class ArticleService {
                         as: "categories",
                         through: {
                             attributes: [],
+                        },
+                        attributes: {
+                            exclude: ["createdAt", "description"],
                         },
                         ...(categories.length > 0 && {
                             where: {

@@ -21,6 +21,12 @@ FollowedFollower.init(
             },
             onDelete: "CASCADE",
         },
+        interestRate: {
+            // To know what is the most interested followings by the follower
+            type: DataTypes.FLOAT,
+            allowNull: false,
+            defaultValue: 0,
+        },
     },
     {
         sequelize,
