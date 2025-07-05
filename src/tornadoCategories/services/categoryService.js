@@ -1,7 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
-import loggingService from "../../../services/loggingService.js";
 import APIError from "../../../util/APIError.js";
 import isUUID from "../../../util/isUUID.js";
 import Category from "../models/category.js";
@@ -66,15 +65,12 @@ class CategoryService {
         }
 
         try {
-            const updatedObject = await Category.update(
-                updateObj,
-                {
-                    where: {
-                        id: categoryId,
-                    },
-                    returning: true,
-                }
-            );
+            const updatedObject = await Category.update(updateObj, {
+                where: {
+                    id: categoryId,
+                },
+                returning: true,
+            });
 
             return updatedObject[1][0];
         } catch (err) {
@@ -133,10 +129,10 @@ class CategoryService {
                     entryItemTitle,
                     limit,
                 },
-                benchmark: true,
-                logging: function (sql, timeMs) {
-                    loggingService.emit("query-time-usage", { sql, timeMs });
-                },
+                // benchmark: true,
+                // logging: function (sql, timeMs) {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
             });
             return categories;
         } catch (err) {

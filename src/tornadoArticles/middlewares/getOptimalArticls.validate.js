@@ -51,7 +51,7 @@ async function getOptimalArticlsValidate(req, res, next) {
 
             lastArticleRank: union([
                 // It maybe positive infinity or number
-                string().regex(/^\d+.{1}?\d+$/),
+                string().regex(/^\d+(\.{0,1}\d+)?$/),
                 literal(Number.POSITIVE_INFINITY),
             ]),
 

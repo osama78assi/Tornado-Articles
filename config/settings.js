@@ -23,7 +23,7 @@ const MAX_ARTICLE_CONTENT_PICS_COUNT = 5;
 const MAX_CATEGORIES_ARTICLE_COUNT = 5;
 
 // The maximum number of tags that the article can have
-const MAX_TAGS_ARTICLE_COUNT = 10;
+const MAX_TAGS_ARTICLE_COUNT = 5;
 
 // The maximum article chars counts. 20K is more than enough
 const MAX_ARTICLE_CONTENT_LENGTH = 20000;
@@ -77,8 +77,13 @@ function UPDATE_RANK(score, readCounts) {
 // So I will take last 250 article to ignore
 const ALLOWED_IGNORE_COUNT = 250;
 
+// When we get artilces for followings (user want to see his/her followings articls)
+// We need a limit to pick range of them
+const ARTICLES_FOLLOWINGS_LIMIT = 25;
+
 export {
     ALLOWED_IGNORE_COUNT,
+    ARTICLES_FOLLOWINGS_LIMIT,
     GENERATE_PASSWORD_TOKENS_LIMITS,
     MAX_ARTICLE_CONTENT_LENGTH,
     MAX_ARTICLE_CONTENT_PICS_COUNT,

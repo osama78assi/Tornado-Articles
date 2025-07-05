@@ -5,6 +5,7 @@ import APIError from "../../../util/APIError.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
+import FollowedFollower from "../../tornadoUser/models/followedFollower.js";
 import TornadoUserService from "../../tornadoUser/services/tornadoUserService.js";
 import Article from "../models/article.js";
 import ArticleCategory from "../models/articleCategory.js";
@@ -13,6 +14,7 @@ import ArticleTag from "../models/articleTag.js";
 import Tag from "../models/tag.js";
 import TagService from "../services/tagService.js";
 
+import loggingService from "../../../services/loggingService.js";
 // TODO: There is a direct connection between the models. Encapsulate it throw services
 
 // TODO: Flexible search using GIN index and the powerfull postgreSQL engine
@@ -415,6 +417,61 @@ class ArticleService {
             });
 
             return articles;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getArticlesFollowingFresh(
+        userId,
+        since,
+        lastPublisherFollowedAt,
+        firstPublisherRate,
+        lastPublisherRate,
+        ignore,
+        limit
+    ) {
+        try {
+            // When there is no data passed (the default in the route)
+            let whereStatement = {
+                followerId: userId,
+                [Op.or]: {
+                    // Take range
+                    interestRate: {
+                        [Op.lt]: firstPublisherRate,
+                        [Op.gt]: lastPublisherRate,
+                    },
+
+                    // When they have the same rate look at the following date
+                    [Op.and]: {
+                        // It's now less than last rate or equalt to it
+                        interestRate: lastPublisherRate,
+                        createdAt: {
+                            [Op.lte]: lastPublisherFollowedAt,
+                        },
+                    },
+                },
+            };
+
+            // Get the followingsId from the range
+            const followings = await FollowedFollower.findAll({
+                where: whereStatement,
+                limit: 2,
+                order: [
+                    ["interestRate", "DESC"],
+                    ["createdAt", "DESC"],
+                ],
+                benchmark: true,
+                logging: (sql, timeMs) => {
+                    loggingService.emit("query-time-usage", { sql, timeMs });
+                },
+            });
+
+            console.log(
+                "\n\n###########\n",
+                followings.map((item) => item.dataValues),
+                "\n\n###########\n"
+            );
         } catch (err) {
             throw err;
         }
