@@ -24,11 +24,14 @@ async function updatePreferredCategoriesValidate(req, res, next) {
             toDelete: array(uuidv4()),
             toAdd: array(uuidv4()),
         });
-
-        req.body = UpdateCategories.parse({
-            toAdd,
-            toDelete,
-        });
+        
+        Object.assign(
+            req.body,
+            UpdateCategories.parse({
+                toAdd,
+                toDelete,
+            })
+        );
 
         next();
     } catch (err) {

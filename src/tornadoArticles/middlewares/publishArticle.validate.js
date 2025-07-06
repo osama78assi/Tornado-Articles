@@ -77,15 +77,18 @@ async function publishArticleValidate(req, res, next) {
             categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
             tags: array(string()).max(MAX_TAGS_ARTICLE_COUNT),
         });
-
-        req.body = ArticleSchema.parse({
-            title,
-            content,
-            isPrivate,
-            language: language.toLowerCase(),
-            categories,
-            tags,
-        });
+        
+        Object.assign(
+            req.body,
+            ArticleSchema.parse({
+                title,
+                content,
+                isPrivate,
+                language: language.toLowerCase(),
+                categories,
+                tags,
+            })
+        );
 
         next();
     } catch (err) {

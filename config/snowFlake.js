@@ -19,12 +19,38 @@ function intFormat(buffer) {
 
 const customEpoch = new Date("2020-01-01T00:00:00Z").getTime();
 
-// Pss the custom epoch
-const flakeIdGen = new FlakeId({ epoch: customEpoch });
+// The reason of using many generator is. I want the same id to be usable between three different tables
+// (that will happen in high-traffic)
 
-// prepare the function for generate
-function generateSnowFlakeId() {
-    return intFormat(flakeIdGen.next());
+// Pass the custom epoch
+const flakeIdGenArticle = new FlakeId({ epoch: customEpoch });
+
+const flakeIdGenUser = new FlakeId({ epoch: customEpoch });
+
+const flakeIdGenComment = new FlakeId({ epoch: customEpoch });
+
+/**
+ * Generate new id for articls
+ * @returns {number}
+ */
+function generateSnowFlakeIdArticle() {
+    return intFormat(flakeIdGenArticle.next());
 }
 
-export default generateSnowFlakeId;
+/**
+ * Generate new id for users
+ * @returns {number}
+ */
+function generateSnowFlakeIdUser() {
+    return intFormat(flakeIdGenUser.next());
+}
+
+/**
+ * Generate new id for users
+ * @returns {number}
+ */
+function generateSnowFlakeIdComment() {
+    return intFormat(flakeIdGenComment.next());
+}
+
+export { generateSnowFlakeIdArticle, generateSnowFlakeIdUser, generateSnowFlakeIdComment };

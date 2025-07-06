@@ -8,7 +8,7 @@ import ArticleService from "../services/articleService.js";
  */
 async function getFreshArticles(req, res, next) {
     try {
-        let { limit, since, categories, ignore } = req?.body;
+        let { limit, since, categories, lastArticleId, ignore } = req?.body;
 
         // To know if the ignore list have motified
         let entry = -1;
@@ -23,6 +23,7 @@ async function getFreshArticles(req, res, next) {
         const articles = await ArticleService.getFreshArticles(
             limit,
             since,
+            lastArticleId,
             categories,
             ignore
         );

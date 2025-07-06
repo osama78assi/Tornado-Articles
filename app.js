@@ -38,7 +38,7 @@ app.use(cors(corsConfig));
 
 // App routes
 // Authentication
-app.use("/api/v1/auth", authRouter);
+app.use("/api/v1", authRouter);
 // Article
 app.use("/api/v1", articleRouter);
 

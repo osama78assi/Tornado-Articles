@@ -59,13 +59,24 @@ async function signupValidate(req, res, next) {
             gender: zodEnum(["male", "female"]),
         });
 
-        req.body = SigninSchema.parse({
-            fullName,
-            email,
-            password,
-            birthDate: new Date(birthDate),
-            gender: gender.trim().toLowerCase(),
-        });
+        Object.assign(
+            req.body,
+            SigninSchema.parse({
+                fullName,
+                email,
+                password,
+                birthDate: new Date(birthDate),
+                gender: gender.trim().toLowerCase(),
+            })
+        );
+
+        // req.body = SigninSchema.parse({
+        //     fullName,
+        //     email,
+        //     password,
+        //     birthDate: new Date(birthDate),
+        //     gender: gender.trim().toLowerCase(),
+        // });
 
         validatePassword(req.body.password);
         validateFullName(req.body.fullName);

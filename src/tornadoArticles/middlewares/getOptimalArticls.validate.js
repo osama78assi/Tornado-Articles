@@ -17,12 +17,6 @@ import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
-    static INVALID_ARTICLE_ID = new APIError(
-        "Article Id is an integer number (or string int number)",
-        400,
-        "VALIDATION_ERROR"
-    );
-
     static INVALID_ARTCLE_RANK = new APIError(
         "Article rank must be positive string number (plain no signs ex. 12.3)",
         400,
@@ -41,7 +35,7 @@ async function getOptimalArticlsValidate(req, res, next) {
             limit = MIN_RESULTS, // How many articles you want
             categories = [], // The categories he wants
             lastArticleRank = Number.POSITIVE_INFINITY, // This will be used by optimal articles
-            lastArticleId = "", // To escape that id
+            lastArticleId = "9223372036854775807", // When there is the same rank
             ignore = [], // To ignore articles that has been recommended
         } = req?.body ?? {};
 
@@ -55,20 +49,23 @@ async function getOptimalArticlsValidate(req, res, next) {
                 literal(Number.POSITIVE_INFINITY),
             ]),
 
-            lastArticleId: union([string().regex(/^\d+$/), literal("")]), // Allow empty string (initial request)
+            lastArticleId: string().regex(/^\d+$/), // Allow empty string (initial request)
             ignore: array(string().regex(/^\d+$/)),
         });
 
-        req.body = OptimalArticlesSchema.parse({
-            limit,
-            categories,
-            lastArticleRank:
-                lastArticleRank === Number.POSITIVE_INFINITY
-                    ? Number.POSITIVE_INFINITY
-                    : String(lastArticleRank), // To accept both numbers as string or numbers
-            lastArticleId: String(lastArticleId),
-            ignore,
-        });
+        Object.assign(
+            req.body,
+            OptimalArticlesSchema.parse({
+                limit,
+                categories,
+                lastArticleRank:
+                    lastArticleRank === Number.POSITIVE_INFINITY
+                        ? Number.POSITIVE_INFINITY
+                        : String(lastArticleRank), // To accept both numbers as string or numbers
+                lastArticleId: String(lastArticleId),
+                ignore,
+            })
+        );
 
         next();
     } catch (err) {
@@ -78,13 +75,13 @@ async function getOptimalArticlsValidate(req, res, next) {
                 too_big: GlobalErrorsEnum.INVALID_LIMIT,
                 too_small: GlobalErrorsEnum.INVALID_LIMIT,
                 invalid_union: {
-                    lastArticleId: ErrorsEnum.INVALID_ARTICLE_ID,
                     lastArticleRank: ErrorsEnum.INVALID_ARTCLE_RANK,
                 },
 
                 categories: GlobalErrorsEnum.INVALID_CATEGORIES,
                 ignore: GlobalErrorsEnum.INVALID_IGNORE,
-                lastArticleId: ErrorsEnum.INVALID_ARTICLE_ID,
+                lastArticleId:
+                    GlobalErrorsEnum.INVALID_ARTICLE_ID("lastArticleId"),
             };
 
             // Some keywords saved for same reason

@@ -10,7 +10,7 @@ async function getArticlesFollowingsFresh(req, res, next) {
         // This stage must run first `TODO: see the docs`
         const {
             since,
-            lastPublisherFollowedAt,
+            lastPublisherId,
             firstPublisherRate,
             lastPublisherRate,
             ignore,
@@ -22,7 +22,7 @@ async function getArticlesFollowingsFresh(req, res, next) {
         const data = await ArticleService.getArticlesFollowingFresh(
             id,
             since,
-            lastPublisherFollowedAt,
+            lastPublisherId,
             firstPublisherRate,
             lastPublisherRate,
             ignore,

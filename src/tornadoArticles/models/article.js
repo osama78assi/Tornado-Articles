@@ -1,8 +1,8 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import generateSnowFlakeId from "../../../config/snowFlake.js";
-import APIError from "../../../util/APIError.js";
 import { MAX_ARTICLE_CONTENT_LENGTH } from "../../../config/settings.js";
+import {generateSnowFlakeIdArticle} from "../../../config/snowFlake.js"
+import APIError from "../../../util/APIError.js";
 
 class Article extends Model {}
 
@@ -10,7 +10,7 @@ Article.init(
     {
         id: {
             type: DataTypes.BIGINT,
-            defaultValue: () => generateSnowFlakeId(),
+            defaultValue: generateSnowFlakeIdArticle,
             primaryKey: true,
         },
         title: {
@@ -67,7 +67,7 @@ Article.init(
             allowNull: false,
         },
         userId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users",
                 key: "id",

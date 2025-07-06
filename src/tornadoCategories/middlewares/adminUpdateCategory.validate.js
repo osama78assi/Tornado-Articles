@@ -29,8 +29,10 @@ async function adminUpdateCategoryValidate(req, res, next) {
             categoryDescription: string().trim().min(10).max(350).optional(),
         });
 
-        req.body = Category.parse({ categoryTitle, categoryDescription });
-
+        Object.assign(
+            req.body,
+            Category.parse({ categoryTitle, categoryDescription })
+        );
         next();
     } catch (err) {
         if (err instanceof ZodError) {

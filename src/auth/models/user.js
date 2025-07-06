@@ -5,6 +5,7 @@ import { sequelize } from "../../../config/sequelize.js";
 import APIError from "../../../util/APIError.js";
 import validateFullName from "../../../util/validateFullName.js";
 import validatePassword from "../../../util/validatePassword.js";
+import { generateSnowFlakeIdUser } from "../../../config/snowFlake.js";
 
 class User extends Model {
     // To override the toJSON method and exclude the password attribute
@@ -21,9 +22,9 @@ class User extends Model {
 User.init(
     {
         id: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: generateSnowFlakeIdUser,
         },
         fullName: {
             type: DataTypes.STRING(150),

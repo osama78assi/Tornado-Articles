@@ -6,7 +6,7 @@ class CommentScore extends Model {}
 CommentScore.init(
     {
         userId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users",
                 key: "id",

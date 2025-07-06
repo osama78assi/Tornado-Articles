@@ -26,11 +26,14 @@ async function adminBanUserValidate(req, res, next) {
             banFor: string().trim(),
             reason: string().trim().min(20),
         });
-
-        req.body = BanSchema.parse({
-            banFor,
-            reason,
-        });
+        
+        Object.assign(
+            req.body,
+            BanSchema.parse({
+                banFor,
+                reason,
+            })
+        );
 
         next();
     } catch (err) {
@@ -41,9 +44,9 @@ async function adminBanUserValidate(req, res, next) {
 
             if (code === "invalid_type")
                 return next(GlobalErrorsEnum.INVALID_DATATYPE(path, expected));
-        
-            if(code === "too_small")
-                return next(ErrorEnum.INVALID_REASON_LENGTH)
+
+            if (code === "too_small")
+                return next(ErrorEnum.INVALID_REASON_LENGTH);
         }
         next(err);
     }

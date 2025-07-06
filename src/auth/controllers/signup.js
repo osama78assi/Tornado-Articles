@@ -6,15 +6,6 @@ import APIError from "../../../util/APIError.js";
 import sanitize from "../../../util/sanitize.js";
 import AuthUserService from "../services/AuthUserService.js";
 
-// Just for more readability
-class ErrorsEnum {
-    static SIGNEDIN_CANT_SIGNUP = new APIError(
-        "Your are aleardy logged in using another account. Logout to be able to signup with new account",
-        400,
-        "SIGNEDIN_CANT_SIGNUP"
-    );
-}
-
 /**
  *
  * @param {import('express').Request} req
@@ -26,11 +17,6 @@ async function signup(req, res, next) {
     let isAdded = false; // To know if the device is added to loggedin devices
 
     try {
-        // Before doing anything if the user is authenticated from the used device THROW ERROR
-        if (req?.userSession?.jti) {
-            return next(ErrorsEnum.SIGNEDIN_CANT_SIGNUP);
-        }
-
         // Get the file name if exists (added by custom config and file uploading handler)
         let profilePicName = req?.files?.profilePic?.newName;
 

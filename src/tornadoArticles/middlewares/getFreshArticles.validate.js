@@ -18,6 +18,7 @@ async function getFreshArticlesValidate(req, res, next) {
             since = new Date(), // default value current time
             categories = [], // The categories he wants
             ignore = [], // To ingore the articles that has been recommended
+            lastArticleId = "9223372036854775807", // When there is two article with the same creation date
         } = req?.body ?? {};
 
         // Define the shema
@@ -26,14 +27,19 @@ async function getFreshArticlesValidate(req, res, next) {
             since: date(),
             categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
             ignore: array(string().regex(/^\d+$/)),
+            lastArticleId: string().regex(/^\d+$/),
         });
 
-        req.body = FreshArticleSchema.parse({
-            limit,
-            since: new Date(since),
-            categories,
-            ignore,
-        });
+        Object.assign(
+            req.body,
+            FreshArticleSchema.parse({
+                limit,
+                since: new Date(since),
+                categories,
+                ignore,
+                lastArticleId: String(lastArticleId),
+            })
+        );
 
         // Pass if okay
         next();
@@ -46,6 +52,8 @@ async function getFreshArticlesValidate(req, res, next) {
 
                 categories: GlobalErrorsEnum.INVALID_CATEGORIES,
                 ignore: GlobalErrorsEnum.INVALID_IGNORE,
+                lastArticleId:
+                    GlobalErrorsEnum.INVALID_ARTICLE_ID("lastArticleId"),
             };
 
             let code = err?.issues?.[0]?.code;
@@ -55,7 +63,7 @@ async function getFreshArticlesValidate(req, res, next) {
             // For those which intersect by two different errors code
             if (
                 (code === "invalid_type" || code === "invalid_format") &&
-                ["categories", "ignore"].includes(path)
+                ["categories", "ignore", "lastArticleId"].includes(path)
             )
                 return next(errToThrow[path]);
 

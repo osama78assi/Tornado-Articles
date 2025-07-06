@@ -14,6 +14,7 @@ import signup from "../controllers/signup.js";
 import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js";
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import adminCreateAccount from "../controllers/adminCreateAccount.js";
 import adminDeleteUserValidate from "../middlewares/adminDeleteUser.validate.js";
 import forgetPasswordValidate from "../middlewares/forgetPassword.validate.js";
 import isThereSession from "../middlewares/isThereSession.js";
@@ -26,20 +27,32 @@ import validateSession from "../middlewares/validateSession.js";
 
 const authRouter = Router();
 
-authRouter.post("/signin", isThereSession, validateSignin, signin);
+authRouter.post("/auth/signin", isThereSession, validateSignin, signin);
 authRouter.post(
-    "/signup",
+    "/auth/signup",
     isThereSession,
     validateSignup,
     downloadProfilePic,
     signup
 );
+
+// Admin can create accounts
+authRouter.post(
+    "/admin/auth/users",
+    isAuthenticated,
+    isAdmin,
+    validateSession,
+    validateSignup,
+    downloadProfilePic,
+    adminCreateAccount
+);
+
 // The user must be logged in to be able to logout
-authRouter.get("/logout", isAuthenticated, validateSession, logout);
+authRouter.get("/auth/logout", isAuthenticated, validateSession, logout);
 
 // User ask for reset password token
 authRouter.post(
-    "/forget-password",
+    "/auth/forget-password",
     isThereSession,
     forgetPasswordValidate,
     forgetPassword
@@ -47,14 +60,14 @@ authRouter.post(
 
 // The user can reset the password when he is logged in
 authRouter.put(
-    "/reset-password/:tokenId",
+    "/auth/reset-password/:tokenId",
     resetPassByTokenValidate,
     resetPasswordByToken
 );
 
 // The user can change his password
 authRouter.put(
-    "/reset-password",
+    "/auth/reset-password",
     isAuthenticated,
     validateSession,
     resetPasswordValidate,
@@ -63,12 +76,17 @@ authRouter.put(
 );
 
 // User can delete his/her account. With these middlewares we make sure that the user should have both tokens valid
-authRouter.delete("/users", isAuthenticated, isThereSession, deleteAccount);
+authRouter.delete(
+    "/auth/users",
+    isAuthenticated,
+    isThereSession,
+    deleteAccount
+);
 
 // Admin can delete user account
-// Used PUT becasue there is a body
-authRouter.put(
-    "/admin/users/:userId/delete",
+// Used POST becasue there is a body
+authRouter.post(
+    "/admin/auth/users/:userId",
     isAuthenticated,
     isAdmin,
     adminDeleteUserValidate,
@@ -76,11 +94,11 @@ authRouter.put(
 );
 
 // To get another access token
-authRouter.get("/get-access-token", validateSession, generateAccessToken);
+authRouter.get("/auth/get-access-token", validateSession, generateAccessToken);
 
 // To see how many devices you are logged in by
 authRouter.get(
-    "/loggedin-devices",
+    "/auth/loggedin-devices",
     isAuthenticated,
     validateSession,
     getLoggedInDevices
@@ -88,7 +106,7 @@ authRouter.get(
 
 // Logout from another device
 authRouter.delete(
-    "/logout-device",
+    "/auth/logout-device",
     isAuthenticated,
     validateSession,
     logoutDeviceValidate,
