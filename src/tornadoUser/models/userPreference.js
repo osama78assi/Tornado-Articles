@@ -6,8 +6,7 @@ class UserPreference extends Model {}
 UserPreference.init(
     {
         userId: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users",
                 key: "id",
@@ -17,7 +16,6 @@ UserPreference.init(
         },
         categoryId: {
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
             references: {
                 model: "Categories",
                 key: "id",

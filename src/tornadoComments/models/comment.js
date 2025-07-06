@@ -1,6 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import generateSnowFlakeId from "../../../config/snowFlake.js";
+import {generateSnowFlakeIdComment} from "../../../config/snowFlake.js";
 import APIError from "../../../util/APIError.js";
 
 class Comment extends Model {}
@@ -11,7 +11,7 @@ Comment.init(
     {
         id: {
             type: DataTypes.BIGINT,
-            defaultValue: () => generateSnowFlakeId(),
+            defaultValue: generateSnowFlakeIdComment,
             primaryKey: true,
         },
         content: {
@@ -30,7 +30,7 @@ Comment.init(
             },
         },
         userId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users", // Table name in the database
                 key: "id",

@@ -4,7 +4,6 @@ import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User, { default as TornadoUser } from "../../auth/models/user.js";
-import isUUID from "../../../util/isUUID.js";
 
 class ErrorsEnum {
     static CHANGE_NAME_LIMIT = new APIError(
@@ -24,7 +23,7 @@ class TornadoUserService {
     static async getUserById(id) {
         try {
             // Check if id is UUIDv4
-            if (!isUUID(id, "4")) throw GlobalErrorsEnum.INVALID_ID;
+            if (!/^\d+$/.test(id)) throw GlobalErrorsEnum.INVALID_ID;
 
             const user = await TornadoUser.findByPk(id);
 

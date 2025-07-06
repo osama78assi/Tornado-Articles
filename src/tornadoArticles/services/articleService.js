@@ -273,7 +273,13 @@ class ArticleService {
         }
     }
 
-    static async getFreshArticles(limit, since, categories, ignore) {
+    static async getFreshArticles(
+        limit,
+        since,
+        lastArticleId,
+        categories,
+        ignore
+    ) {
         try {
             const articles = await Article.findAll({
                 attributes: [
@@ -322,12 +328,22 @@ class ArticleService {
                         },
                     }),
                     private: false,
-                    createdAt: {
-                        [Op.lt]: since,
-                    },
+                    [Op.or]: [
+                        {
+                            createdAt: {
+                                [Op.lt]: since,
+                            },
+                        },
+                        {
+                            createdAt: since,
+                            id: {
+                                [Op.lt]: lastArticleId,
+                            },
+                        },
+                    ],
                 },
                 limit,
-                order: [["createdAt", "DESC"]],
+                order: [["createdAt", "DESC"], ["id", "DESC"]],
             });
 
             return articles;
@@ -425,7 +441,7 @@ class ArticleService {
     static async getArticlesFollowingFresh(
         userId,
         since,
-        lastPublisherFollowedAt,
+        lastPublisherId,
         firstPublisherRate,
         lastPublisherRate,
         ignore,
@@ -447,7 +463,7 @@ class ArticleService {
                         // It's now less than last rate or equalt to it
                         interestRate: lastPublisherRate,
                         createdAt: {
-                            [Op.lte]: lastPublisherFollowedAt,
+                            [Op.lte]: lastPublisherId,
                         },
                     },
                 },

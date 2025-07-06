@@ -28,7 +28,8 @@ async function signinValidate(req, res, next) {
             password: string().trim(),
         });
 
-        req.body = SigninSchema.parse({ email, password });
+        // Don't affect the body
+        Object.assign(req.body, SigninSchema.parse({email, password}));
 
         // If password is string this will be called. if it's invalid this will throw an error
         validatePassword(req.body.password);

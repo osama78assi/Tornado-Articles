@@ -7,7 +7,6 @@ import sanitize from "../../../util/sanitize.js";
 import AuthUserService from "../services/AuthUserService.js";
 
 class ErrorsEnum {
-    // 0944481011
     static INCORRECT_PASSWORD = new APIError(
         "The password isn't correct.",
         400,

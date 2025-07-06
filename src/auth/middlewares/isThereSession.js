@@ -12,7 +12,7 @@ class ErrorsEnum {
 }
 
 /**
- * validated the session by checking both refresh token and the user session in the server
+ * check the session both refresh token and the user session in the server
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */

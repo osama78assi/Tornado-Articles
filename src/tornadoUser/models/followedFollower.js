@@ -6,7 +6,7 @@ class FollowedFollower extends Model {}
 FollowedFollower.init(
     {
         followerId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users",
                 key: "id",
@@ -14,7 +14,7 @@ FollowedFollower.init(
             onDelete: "CASCADE",
         },
         followedId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users",
                 key: "id",

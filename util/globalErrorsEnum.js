@@ -26,7 +26,7 @@ export default class GlobalErrorsEnum {
         );
 
     static INVALID_ID = new APIError(
-        "The provided ID isn't valid as UUIDv4",
+        "The provided ID isn't valid (must be number)",
         400,
         "INVALID_ID"
     );
@@ -84,6 +84,13 @@ export default class GlobalErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
+
+    static INVALID_ARTICLE_ID = (field) =>
+        new APIError(
+            `${field} must be valid integer number (without sign eg 986574)`,
+            400,
+            "VALIDATION_ERROR"
+        );
 
     // For categories
     static INVALID_CATEGORY_LENGTH = new APIError(

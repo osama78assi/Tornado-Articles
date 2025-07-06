@@ -41,7 +41,7 @@ class AuthUserService {
     // Get user by email or id (for auth meaning it will include password)
     static async getUserBy(getBy, isEmail = true) {
         try {
-            if (!isEmail && !validator.isUUID(getBy, "4"))
+            if (!isEmail && !/^\d+$/.tests(getBy))
                 throw GlobalErrorsEnum.INVALID_ID;
 
             let getByObj = isEmail ? { email: getBy } : { id: getBy };

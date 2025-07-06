@@ -71,8 +71,6 @@ async function forgetPassword(req, res, next) {
         // We will send the token to the user
         const token = randomBytes(32).toString("hex");
 
-        console.log("\n\n###########", token, "\n\n###########");
-
         // Hash it and store it in the database
         const hashedToken = createHash("sha256")
             .update(token)
