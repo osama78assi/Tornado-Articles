@@ -1,4 +1,3 @@
-import validator from "validator";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import User from "../models/user.js";
@@ -42,7 +41,7 @@ class AuthUserService {
     static async getUserBy(getBy, isEmail = true) {
         try {
             if (!isEmail && !/^\d+$/.tests(getBy))
-                throw GlobalErrorsEnum.INVALID_ID;
+                throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
 
             let getByObj = isEmail ? { email: getBy } : { id: getBy };
             const user = await User.findOne({

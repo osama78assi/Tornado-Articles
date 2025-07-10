@@ -62,7 +62,7 @@ async function adminGetPreferredValidate(req, res, next) {
             return next(ErrorsEnum.INVALID_CATEGORY_TITLE_LENGTH);
 
         if (limit <= 0 || limit > MAX_RESULTS)
-            return next(GlobalErrorsEnum.INVALID_LIMIT);
+            return next(GlobalErrorsEnum.INVALID_LIMIT("limit", MAX_RESULTS));
 
         // Pass
         next();

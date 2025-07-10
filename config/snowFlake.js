@@ -29,6 +29,8 @@ const flakeIdGenUser = new FlakeId({ epoch: customEpoch });
 
 const flakeIdGenComment = new FlakeId({ epoch: customEpoch });
 
+const flakeIdGenCategory = new FlakeId({ epoch: customEpoch });
+
 /**
  * Generate new id for articls
  * @returns {number}
@@ -53,4 +55,17 @@ function generateSnowFlakeIdComment() {
     return intFormat(flakeIdGenComment.next());
 }
 
-export { generateSnowFlakeIdArticle, generateSnowFlakeIdUser, generateSnowFlakeIdComment };
+/**
+ * Generate new id for users
+ * @returns {number}
+ */
+function generateSnowFlakeIdCategory() {
+    return intFormat(flakeIdGenCategory.next());
+}
+
+export {
+    generateSnowFlakeIdArticle,
+    generateSnowFlakeIdCategory,
+    generateSnowFlakeIdComment,
+    generateSnowFlakeIdUser,
+};

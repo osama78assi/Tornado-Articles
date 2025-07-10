@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MAX_ARTICLE_CONTENT_LENGTH } from "../../../config/settings.js";
-import {generateSnowFlakeIdArticle} from "../../../config/snowFlake.js"
+import { generateSnowFlakeIdArticle } from "../../../config/snowFlake.js";
 import APIError from "../../../util/APIError.js";
 
 class Article extends Model {}
@@ -10,7 +10,7 @@ Article.init(
     {
         id: {
             type: DataTypes.BIGINT,
-            defaultValue: generateSnowFlakeIdArticle,
+            defaultValue: () => generateSnowFlakeIdArticle(),
             primaryKey: true,
         },
         title: {
@@ -53,7 +53,9 @@ Article.init(
                 isSmallEnough(title) {
                     if (title.length > MAX_ARTICLE_CONTENT_LENGTH) {
                         throw new APIError(
-                            "Article content should be 20K characters maximum.",
+                            `Article content should be ${Math.floor(
+                                MAX_ARTICLE_CONTENT_LENGTH / 1000
+                            )}k characters maximum.`,
                             429,
                             "VALIDATION_ERROR"
                         );
@@ -106,6 +108,10 @@ Article.init(
             type: DataTypes.FLOAT,
             defaultValue: 0,
         },
+        headline: {
+            type: DataTypes.STRING(150),
+            allowNull: true
+        }
     },
     {
         sequelize,

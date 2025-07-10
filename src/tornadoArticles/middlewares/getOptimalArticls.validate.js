@@ -1,28 +1,10 @@
-import {
-    array,
-    int,
-    literal,
-    object,
-    string,
-    union,
-    uuidv4,
-    ZodError,
-} from "zod/v4";
+import { array, int, literal, object, string, union, ZodError } from "zod/v4";
 import {
     MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_RESULTS,
     MIN_RESULTS,
 } from "../../../config/settings.js";
-import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-
-class ErrorsEnum {
-    static INVALID_ARTCLE_RANK = new APIError(
-        "Article rank must be positive string number (plain no signs ex. 12.3)",
-        400,
-        "VALIDATION_ERROR"
-    );
-}
 
 /**
  *
@@ -32,7 +14,7 @@ class ErrorsEnum {
 async function getOptimalArticlsValidate(req, res, next) {
     try {
         let {
-            limit = MIN_RESULTS, // How many articles you want
+            articlesLimit = MIN_RESULTS, // How many articles you want
             categories = [], // The categories he wants
             lastArticleRank = Number.POSITIVE_INFINITY, // This will be used by optimal articles
             lastArticleId = "9223372036854775807", // When there is the same rank
@@ -40,23 +22,26 @@ async function getOptimalArticlsValidate(req, res, next) {
         } = req?.body ?? {};
 
         const OptimalArticlesSchema = object({
-            limit: int().min(1).max(MAX_RESULTS),
-            categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
+            articlesLimit: int().min(1).max(MAX_RESULTS),
+            categories: array(string().regex(/^\d+$/)).max(
+                MAX_CATEGORIES_ARTICLE_COUNT
+            ),
 
             lastArticleRank: union([
                 // It maybe positive infinity or number
                 string().regex(/^\d+(\.{0,1}\d+)?$/),
                 literal(Number.POSITIVE_INFINITY),
+                literal("Infinity")
             ]),
 
-            lastArticleId: string().regex(/^\d+$/), // Allow empty string (initial request)
+            lastArticleId: string().regex(/^\d+$/),
             ignore: array(string().regex(/^\d+$/)),
         });
 
         Object.assign(
             req.body,
             OptimalArticlesSchema.parse({
-                limit,
+                articlesLimit,
                 categories,
                 lastArticleRank:
                     lastArticleRank === Number.POSITIVE_INFINITY
@@ -72,16 +57,19 @@ async function getOptimalArticlsValidate(req, res, next) {
         if (err instanceof ZodError) {
             // Reduce nested 'if' as much as possible
             const errToThrow = {
-                too_big: GlobalErrorsEnum.INVALID_LIMIT,
-                too_small: GlobalErrorsEnum.INVALID_LIMIT,
+                too_big: GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS),
+                too_small: GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS),
                 invalid_union: {
-                    lastArticleRank: ErrorsEnum.INVALID_ARTCLE_RANK,
+                    lastArticleRank:
+                        GlobalErrorsEnum.INVALID_FLOAT_NUMBER(
+                            "lastArticleRank"
+                        ),
                 },
 
                 categories: GlobalErrorsEnum.INVALID_CATEGORIES,
                 ignore: GlobalErrorsEnum.INVALID_IGNORE,
                 lastArticleId:
-                    GlobalErrorsEnum.INVALID_ARTICLE_ID("lastArticleId"),
+                    GlobalErrorsEnum.INVALID_BIGINT_ID("lastArticleId"),
             };
 
             // Some keywords saved for same reason

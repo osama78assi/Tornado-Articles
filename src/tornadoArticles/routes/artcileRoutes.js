@@ -16,14 +16,16 @@ import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
 import getArticlesCategoriesFresh from "../controllers/getArticlesCategoriesFresh.js";
+import getArticlesCategoriesOptimal from "../controllers/getArticlesCategoriesOptimal.js";
 import getArticlesFollowingsOptimal from "../controllers/getArticlesFollowingsOptimal.js";
 import getArtilcesRecomendsFresh from "../controllers/getArtilcesRecomendsFresh.js";
+import getArtilcesRecomendsOptimal from "../controllers/getArtilcesRecomendsOptimal.js";
+import categoryDataVaildate from "../middlewares/categoryData.vaildate.js";
 import downloadArticlesPics from "../middlewares/downloadArtilcesPics.js";
+import followingsDataValidate from "../middlewares/followingsData.validate.js";
 import getFreshArticlesValidate from "../middlewares/getFreshArticles.validate.js";
 import getOptimalArticlesValidate from "../middlewares/getOptimalArticls.validate.js";
 import publishArticleValidate from "../middlewares/publishArticle.validate.js";
-import getArtilcesRecomendsOptimal from "../controllers/getArtilcesRecomendsOptimal.js";
-import getArticleFollowingFreshValidate from "../middlewares/getArticleFollowingFresh.validate.js";
 
 const articleRouter = Router();
 
@@ -34,57 +36,64 @@ articleRouter.post(
     isLoggedIn,
     getFreshArticlesValidate,
     getFreshArticles
-); // WORKING
+); // DONE
 
 articleRouter.post(
     "/articles/optimal",
     isLoggedIn,
     getOptimalArticlesValidate,
     getOptimalArticles
-); // WORKING
+); // DONE
 
 // Anyone can get the articles for any user
 articleRouter.get("/articles/:userId", getArticlesFor); // TODO
 
 // User get recommended articles. Following stage (fresh)
 articleRouter.post(
-    "/articles/recommended/followings/fresh",
+    "/articles/recommends/followings/fresh",
     isAuthenticated,
-    getArticleFollowingFreshValidate,
+    followingsDataValidate,
+    getFreshArticlesValidate, // Here is the same but we don't care about passed categories array
     getArticlesFollowingsFresh
-); // TODO
+); // DONE
 
 // User get recommended articles. Following stage (optimal)
 articleRouter.post(
-    "/articles/recommended/followings/optimal",
+    "/articles/recommends/followings/optimal",
     isAuthenticated,
+    followingsDataValidate,
+    getOptimalArticlesValidate, // This is the same but here we don't care about passed categories array
     getArticlesFollowingsOptimal
-); // TODO
+); // DONE
 
 // User get recommended articles. categories preferred stage (fresh)
 articleRouter.post(
-    "/articles/recommended/categories/fresh",
+    "/articles/recommends/categories/fresh",
     isAuthenticated,
+    categoryDataVaildate,
+    getFreshArticlesValidate, // This is the same as getFreshArticle only instead here we don't care about the categories array
     getArticlesCategoriesFresh
-); // TODO
+); // DONE
 
 // User get recommended articles. categories preferred stage (optimal)
 articleRouter.post(
-    "/articles/recommended/categories/optimal",
+    "/articles/recommends/categories/optimal",
     isAuthenticated,
-    getArticlesFollowingsOptimal
-); // TODO
+    categoryDataVaildate,
+    getOptimalArticlesValidate,
+    getArticlesCategoriesOptimal
+); // WORKING
 
 // User get recommended articles. recomend stage by cookies for example (fresh)
 articleRouter.post(
-    "/articles/recommended/recomends/fresh",
+    "/articles/recommends/recomends/fresh",
     isAuthenticated,
     getArtilcesRecomendsFresh
 ); // TODO
 
 // User get recommended articles. recomend stage by cookies for example (optimal)
 articleRouter.post(
-    "/articles/recommended/recomends/optimal",
+    "/articles/recommends/recomends/optimal",
     isAuthenticated,
     getArtilcesRecomendsOptimal
 ); // TODO

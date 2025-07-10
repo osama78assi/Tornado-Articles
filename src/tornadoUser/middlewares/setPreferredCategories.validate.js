@@ -1,10 +1,10 @@
-import { array, uuidv4, ZodError } from "zod/v4";
+import { array, string, uuidv4, ZodError } from "zod/v4";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
     static INVALID_CATEGORIES = new APIError(
-        "The categories must be array of categories IDs (uuidv4)",
+        "The categories must be array of categories IDs (string numbers)",
         400,
         "VALIDATION_ERROR"
     );
@@ -22,7 +22,7 @@ async function setPreferredCategoriesValidate(req, res, next) {
         if (categories === null)
             return next(GlobalErrorsEnum.MISSING_FIELD("categories"));
 
-        const Catgeories = array(uuidv4());
+        const Catgeories = array(string().regex(/^\d+$/));
 
         req.body.categories = Catgeories.parse(categories);
 

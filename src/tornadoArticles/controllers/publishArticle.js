@@ -1,5 +1,6 @@
 import APIError from "../../../util/APIError.js";
 import deleteFiles from "../../../util/deleteFiles.js";
+import removeDuplicated from "../../../util/removeDuplicated.js";
 import ArticleService from "../services/articleService.js";
 
 /**
@@ -9,8 +10,12 @@ import ArticleService from "../services/articleService.js";
  */
 async function publishArticle(req, res, next) {
     try {
-        let { title, content, isPrivate, language, categories, tags } =
+        let { title, content, isPrivate, language, categories, tags, headline } =
             req?.body;
+
+        // Remove duplicated values from categories and tags (silently) you can change the behavior and throw an error
+        categories = removeDuplicated(categories);
+        tags = removeDuplicated(tags);
 
         // Get user Id
         const userId = req.userInfo.id;
@@ -55,7 +60,7 @@ async function publishArticle(req, res, next) {
 
         // Throw an error in case he didn't used them
         if (menthionedImgs !== contentPics.length) {
-            await deleteFiles(req.files)
+            await deleteFiles(req.files);
             return next(
                 new APIError(
                     "You've not used all the uploaded images",
@@ -75,7 +80,8 @@ async function publishArticle(req, res, next) {
             coverPic,
             contentPics,
             categories,
-            tags
+            tags,
+            headline
         );
 
         // For testing
@@ -103,6 +109,7 @@ async function publishArticle(req, res, next) {
             data: articleData,
         });
     } catch (err) {
+        console.log("\n\n###########\n", err, "\n\n###########\n");
         // Delete images if exist
         await deleteFiles(req?.files);
         next(err);

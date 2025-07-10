@@ -1,7 +1,4 @@
-import {
-    MAX_CATEGORIES_ARTICLE_COUNT,
-    MAX_RESULTS,
-} from "../config/settings.js";
+import { MAX_CATEGORIES_ARTICLE_COUNT } from "../config/settings.js";
 import APIError from "./APIError.js";
 
 export default class GlobalErrorsEnum {
@@ -12,11 +9,12 @@ export default class GlobalErrorsEnum {
         "VALIDATION_ERROR"
     );
 
-    static INVALID_LIMIT = new APIError(
-        `Limit must be positive integer larger than zero and less than ${MAX_RESULTS}`,
-        400,
-        "INVALID_LIMIT"
-    );
+    static INVALID_LIMIT = (field, max) =>
+        new APIError(
+            `Limit (${field}) must be positive integer larger than zero and less than ${max}`,
+            400,
+            "INVALID_LIMIT"
+        );
 
     static NO_USER_WITH = (getBy, isEmail = true) =>
         new APIError(
@@ -24,12 +22,6 @@ export default class GlobalErrorsEnum {
             404,
             "USER_NOT_FOUND"
         );
-
-    static INVALID_ID = new APIError(
-        "The provided ID isn't valid (must be number)",
-        400,
-        "INVALID_ID"
-    );
 
     static INVALID_DATATYPE = (field, type) =>
         new APIError(
@@ -40,6 +32,20 @@ export default class GlobalErrorsEnum {
 
     static MISSING_FIELD = (field) =>
         new APIError(`The field '${field}' is required.`, 400, `MISSING_FIELD`);
+
+    static INVALID_BIGINT_ID = (field) =>
+        new APIError(
+            `${field} must be valid integer number (without sign eg 986574)`,
+            400,
+            "VALIDATION_ERROR"
+        );
+
+    static INVALID_FLOAT_NUMBER = (field) =>
+        new APIError(
+            `(${field}) must be positive string number (plain no signs ex. 12.3)`,
+            400,
+            "VALIDATION_ERROR"
+        );
 
     // For Auth
     static MISSING_REFRESH_TOKEN = new APIError(
@@ -74,7 +80,7 @@ export default class GlobalErrorsEnum {
 
     // For articles
     static INVALID_CATEGORIES = new APIError(
-        `The "catgeories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string categories IDs (UUID v4) maximum`,
+        `The "catgeories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
         400,
         "VALIDATION_ERROR"
     );
@@ -84,13 +90,6 @@ export default class GlobalErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
-
-    static INVALID_ARTICLE_ID = (field) =>
-        new APIError(
-            `${field} must be valid integer number (without sign eg 986574)`,
-            400,
-            "VALIDATION_ERROR"
-        );
 
     // For categories
     static INVALID_CATEGORY_LENGTH = new APIError(

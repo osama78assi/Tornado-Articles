@@ -5,7 +5,6 @@ import {
     object,
     string,
     union,
-    uuidv4,
     ZodError,
 } from "zod/v4";
 import {
@@ -40,7 +39,15 @@ class ErrorsEnum {
     );
 
     static INVALID_CONTENT_LENGTH = new APIError(
-        `Content length should be at least 10 characters and maximum ${MAX_ARTICLE_CONTENT_LENGTH} characters`,
+        `Content length should be at least 10 characters and maximum ${Math.floor(
+            MAX_ARTICLE_CONTENT_LENGTH / 1000
+        )}k characters`,
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_HEADLINE = new APIError(
+        "The headline must be at least 50 character length or 150 maximum",
         400,
         "VALIDATION_ERROR"
     );
@@ -60,6 +67,7 @@ async function publishArticleValidate(req, res, next) {
             language = "english",
             categories = [],
             tags = [],
+            headline = null,
         } = req?.body ?? {};
 
         // Required fields
@@ -74,10 +82,13 @@ async function publishArticleValidate(req, res, next) {
             content: string().trim().min(10).max(MAX_ARTICLE_CONTENT_LENGTH),
             isPrivate: boolean(),
             language: union(langs.map((lang) => literal(lang))),
-            categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
+            categories: array(string().regex(/^\d+$/)).max(
+                MAX_CATEGORIES_ARTICLE_COUNT
+            ),
             tags: array(string()).max(MAX_TAGS_ARTICLE_COUNT),
+            headline: union([string(), literal(null)]),
         });
-        
+
         Object.assign(
             req.body,
             ArticleSchema.parse({
@@ -87,6 +98,7 @@ async function publishArticleValidate(req, res, next) {
                 language: language.toLowerCase(),
                 categories,
                 tags,
+                headline,
             })
         );
 
@@ -124,6 +136,9 @@ async function publishArticleValidate(req, res, next) {
                 path === "categories"
             )
                 return next(errToThrow.categories);
+
+            if (code === "invalid_union" && path === "headline")
+                return next(ErrorsEnum.INVALID_HEADLINE);
 
             // The left here are functions
             if (errToThrow[code]) return next(errToThrow[code](path, expected));

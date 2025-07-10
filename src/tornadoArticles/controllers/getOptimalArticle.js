@@ -8,8 +8,13 @@ import ArticleService from "../services/articleService.js";
  */
 async function getOptimalArticle(req, res, next) {
     try {
-        let { limit, categories, lastArticleRank, lastArticleId, ignore } =
-            req?.body;
+        let {
+            articlesLimit: limit, // rename it
+            categories,
+            lastArticleRank,
+            lastArticleId,
+            ignore,
+        } = req?.body;
 
         // To know if the ignore list have motified
         let entry = -1;

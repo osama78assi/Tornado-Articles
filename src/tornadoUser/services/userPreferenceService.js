@@ -3,7 +3,6 @@ import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import Category from "../../tornadoCategories/models/category.js";
 import UserPreference from "../models/userPreference.js";
-import loggingService from "../../../services/loggingService.js";
 
 class UserPreferenceService {
     static async addPreferredCategories(userId, categoriesIds) {
@@ -99,6 +98,92 @@ class UserPreferenceService {
             return preferredCategories.map((prefCategory) => {
                 return prefCategory.dataValues.Category;
             });
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getPreferredCategoriesBetweenRates(
+        userId,
+        firstCategoryRate,
+        lastCategoryRate,
+        firstCategoryId,
+        lastCategoryId,
+        limit
+    ) {
+        try {
+            const categories = await UserPreference.findAll({
+                attributes: ["categoryId", "interestRate"],
+                where: {
+                    userId,
+
+                    [Op.or]: [
+                        {
+                            interestRate: {
+                                // Take the range
+                                [Op.lt]: firstCategoryRate,
+                                [Op.gt]: lastCategoryRate,
+                            },
+                        },
+                        // And when the rates is the same take the range according to the id
+                        {
+                            interestRate: lastCategoryRate,
+                            categoryId: {
+                                [Op.lte]: firstCategoryId,
+                                [Op.gte]: lastCategoryId,
+                            },
+                        },
+                    ],
+                },
+                order: [
+                    ["interestRate", "DESC"],
+                    ["categoryId", "DESC"],
+                ],
+                limit,
+            });
+
+            return categories;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getPreferredCategoriesAfterRate(
+        userId,
+        lastCategoryRate,
+        lastCategoryId,
+        limit
+    ) {
+        try {
+            const categories = await UserPreference.findAll({
+                attributes: ["categoryId", "interestRate"],
+                where: {
+                    userId,
+
+                    [Op.or]: [
+                        {
+                            // Less in rate first
+                            interestRate: {
+                                [Op.lt]: lastCategoryRate,
+                            },
+                        },
+                        {
+                            // When the rate is equal take less ID
+                            interestRate: lastCategoryRate,
+                            categoryId: {
+                                [Op.lt]: lastCategoryId,
+                            },
+                        },
+                    ],
+                },
+                order: [
+                    ["interestRate", "DESC"],
+                    ["categoryId", "DESC"],
+                ],
+                limit,
+            });
+
+            return categories;
         } catch (err) {
             throw err;
         }

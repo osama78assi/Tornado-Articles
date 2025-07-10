@@ -15,7 +15,7 @@ UserPreference.init(
             onDelete: "CASCADE", // When user deletes his/her account. Delete the preferences
         },
         categoryId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Categories",
                 key: "id",

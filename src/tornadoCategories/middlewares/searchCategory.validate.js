@@ -46,7 +46,7 @@ async function searchCategoryValidate(req, res, next) {
             req.validatedQuery.limit < 0 ||
             req.validatedQuery.limit > MAX_RESULTS
         )
-            return next(GlobalErrorsEnum.INVALID_LIMIT);
+            return next(GlobalErrorsEnum.INVALID_LIMIT("limit", MAX_RESULTS));
 
         return next();
     } catch (err) {

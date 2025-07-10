@@ -23,7 +23,7 @@ class TornadoUserService {
     static async getUserById(id) {
         try {
             // Check if id is UUIDv4
-            if (!/^\d+$/.test(id)) throw GlobalErrorsEnum.INVALID_ID;
+            if (!/^\d+$/.test(id)) throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
 
             const user = await TornadoUser.findByPk(id);
 
@@ -141,7 +141,7 @@ class TornadoUserService {
 
     static async updateBrief(userId, newBrief) {
         try {
-            const [affectedRows, data] = await TornadoUser.update(
+            const [, data] = await TornadoUser.update(
                 {
                     brief: newBrief,
                 },

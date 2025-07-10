@@ -14,18 +14,18 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 async function getFreshArticlesValidate(req, res, next) {
     try {
         let {
-            limit = MIN_RESULTS, // How many articles you want
+            articlesLimit = MIN_RESULTS, // How many articles you want
             since = new Date(), // default value current time
             categories = [], // The categories he wants
             ignore = [], // To ingore the articles that has been recommended
-            lastArticleId = "9223372036854775807", // When there is two article with the same creation date
+            lastArticleId = "9223372036854775807", // it will be helpful when there is two article with the same creation date
         } = req?.body ?? {};
 
         // Define the shema
         const FreshArticleSchema = object({
-            limit: int().min(1).max(MAX_RESULTS),
+            articlesLimit: int().min(1).max(MAX_RESULTS),
             since: date(),
-            categories: array(uuidv4()).max(MAX_CATEGORIES_ARTICLE_COUNT),
+            categories: array(string().regex(/^\d+$/)).max(MAX_CATEGORIES_ARTICLE_COUNT),
             ignore: array(string().regex(/^\d+$/)),
             lastArticleId: string().regex(/^\d+$/),
         });
@@ -33,7 +33,7 @@ async function getFreshArticlesValidate(req, res, next) {
         Object.assign(
             req.body,
             FreshArticleSchema.parse({
-                limit,
+                articlesLimit,
                 since: new Date(since),
                 categories,
                 ignore,
@@ -47,13 +47,13 @@ async function getFreshArticlesValidate(req, res, next) {
         if (err instanceof ZodError) {
             // Reduce nested 'if' as much as possible
             const errToThrow = {
-                too_big: GlobalErrorsEnum.INVALID_LIMIT,
-                too_small: GlobalErrorsEnum.INVALID_LIMIT,
+                too_big: GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS),
+                too_small: GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS),
 
                 categories: GlobalErrorsEnum.INVALID_CATEGORIES,
                 ignore: GlobalErrorsEnum.INVALID_IGNORE,
                 lastArticleId:
-                    GlobalErrorsEnum.INVALID_ARTICLE_ID("lastArticleId"),
+                    GlobalErrorsEnum.INVALID_BIGINT_ID("lastArticleId"),
             };
 
             let code = err?.issues?.[0]?.code;

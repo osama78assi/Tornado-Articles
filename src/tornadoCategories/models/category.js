@@ -1,14 +1,15 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import APIError from "../../../util/APIError.js";
+import { generateSnowFlakeIdCategory } from "../../../config/snowFlake.js";
 
 class Category extends Model {}
 
 Category.init(
     {
         id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            type: DataTypes.BIGINT,
+            defaultValue: () => generateSnowFlakeIdCategory(),
             primaryKey: true,
         },
         title: {

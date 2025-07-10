@@ -1,5 +1,6 @@
 import ArticleService from "../services/articleService.js";
 
+
 /**
  *
  * @param {import('express').Request} req
@@ -7,30 +8,40 @@ import ArticleService from "../services/articleService.js";
  */
 async function getArticlesFollowingsFresh(req, res, next) {
     try {
-        // This stage must run first `TODO: see the docs`
+        // Check [followignsData.validate.js, getFreshArticles.validate.js] know what are this fields
         const {
             since,
+            lastArticleId,
+            firstPublisherId,
             lastPublisherId,
             firstPublisherRate,
             lastPublisherRate,
             ignore,
-            limit,
+            articlesLimit,
+            keepTheRange,
+            followingsLimit,
         } = req?.body;
 
         const { id } = req?.userInfo;
 
-        const data = await ArticleService.getArticlesFollowingFresh(
+        let data = await ArticleService.getArticlesFollowingFresh(
             id,
             since,
+            lastArticleId,
+            firstPublisherId,
             lastPublisherId,
             firstPublisherRate,
             lastPublisherRate,
             ignore,
-            limit
+            articlesLimit,
+            followingsLimit,
+            keepTheRange
         );
 
+        // The object interestRateRange for example. When its properites 'null' you can send a property if you want that there is no more artilces for current followings
         return res.status(200).json({
             success: true,
+            data,
         });
     } catch (err) {
         next(err);

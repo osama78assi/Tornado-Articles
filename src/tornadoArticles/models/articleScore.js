@@ -16,7 +16,7 @@ ArticleScore.init(
             onDelete: "CASCADE",
         },
         userId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             references: {
                 model: "Users",
                 key: "id",

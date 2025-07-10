@@ -1,11 +1,11 @@
-import { array, object, uuidv4, ZodError } from "zod/v4";
+import { array, object, string, uuidv4, ZodError } from "zod/v4";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
     static INVALID_FORMAT = (field) =>
         new APIError(
-            `${field} must be array of categories IDs (uuidv4)`,
+            `${field} must be array of categories IDs (string numbers)`,
             400,
             "VALIDATION_ERROR"
         );
@@ -21,8 +21,8 @@ async function updatePreferredCategoriesValidate(req, res, next) {
         let { toDelete = [], toAdd = [] } = req?.body ?? {};
 
         const UpdateCategories = object({
-            toDelete: array(uuidv4()),
-            toAdd: array(uuidv4()),
+            toDelete: array(string().regex(/^\d+$/)),
+            toAdd: array(string().regex(/^\d+$/)),
         });
         
         Object.assign(

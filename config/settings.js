@@ -25,8 +25,8 @@ const MAX_CATEGORIES_ARTICLE_COUNT = 5;
 // The maximum number of tags that the article can have
 const MAX_TAGS_ARTICLE_COUNT = 5;
 
-// The maximum article chars counts. 20K is more than enough
-const MAX_ARTICLE_CONTENT_LENGTH = 20000;
+// The maximum article chars counts. 50K is more than enough
+const MAX_ARTICLE_CONTENT_LENGTH = 50000;
 
 // Maybe in the future we will have many languages and this is used for searching (using ts_vector)
 const SUPPORTED_ARTICLES_LANGUAGES = ["english"];
@@ -78,12 +78,25 @@ function UPDATE_RANK(score, readCounts) {
 const ALLOWED_IGNORE_COUNT = 250;
 
 // When we get artilces for followings (user want to see his/her followings articls)
-// We need a limit to pick range of them
-const ARTICLES_FOLLOWINGS_LIMIT = 25;
+// We need a min limit to pick range of them
+const ARTICLES_FOLLOWINGS_MIN_LIMIT = 25;
+
+// Same but this is max
+const ARTICLES_FOLLOWINGS_MAX_LIMIT = 100;
+
+// The same case we need to know how many categories we want to pick
+// For authenticated users
+const ARTICLES_CATEGORIES_MAX_LIMIT = 20;
+
+// Min limit
+const ARTICLES_CATEGORIES_MIN_LIMIT = 2;
 
 export {
     ALLOWED_IGNORE_COUNT,
-    ARTICLES_FOLLOWINGS_LIMIT,
+    ARTICLES_CATEGORIES_MAX_LIMIT,
+    ARTICLES_CATEGORIES_MIN_LIMIT,
+    ARTICLES_FOLLOWINGS_MAX_LIMIT,
+    ARTICLES_FOLLOWINGS_MIN_LIMIT,
     GENERATE_PASSWORD_TOKENS_LIMITS,
     MAX_ARTICLE_CONTENT_LENGTH,
     MAX_ARTICLE_CONTENT_PICS_COUNT,

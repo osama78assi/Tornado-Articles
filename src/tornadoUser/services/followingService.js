@@ -184,6 +184,100 @@ class FollowingService {
             throw err;
         }
     }
+
+    static async getFollowingsBetweenRates(
+        followerId,
+        firstFollowedRate,
+        lastFollowedRate,
+        firstFollowedId,
+        lastFollowedId,
+        limit
+    ) {
+        try {
+            const followings = await FollowedFollower.findAll({
+                attributes: ["followedId", "interestRate"],
+                where: {
+                    followerId,
+                    [Op.or]: [
+                        // Take range
+                        {
+                            interestRate: {
+                                [Op.lt]: firstFollowedRate,
+                                [Op.gt]: lastFollowedRate,
+                            },
+                        },
+
+                        // When they have the same rate look at the publisher id
+                        {
+                            // It's now less than last rate or equalt to the last not the first
+                            interestRate: lastFollowedRate,
+                            followedId: {
+                                // Last range when the rate is the same. equality to save the range
+                                [Op.lte]: firstFollowedId,
+                                [Op.gte]: lastFollowedId,
+                            },
+                        },
+                    ],
+                },
+                limit,
+                order: [
+                    ["interestRate", "DESC"],
+                    ["followedId", "DESC"],
+                ],
+                // benchmark: true,
+                // logging: (sql, timeMs) => {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
+            });
+
+            return followings;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getFollowingsAfterRate(
+        followerId,
+        lastFollowedRate,
+        lastFollowedId,
+        limit
+    ) {
+        try {
+            const followings = await FollowedFollower.findAll({
+                attributes: ["followedId", "interestRate"],
+                where: {
+                    followerId,
+                    [Op.or]: [
+                        // Take range
+                        {
+                            interestRate: {
+                                [Op.lt]: lastFollowedRate,
+                            },
+                        },
+
+                        // When they have the same rate look at the publisher id
+                        {
+                            // It's now less than last rate or equalt to the last not the first
+                            interestRate: lastFollowedRate,
+                            followedId: {
+                                // Last range when the rate is the same
+                                [Op.lt]: lastFollowedId,
+                            },
+                        },
+                    ],
+                },
+                limit,
+                order: [
+                    ["interestRate", "DESC"],
+                    ["followedId", "DESC"],
+                ],
+            });
+
+            return followings;
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 
 export default FollowingService;

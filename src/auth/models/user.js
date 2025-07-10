@@ -24,7 +24,7 @@ User.init(
         id: {
             type: DataTypes.BIGINT,
             primaryKey: true,
-            defaultValue: generateSnowFlakeIdUser,
+            defaultValue: () => generateSnowFlakeIdUser(),
         },
         fullName: {
             type: DataTypes.STRING(150),

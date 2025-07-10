@@ -17,7 +17,7 @@ ArticleCategory.init(
             onDelete: "CASCADE",
         },
         categoryId: {
-            type: DataTypes.UUID,
+            type: DataTypes.BIGINT,
             primaryKey: true,
             references: {
                 model: "Articles",

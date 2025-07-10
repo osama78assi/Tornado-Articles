@@ -2,7 +2,6 @@ import { Op, QueryTypes } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
-import isUUID from "../../../util/isUUID.js";
 import Category from "../models/category.js";
 
 class ErrorsEnum {
@@ -20,7 +19,7 @@ class ErrorsEnum {
         );
 
     static INVALID_CATEGORY_ID = new APIError(
-        "The category id must be uuidv4",
+        "The category id must be string number",
         400,
         "VALIDATION_ERROR"
     );
@@ -142,7 +141,7 @@ class CategoryService {
 
     static async getCategoryDetails(id) {
         try {
-            if (!isUUID(id)) throw ErrorsEnum.INVALID_CATEGORY_ID;
+            if (/^\d+$/.test(String(id))) throw ErrorsEnum.INVALID_CATEGORY_ID;
 
             const category = await Category.findByPk(id);
 

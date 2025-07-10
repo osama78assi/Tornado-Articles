@@ -34,12 +34,12 @@ async function searchForUsersValidate(req, res, next) {
     } catch (err) {
         if (err instanceof ZodError) {
             let errToThrow = {
-                too_small: GlobalErrorsEnum.INVALID_LIMIT,
-                too_big: GlobalErrorsEnum.INVALID_LIMIT,
+                too_small: GlobalErrorsEnum.INVALID_LIMIT("limit", MAX_RESULTS),
+                too_big: GlobalErrorsEnum.INVALID_LIMIT("limit", MAX_RESULTS),
                 invalid_union: GlobalErrorsEnum.INVALID_DIRECTION,
 
                 // This will be called only in case of limit has an invalid data type
-                invalid_type: GlobalErrorsEnum.INVALID_LIMIT,
+                invalid_type: GlobalErrorsEnum.INVALID_LIMIT("limit", MAX_RESULTS),
             };
 
             let code = err.issues[0].code;
