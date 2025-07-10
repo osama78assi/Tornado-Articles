@@ -83,29 +83,29 @@ User.init(
         profilePic: {
             type: DataTypes.STRING(150),
         },
-        passwordChangeAt: {
-            // To keep track of changing timestamp
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        fullNameChangeAt: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        articlePublishedAt: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        banTill: {
-            // Like a warnning to the user ban about 7 months from publishing articles
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        canGenForgetPassAt: {
-            // To block user a period of time when he/she ask many times for forget password token
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
+        // passwordChangeAt: {
+        //     // To keep track of changing timestamp
+        //     type: DataTypes.DATE,
+        //     allowNull: true,
+        // },
+        // fullNameChangeAt: {
+        //     type: DataTypes.DATE,
+        //     allowNull: true,
+        // },
+        // articlePublishedAt: {
+        //     type: DataTypes.DATE,
+        //     allowNull: true,
+        // },
+        // banTill: {
+        //     // Like a warnning to the user ban about 7 months from publishing articles
+        //     type: DataTypes.DATE,
+        //     allowNull: true,
+        // },
+        // canGenForgetPassAt: {
+        //     // To block user a period of time when he/she ask many times for forget password token
+        //     type: DataTypes.DATE,
+        //     allowNull: true,
+        // },
         brief: {
             type: DataTypes.STRING(150),
             validate: {

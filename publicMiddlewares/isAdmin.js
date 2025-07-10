@@ -1,4 +1,3 @@
-import TornadoUserService from "../src/tornadoUser/services/tornadoUserService.js";
 import APIError from "../util/APIError.js";
 
 /**
@@ -9,12 +8,9 @@ import APIError from "../util/APIError.js";
  */
 async function isAdmin(req, res, next) {
     try {
-        const id = req.userInfo.id;
+        const { role } = req.userInfo;
 
-        // Get the id
-        const user = await TornadoUserService.getUserById(id);
-
-        if (user.dataValues.role === "user") {
+        if (role !== "admin") {
             return next(new APIError("You aren't admin man !", 401));
         }
         // Pass to next middelware

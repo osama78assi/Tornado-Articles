@@ -41,8 +41,8 @@ Article.init(
             type: DataTypes.TEXT,
             allowNull: false,
             validate: {
-                isLargeEnough(title) {
-                    if (title.length < 10) {
+                isLargeEnough(content) {
+                    if (content.length < 10) {
                         throw new APIError(
                             "Article content should be at least made of 10 chars",
                             400,
@@ -50,8 +50,8 @@ Article.init(
                         );
                     }
                 },
-                isSmallEnough(title) {
-                    if (title.length > MAX_ARTICLE_CONTENT_LENGTH) {
+                isSmallEnough(content) {
+                    if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
                         throw new APIError(
                             `Article content should be ${Math.floor(
                                 MAX_ARTICLE_CONTENT_LENGTH / 1000
@@ -110,8 +110,31 @@ Article.init(
         },
         headline: {
             type: DataTypes.STRING(150),
-            allowNull: true
-        }
+            allowNull: true,
+            validate: {
+                isLargeEnough(headline) {
+                    if (headline !== null && headline?.length < 50) {
+                        throw new APIError(
+                            "Article headline should be at least made of 50 chars",
+                            400,
+                            "VALIDATION_ERROR"
+                        );
+                    }
+                },
+                isSmallEnough(headline) {
+                    if (
+                        headline !== null &&
+                        headline?.length > MAX_ARTICLE_CONTENT_LENGTH
+                    ) {
+                        throw new APIError(
+                            `Article headline should be 150 characters maximum.`,
+                            429,
+                            "VALIDATION_ERROR"
+                        );
+                    }
+                },
+            },
+        },
     },
     {
         sequelize,
@@ -129,20 +152,36 @@ Article.init(
                 article.dataValues.title = article.dataValues.title.trim();
                 // Normalize the header
                 article.dataValues.title =
-                    article.dataValues.title.toLocaleLowerCase();
+                    article.dataValues.title.toLowerCase();
 
                 article.dataValues.content = article.dataValues.content.trim();
+
+                // Normalize the headline if exists
+                if (article.dataValues.headline)
+                    article.dataValues.headline = article.dataValues.headline
+                        .trim()
+                        .toLowerCase();
             },
-            beforeUpdate(article) {
-                // Trim the content and title
-                if (article.changed("title")) {
-                    article.dataValues.title = article.dataValues.title.trim();
-                    article.dataValues.title =
-                        article.dataValues.title.toLocaleLowerCase();
-                }
-                if (article.changed("content"))
-                    article.dataValues.content =
-                        article.dataValues.content.trim();
+            beforeBulkUpdate(options) {
+                // Trim the content, title and headline
+                if (options.fields.includes("title"))
+                    options.attributes.password.title =
+                        options.attributes.password.title.trim().toLowerCase();
+
+                if (options.fields.includes("content"))
+                    options.attributes.password.content =
+                        options.attributes.password.content
+                            .trim()
+                            .toLowerCase();
+
+                if (
+                    options.fields.includes("headline") &&
+                    options.attributes.password.headline
+                )
+                    options.attributes.password.headline =
+                        options.attributes.password.headline
+                            .trim()
+                            .toLowerCase();
             },
         },
     }

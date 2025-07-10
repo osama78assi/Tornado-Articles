@@ -34,8 +34,8 @@ async function forgetPassword(req, res, next) {
         const {
             id: userId,
             fullName,
-            canGenForgetPassAt,
-        } = await AuthUserService.getUserBy(userEmail);
+            limits: { canGenForgetPassAt },
+        } = await AuthUserService.getUserProps(userEmail, ["id", "fullName"], ["canGenForgetPassAt"], true);
 
         // Reject if the user is blocked from making this action
         if (

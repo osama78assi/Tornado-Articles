@@ -45,10 +45,14 @@ class PasswordTokenService {
                 attributes: ["userId"],
             });
 
-            // Delete all of them
-            const affectedRows = await PasswordToken.destroy({
-                where: { userId: data.dataValues.userId },
-            });
+            let affectedRows = null;
+
+            if (data !== null) {
+                // Delete all of them
+                affectedRows = await PasswordToken.destroy({
+                    where: { userId: data.dataValues.userId },
+                });
+            }
 
             return affectedRows;
         } catch (err) {

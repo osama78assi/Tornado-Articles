@@ -1,9 +1,11 @@
 import { Op } from "sequelize";
+import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User, { default as TornadoUser } from "../../auth/models/user.js";
+import UserLimit from "../../auth/models/userLimit.js";
 
 class ErrorsEnum {
     static CHANGE_NAME_LIMIT = new APIError(
@@ -20,12 +22,46 @@ class ErrorsEnum {
 }
 
 class TornadoUserService {
+    // Copied from AuthUserService but sometimes this module loaded in the memory so no need to load other module
+    static async getUserProps(userId, userFields = [], limitsFields = []) {
+        try {
+            let include = {
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: limitsFields,
+                },
+            };
+
+            const user = await User.findByPk(userId, {
+                attributes: userFields,
+                ...(limitsFields.length ? include : {}),
+            });
+
+            if (user === null)
+                throw GlobalErrorsEnum.NO_USER_WITH(userId, falses);
+
+            return user;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     static async getUserById(id) {
         try {
-            // Check if id is UUIDv4
-            if (!/^\d+$/.test(id)) throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
+            // Check if id is BIGINT
+            if (!/^\d+$/.test(id))
+                throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
 
-            const user = await TornadoUser.findByPk(id);
+            const user = await TornadoUser.findByPk(id, {
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: {
+                        exclude: ["userId"],
+                    },
+                },
+            });
 
             if (user === null) throw GlobalErrorsEnum.NO_USER_WITH(id, false);
 
@@ -44,13 +80,13 @@ class TornadoUserService {
                     exclude: [
                         "role",
                         "allowCookies",
-                        "passwordChangeAt",
-                        "fullNameChangeAt",
                         "updatedAt",
                         "email",
-                        "banTill",
-                        "articlePublishedAt",
-                        "canGenForgetPassAt",
+                        // "passwordChangeAt",
+                        // "fullNameChangedAt",
+                        // "banTill",
+                        // "articlePublishedAt",
+                        // "canGenForgetPassAt",
                     ],
                 },
             });
@@ -176,6 +212,13 @@ class TornadoUserService {
                 where: {
                     fullName: dir,
                 },
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: {
+                        exclude: ["userId"],
+                    },
+                },
                 limit,
                 order: [["fullName", "ASC"]],
                 // benchmark: true,
@@ -211,17 +254,23 @@ class TornadoUserService {
     }
 
     static async updateUserName(userId, newName) {
+        const t = sequelize.transaction();
         try {
             const user = await User.findByPk(userId, {
-                attributes: ["fullNameChangeAt"],
+                attributes: [],
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: ["fullNameChangedAt"],
+                },
             });
 
             // User can change his name once every month (due to my settings)
             if (
-                user.dataValues.fullNameChangeAt !== null &&
+                user.limits.fullNameChangedAt !== null &&
                 !isPassedTimeBy(
                     new Date(),
-                    user.dataValues.fullNameChangeAt,
+                    user.limits.fullNameChangedAt,
                     UPDATE_NAME_LIMIT
                 )
             ) {
@@ -229,26 +278,42 @@ class TornadoUserService {
             }
 
             const [affectedRows, newRowData] = await TornadoUser.update(
-                { fullName: newName, fullNameChangeAt: new Date() },
+                { fullName: newName },
                 {
                     where: {
                         id: userId,
                     },
                     returning: true,
+                    transaction: t,
                 }
             );
+
             if (affectedRows === 0)
                 throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
+            // Update the limits
+            await UserLimit.update(
+                { fullNameChangedAt: new Date() },
+                {
+                    where: {
+                        userId,
+                    },
+                    transaction: t,
+                }
+            );
+
+            (await t).commit();
             return newRowData[0].dataValues.fullName;
         } catch (err) {
+            (await t).rollback();
+
             throw err;
         }
     }
 
     static async banUserFor(userId, banTill) {
         try {
-            const userData = await TornadoUser.findByPk(userId, {
+            const userData = await UserLimit.findByPk(userId, {
                 attributes: ["banTill"],
             });
 
@@ -256,13 +321,13 @@ class TornadoUserService {
             if (userData.dataValues.banTill > new Date())
                 throw ErrorsEnum.ALREADY_BANNED;
 
-            const [, newRowData] = await TornadoUser.update(
+            const [, newRowData] = await UserLimit.update(
                 {
                     banTill,
                 },
                 {
                     where: {
-                        id: userId,
+                        userId,
                     },
                     returning: true,
                 }
@@ -286,13 +351,23 @@ class TornadoUserService {
             await User.update(
                 {
                     articleCounts: articleCounts + 1,
-                    articlePublishedAt: new Date(),
                 },
                 {
                     where: {
                         id: userId,
                     },
                     transaction: t,
+                }
+            );
+
+            await UserLimit.update(
+                {
+                    articlePublishedAt: new Date(),
+                },
+                {
+                    where: {
+                        userId,
+                    },
                 }
             );
         } catch (err) {

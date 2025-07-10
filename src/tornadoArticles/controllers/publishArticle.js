@@ -109,7 +109,6 @@ async function publishArticle(req, res, next) {
             data: articleData,
         });
     } catch (err) {
-        console.log("\n\n###########\n", err, "\n\n###########\n");
         // Delete images if exist
         await deleteFiles(req?.files);
         next(err);

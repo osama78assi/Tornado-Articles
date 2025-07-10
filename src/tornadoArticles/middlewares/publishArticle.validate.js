@@ -78,8 +78,8 @@ async function publishArticleValidate(req, res, next) {
             return next(GlobalErrorsEnum.MISSING_FIELD("content"));
 
         const ArticleSchema = object({
-            title: string().trim().min(3).max(300),
-            content: string().trim().min(10).max(MAX_ARTICLE_CONTENT_LENGTH),
+            title: string(),
+            content: string(),
             isPrivate: boolean(),
             language: union(langs.map((lang) => literal(lang))),
             categories: array(string().regex(/^\d+$/)).max(
@@ -111,19 +111,6 @@ async function publishArticleValidate(req, res, next) {
                     ErrorsEnum.INVALID_LANGUAGE(req?.body?.language, langs),
                 invalid_type: (field, type) =>
                     GlobalErrorsEnum.INVALID_DATATYPE(field, type),
-                too_small: (field) => {
-                    return {
-                        title: ErrorsEnum.INVALID_TITLE_LENGTH,
-                        content: ErrorsEnum.INVALID_CONTENT_LENGTH,
-                    }[field]; // Chose one
-                },
-                too_big: (field) => {
-                    return {
-                        title: ErrorsEnum.INVALID_TITLE_LENGTH,
-                        content: ErrorsEnum.INVALID_CONTENT_LENGTH,
-                    }[field]; // Chose one
-                },
-
                 categories: GlobalErrorsEnum.INVALID_CATEGORIES,
             };
 

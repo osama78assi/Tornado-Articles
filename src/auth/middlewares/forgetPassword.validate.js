@@ -33,12 +33,12 @@ async function deleteAccountValidate(req, res, next) {
             let code = err.issues[0].code;
 
             if (code === "invalid_type")
-                return errorToThrow.invalid_type(
+                return next(errorToThrow.invalid_type(
                     "userEmail",
                     err.issues[0].expected
-                );
+                ));
 
-            return errorToThrow[code];
+            return next(errorToThrow[code]);
         }
         next(err);
     }

@@ -1,6 +1,8 @@
+import { sequelize } from "../../../config/sequelize.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import User from "../models/user.js";
+import UserLimit from "../models/userLimit.js";
 
 class ErrorsEnum {
     static COULD_NOT_DELETE = new APIError(
@@ -11,6 +13,44 @@ class ErrorsEnum {
 }
 
 class AuthUserService {
+    // This is the same as calling findAll but abstracted
+    static async getUserProps(
+        getBy,
+        userFields = [],
+        limitsFields = [],
+        isEmail = false
+    ) {
+        try {
+            if (!isEmail && !/^\d+$/.test(getBy))
+                throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
+
+            let getByObj = isEmail ? { email: getBy } : { id: getBy };
+
+            let include = {
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: limitsFields,
+                },
+            };
+
+            const user = await User.findOne({
+                where: {
+                    ...getByObj,
+                },
+                attributes: userFields,
+                ...(limitsFields.length ? include : {}),
+            });
+
+            if (user === null)
+                throw GlobalErrorsEnum.NO_USER_WITH(getBy, isEmail);
+
+            return user;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     static async createUser(
         fullName,
         email,
@@ -20,19 +60,41 @@ class AuthUserService {
         profilePic,
         role
     ) {
+        const t = await sequelize.transaction();
         try {
-            const user = await User.create({
-                fullName,
-                email,
-                password,
-                birthDate,
-                gender,
-                profilePic,
-                role,
-            });
+            const user = await User.create(
+                {
+                    fullName,
+                    email,
+                    password,
+                    birthDate,
+                    gender,
+                    profilePic,
+                    role,
+                },
+                { transaction: t }
+            );
+
+            // Create the limits
+            const limits = await UserLimit.create(
+                { userId: user.dataValues.id },
+                {
+                    transaction: t,
+                }
+            );
+
+            await t.commit();
+
+            
+            // Delete the duplicated id
+            delete limits.dataValues.userId;
+
+            // Attach it to match the same shape when you query for a user
+            user.dataValues.limits = limits.dataValues;
 
             return user;
         } catch (err) {
+            await t.rollback();
             throw err;
         }
     }
@@ -57,15 +119,22 @@ class AuthUserService {
                     "followerCounts",
                     "followingCounts",
                     "articleCounts",
-                    "fullNameChangeAt",
-                    "passwordChangeAt",
-                    "banTill",
-                    "articlePublishedAt",
-                    "canGenForgetPassAt",
+                    // "fullNameChangeAt",
+                    // "passwordChangedAt",
+                    // "banTill",
+                    // "articlePublishedAt",
+                    // "canGenForgetPassAt",
                     "allowCookies",
                 ],
                 where: {
                     ...getByObj,
+                },
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: {
+                        exclude: ["userId"],
+                    },
                 },
             });
 
@@ -78,21 +147,38 @@ class AuthUserService {
     }
 
     static async updateUserPassword(userId, newPassword) {
+        const t = await sequelize.transaction();
         try {
             const affectedRows = await User.update(
-                { password: newPassword, passwordChangeAt: new Date() },
+                { password: newPassword },
                 {
                     where: {
                         id: userId,
                     },
+                    transaction: t,
                 }
             );
 
             if (affectedRows[0] === 0)
                 throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
+            await UserLimit.update(
+                {
+                    passwordChangedAt: new Date(),
+                },
+                {
+                    where: {
+                        userId,
+                    },
+                    transaction: t,
+                }
+            );
+
+            await t.commit();
             return affectedRows;
         } catch (err) {
+            // This can be not awaited
+            await t.commit();
             throw err;
         }
     }
@@ -115,13 +201,13 @@ class AuthUserService {
 
     static async banGenPassTokenBy(userId, banTill) {
         try {
-            await User.update(
+            await UserLimit.update(
                 {
                     canGenForgetPassAt: banTill,
                 },
                 {
                     where: {
-                        id: userId,
+                        userId,
                     },
                 }
             );
@@ -132,9 +218,9 @@ class AuthUserService {
 
     static async resetGenPassTokenLimit(userId) {
         try {
-            const affectedRows = await User.update(
+            const affectedRows = await UserLimit.update(
                 { canGenForgetPassAt: null },
-                { where: { id: userId } }
+                { where: { userId } }
             );
 
             return affectedRows;

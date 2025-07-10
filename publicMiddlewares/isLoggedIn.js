@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import TornadoUserService from "../src/tornadoUser/services/tornadoUserService.js";
 import APIError from "../util/APIError.js";
+import AuthUserService from "../src/auth/services/AuthUserService.js";
 
 class ErrorsEnum {
     static INVALID_TOKEN = new APIError(
@@ -36,24 +37,7 @@ async function isLoggedIn(req, res, next) {
         const payload = jwt.verify(token, process.env.ACCESS_SECRET_STRING);
 
         // Check if user exists
-        const user = await TornadoUserService.getUserById(payload?.id);
-
-        if (
-            user.dataValues.passwordChangeAt !== null &&
-            user.dataValues.passwordChangeAt > new Date(payload.iat * 1000)
-        ) {
-            return next(
-                new APIError(
-                    "Some changes happened to the user data. The token is no longer valid. Please login again",
-                    401
-                )
-            );
-        }
-
-        req.userInfo = {
-            id: user.id,
-            role: user.role,
-        };
+        await AuthUserService.getUserProps(payload?.id, ["id"]);
 
         return next();
     } catch (err) {

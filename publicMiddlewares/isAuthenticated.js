@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import TornadoUserService from "../src/tornadoUser/services/tornadoUserService.js";
+import AuthUserService from "../src/auth/services/AuthUserService.js";
 import APIError from "../util/APIError.js";
 
 class ErrorsEnum {
@@ -49,13 +49,17 @@ async function isAuthenticated(req, res, next) {
         const payload = jwt.verify(token, process.env.ACCESS_SECRET_STRING);
 
         // Check if the user is exist in database
-        const user = await TornadoUserService.getUserById(payload?.id);
+        const user = await AuthUserService.getUserProps(
+            payload?.id,
+            ["id", "role"],
+            ["passwordChangedAt"]
+        );
 
         // Check if there is something changed password
         // When the date is after the initilize of the token
         if (
-            user.dataValues.passwordChangeAt !== null &&
-            user.dataValues.passwordChangeAt > new Date(payload.iat * 1000)
+            user.limits.passwordChangedAt !== null &&
+            user.limits.passwordChangedAt > new Date(payload.iat * 1000)
         ) {
             return next(ErrorsEnum.CHANGES_HAPPENED);
         }

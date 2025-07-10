@@ -26,7 +26,7 @@ async function adminBanUser(req, res, next) {
         const banTill = generateDateAfter(banFor);
 
         // Get the user data
-        const userData = await TornadoUserService.getUserById(userId);
+        const userData = await TornadoUserService.getUserProps(userId, ["email", "fullName"]);
 
         // Ban the user
         await TornadoUserService.banUserFor(userId, banTill);

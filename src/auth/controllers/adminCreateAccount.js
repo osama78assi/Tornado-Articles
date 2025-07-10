@@ -1,6 +1,7 @@
 import { unlink } from "fs/promises";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
+import sanitize from "../../../util/sanitize.js";
 import AuthService from "../services/AuthUserService.js";
 
 class ErrorsEnum {
@@ -32,12 +33,12 @@ async function adminCreateAccount(req, res, next) {
             return next(GlobalErrorsEnum.INVALID_DATATYPE("role", "string"));
         }
 
-        role = role.toLowerCase()
+        role = role.toLowerCase();
 
         if (!["user", "admin"].includes(role)) {
             return next(ErrorsEnum.INVALID_VALUE);
         }
-        
+
         let profilePicName = req?.files?.profilePic?.newName;
 
         // Build a URL

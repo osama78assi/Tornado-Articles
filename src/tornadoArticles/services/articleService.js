@@ -112,23 +112,26 @@ class ArticleService {
         // Start unmanaged transaction
         const t = await sequelize.transaction();
         try {
-            // Get the user data. There is two limitation (last publishing time and ban)
-            // And I will be able to get the old article counts (because I want to add the date of publishing with it)
-            const userData = await TornadoUserService.getUserById(userId);
+            // Get the user data. There is two updates (last publishing time and ban)
+            const userData = await TornadoUserService.getUserProps(
+                userId,
+                ["articleCounts"],
+                ["articlePublishedAt", "banTill"]
+            );
 
             if (
-                userData.dataValues.articlePublishedAt !== null &&
+                userData.limits.articlePublishedAt !== null &&
                 !isPassedTimeBy(
                     new Date(),
-                    userData.dataValues.articlePublishedAt,
+                    userData.limits.articlePublishedAt,
                     PUBLISH_ARTICLE_LIMIT
                 )
             )
                 throw ErrorsEnum.ARTICLE_PUBLISH_LIMIT;
 
             if (
-                userData.dataValues.banTill !== null &&
-                userData.dataValues.banTill < new Date()
+                userData.limits.banTill !== null &&
+                userData.limits.banTill < new Date()
             )
                 throw ErrorsEnum.BANNED_FROM_PUBLISH;
 

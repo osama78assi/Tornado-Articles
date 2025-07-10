@@ -17,9 +17,9 @@ class ErrorsEnum {
         400,
         "SAME_PASSWORD"
     );
-    
+
     static TOO_EARLY_CHANGE = new APIError(
-        `You can change your password one every ${UPDATE_PASSWORD_LIMIT}`,
+        `You can change your password once every ${UPDATE_PASSWORD_LIMIT}`,
         429, // It considerd too many requests
         "TOO_AERLY_CHANGE"
     );
@@ -37,15 +37,19 @@ async function resetPassword(req, res, next) {
         // The user should be logged in
         const userId = req.userInfo.id;
 
-        const user = await AuthUserService.getUserBy(userId, false);
+        const user = await AuthUserService.getUserProps(
+            userId,
+            ["password"],
+            ["passwordChangedAt"]
+        );
 
         // The user can change password once in 15 days (according to my settings)
         // This logic must be at databse table service but due to the expensive operation it's made here
         if (
-            user.dataValues.passwordChangeAt !== null &&
+            user.limits.passwordChangedAt !== null &&
             !isPassedTimeBy(
                 new Date(),
-                user.dataValues.passwordChangeAt,
+                user.limits.passwordChangedAt,
                 UPDATE_PASSWORD_LIMIT
             )
         ) {

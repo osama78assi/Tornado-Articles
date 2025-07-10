@@ -38,6 +38,7 @@ async function addAssociations() {
     const { default: PasswordToken } = await import(
         "../auth/models/passwordToken.js"
     );
+    const { default: UserLimit } = await import("../auth/models/userLimit.js");
 
     //////// Users Followings
     // Many to Many relationship between users (like user A get an array with who is following)
@@ -85,6 +86,15 @@ async function addAssociations() {
         foreignKey: "userId",
         onDelete: "CASCADE",
     });
+
+    ////// UserLimits
+    User.hasOne(UserLimit, {
+        foreignKey: "userId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+        as: "limits"
+    });
+
 
     ////////// Categoires
     // User and categories got many-to-many relationship (prefered categories)

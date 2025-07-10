@@ -21,6 +21,8 @@ async function resetPassByTokenValidate(req, res, next) {
         validatePassword(newPassword);
 
         req.body.newPassword = newPassword;
+
+        next();
     } catch (err) {
         if (err instanceof ZodError && err.issues[0].code === "invalid_type") {
             return next(

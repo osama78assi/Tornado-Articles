@@ -2,7 +2,6 @@ import { randomUUID } from "crypto";
 import { unlink } from "fs/promises";
 import jwt from "jsonwebtoken";
 import redis from "../../../config/redisConfig.js";
-import APIError from "../../../util/APIError.js";
 import sanitize from "../../../util/sanitize.js";
 import AuthUserService from "../services/AuthUserService.js";
 
@@ -98,7 +97,7 @@ async function signup(req, res, next) {
         });
 
         // Delete some info
-        sanitize(user, ["email", "canGenForgetPassAt"]);
+        sanitize(user, ["email"]);
 
         // Send the access token via data
         res.status(200).json({
