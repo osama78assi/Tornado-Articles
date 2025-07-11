@@ -6,7 +6,7 @@ import PasswordToken from "../models/passwordToken.js";
 
 class ErrorEnums {
     static NO_TOKEN = new APIError(
-        "There is no token with that ID.",
+        "There is no token with that ID. Or it's expired",
         404,
         "PASSWORD_TOKEN_NOT_FOUND"
     );
@@ -66,7 +66,7 @@ class PasswordTokenService {
                 where: {
                     userId,
                     expiresAt: {
-                        [Op.gte]: generateDateBefore("7 hours"), // To get the tokens even expired before 7 hours
+                        [Op.gte]: generateDateBefore("7 hours"), // Threshold to get the tokens even expired before 7 hours
                     },
                 },
             });

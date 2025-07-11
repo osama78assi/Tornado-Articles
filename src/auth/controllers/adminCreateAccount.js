@@ -61,6 +61,7 @@ async function adminCreateAccount(req, res, next) {
         return res.status(200).json({
             success: true,
             data: user,
+            message: "Please make the added user verify the email before interact with the website"
         });
     } catch (err) {
         // When facing the error the photo now in the dist. Delete it

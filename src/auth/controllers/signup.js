@@ -99,10 +99,13 @@ async function signup(req, res, next) {
         // Delete some info
         sanitize(user, ["email"]);
 
+        // TODO: Send a notifitcation asking for verify the email
+
         // Send the access token via data
         res.status(200).json({
             success: true,
             data: user,
+            message: "Please verify your email to be able to interact with Tornado Articles website"
         });
     } catch (err) {
         // When facing the error the photo now in the dist. Delete it

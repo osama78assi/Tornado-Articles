@@ -6,8 +6,8 @@
 // he wants 1000 rows. You can call it extra semi-security
 const MAX_RESULTS = 100;
 
-// When the client send a request with negative number as limit.
-// I prefere to send the min results instead of error
+// When the client doesn't send a request with number as limit.
+// I prefere to send the min results instead of error and to complete my logic
 const MIN_RESULTS = 10;
 
 // The maximum size of profile images
@@ -45,6 +45,19 @@ const PASSWORD_TOKEN_ALLOWED_COUNTS = 5;
 
 // What is the period you want to block the user from requesting password tokens
 const GENERATE_PASSWORD_TOKENS_LIMITS = [
+    "1 minute",
+    "5 minutes",
+    "15 minutes",
+    "12 hours",
+];
+
+// Here are the same because the lifetime is 30 minutes so these are adjusted by me. If you want you can edit it
+// But keep in mind to check for the time range between them and the life time
+// How many codes the user can request at the same time to get first blcok time (5 minutes)
+const EMAIL_CODES_ALLOWED_COUNTS = 5;
+
+// What is the period you want to block the user from requesting email tokens
+const GENERATE_EMAIL_CODES_LIMITS = [
     "1 minute",
     "5 minutes",
     "15 minutes",
@@ -97,6 +110,8 @@ export {
     ARTICLES_CATEGORIES_MIN_LIMIT,
     ARTICLES_FOLLOWINGS_MAX_LIMIT,
     ARTICLES_FOLLOWINGS_MIN_LIMIT,
+    EMAIL_CODES_ALLOWED_COUNTS,
+    GENERATE_EMAIL_CODES_LIMITS,
     GENERATE_PASSWORD_TOKENS_LIMITS,
     MAX_ARTICLE_CONTENT_LENGTH,
     MAX_ARTICLE_CONTENT_PICS_COUNT,

@@ -26,6 +26,7 @@ import followingsDataValidate from "../middlewares/followingsData.validate.js";
 import getFreshArticlesValidate from "../middlewares/getFreshArticles.validate.js";
 import getOptimalArticlesValidate from "../middlewares/getOptimalArticls.validate.js";
 import publishArticleValidate from "../middlewares/publishArticle.validate.js";
+import isEmailVerified from "../../../publicMiddlewares/isEmailVerified.js";
 
 const articleRouter = Router();
 
@@ -130,6 +131,7 @@ articleRouter.delete(
 articleRouter.post(
     "/articles",
     isAuthenticated,
+    isEmailVerified, // Only verified emails can publish articles
     downloadArticlesPics,
     publishArticleValidate,
     publishArticle

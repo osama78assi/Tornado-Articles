@@ -33,7 +33,7 @@ async function sendResetPassURL({ userName, userEmail }, auth, resetToken) {
             <ul>
                 <li>The previous URL will be expired in ${Math.floor(
                     +process.env.PASSWORD_TOKEN_LIFE_TIME / 1000 / 60
-                )} min</li>
+                )} minutes</li>
                 <li>Don't share the URL with anyone</li>
             </ul>
             <hr />

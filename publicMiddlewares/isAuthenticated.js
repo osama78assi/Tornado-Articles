@@ -52,7 +52,7 @@ async function isAuthenticated(req, res, next) {
         const user = await AuthUserService.getUserProps(
             payload?.id,
             ["id", "role"],
-            ["passwordChangedAt"]
+            ["passwordChangedAt", "verifiedEmail"]
         );
 
         // Check if there is something changed password
@@ -68,6 +68,7 @@ async function isAuthenticated(req, res, next) {
         req.userInfo = {
             id: user.id,
             role: user.role,
+            verifiedEmail: user.limits.verifiedEmail,
         };
         return next();
     } catch (err) {

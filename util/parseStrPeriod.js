@@ -7,7 +7,7 @@ class WrongPeriod extends Error {
 /**
  * @typedef {Object} ParsedTime
  * @property {number} number - The period value (1, 2, ...).
- * @property {'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'} keyword - The period type like month. day...
+ * @property {'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'} keyword - The period type like month. day...
  */
 
 /**
@@ -20,9 +20,22 @@ export default function parseStrPeriod(strPeriod) {
         throw new Error("The period must have positive number");
 
     strPeriod = strPeriod.toLowerCase();
-    if (/^\d+\s*m(inutes?)?$/.test(strPeriod))
+
+    if (/^\d+\s*(ms|(milliseconds?))$/.test(strPeriod))
         return {
             period: parseInt(strPeriod), // This will take the number from the beginning of the string
+            keyword: "millisecond",
+    };
+
+    if (/^\d+\s*s(econds?)?$/.test(strPeriod))
+        return {
+            period: parseInt(strPeriod),
+            keyword: "second",
+    };
+
+    if (/^\d+\s*m(inutes?)?$/.test(strPeriod))
+        return {
+            period: parseInt(strPeriod),
             keyword: "minute",
         };
 

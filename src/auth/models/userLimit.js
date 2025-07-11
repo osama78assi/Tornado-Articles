@@ -8,6 +8,11 @@ UserLimit.init(
         userId: {
             type: DataTypes.BIGINT,
             primaryKey: true,
+            references: {
+                model: "Users",
+                key: "id",
+            },
+            onDelete: "CASCADE",
         },
         passwordChangedAt: {
             // To keep track of changing timestamp
@@ -36,6 +41,18 @@ UserLimit.init(
             type: DataTypes.DATE,
             allowNull: true,
             defaultValue: null,
+        },
+        verifiedEmail: {
+            // While this may not be limit directly but the user can't do any action till he verify his/her email
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            allowNull: false,
+        },
+        canVerifyEmailAt: {
+            // This is temprory value. When user ask for verify many times. This can be replaced with (work around) if you want
+            type: DataTypes.DATE,
+            defaultValue: null,
+            allowNull: true,
         },
     },
     {

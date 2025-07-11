@@ -27,6 +27,12 @@ export default function isPassedTimeBy(futureDate, pastDate, duration) {
     let passed = null;
 
     switch (keyword) {
+        case "millisecond":
+            passed = parseInt(futureDate - pastDate);
+            break;
+        case "second":
+            passed = parseInt((futureDate - pastDate) / 1000);
+            break;
         case "minute":
             passed = parseInt((futureDate - pastDate) / 1000 / 60);
             break;

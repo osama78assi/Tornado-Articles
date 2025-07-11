@@ -78,6 +78,12 @@ export default class GlobalErrorsEnum {
         "VALIDATION_ERROR"
     );
 
+    static EMAIL_ALREADY_VERIFIED = new APIError(
+        "You've already verified your email",
+        400,
+        "ALREADY_VERIFIED"
+    );
+
     // For articles
     static INVALID_CATEGORIES = new APIError(
         `The "catgeories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string integer numbers (IDs) maximum`,

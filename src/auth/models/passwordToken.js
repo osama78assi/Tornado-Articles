@@ -6,7 +6,7 @@ class PasswordToken extends Model {}
 PasswordToken.init(
     {
         tokenId: {
-            type: DataTypes.STRING(43), // SHA-265 of a token made by 32 bytes (encoded to hex string) 43
+            type: DataTypes.STRING(43), // SHA-256 of a token made by 32 bytes (encoded to base64url) 43
             primaryKey: true,
         },
         expiresAt: {

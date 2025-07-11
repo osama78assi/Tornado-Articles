@@ -49,7 +49,9 @@ async function forgetPassword(req, res, next) {
 
         // To know which time he blocked by
         let blockedTimeIndex = 0;
+
         // To reduce if conditions
+        // For exmaple (5 => 0), (5 => 1)
         const blockMap = new Map([
             [LIMIT_COUNTS, 0],
             [LIMIT_COUNTS + 1, 1],

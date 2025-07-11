@@ -51,6 +51,23 @@ class AuthUserService {
         }
     }
 
+    static async verifyEmail(userId) {
+        try {
+            const [affectedRows] = await UserLimit.update(
+                { verifiedEmail: true, canVerifyEmailAt: null },
+                {
+                    where: {
+                        userId,
+                    },
+                }
+            );
+
+            return affectedRows;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     static async createUser(
         fullName,
         email,
@@ -85,7 +102,6 @@ class AuthUserService {
 
             await t.commit();
 
-            
             // Delete the duplicated id
             delete limits.dataValues.userId;
 
