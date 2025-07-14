@@ -103,7 +103,7 @@ class CategoryService {
             const q = `
                 SELECT "Categories".id, "Categories".title, "Categories".description,"Categories"."createdAt", COALESCE("Counts"."interestCounts", 0) as "interestCounts"
                 FROM "Categories" LEFT JOIN (
-                    SELECT "categoryId", COUNT("categoryId") as "interestCounts" FROM "UserPreferences"
+                    SELECT "categoryId", COUNT("categoryId") as "interestCounts" FROM "UserCategories"
                     GROUP BY "categoryId"
                 ) AS "Counts"
                 ON "Categories".id = "Counts"."categoryId"
@@ -172,7 +172,7 @@ class CategoryService {
             const q = `
                 SELECT "Categories".id, "Categories".title, "Categories".description,"Categories"."createdAt", COALESCE("Counts"."interestCounts", 0) as "interestCounts"
                 FROM "Categories" LEFT JOIN (
-                    SELECT "categoryId", COUNT("categoryId") as "interestCounts" FROM "UserPreferences"
+                    SELECT "categoryId", COUNT("categoryId") as "interestCounts" FROM "UserCategories"
                     GROUP BY "categoryId"
                 ) AS "Counts"
                 ON "Categories".id = "Counts"."categoryId"

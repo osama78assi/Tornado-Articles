@@ -26,8 +26,8 @@ async function addAssociations() {
         "../tornadoComments/models/comment.js"
     );
     const { default: Tag } = await import("../tornadoArticles/models/tag.js");
-    const { default: UserPreference } = await import(
-        "../tornadoUser/models/userPreference.js"
+    const { default: UserCategory } = await import(
+        "../tornadoUser/models/userCategory.js"
     );
     const { default: FollowedFollower } = await import(
         "../tornadoUser/models/followedFollower.js"
@@ -110,19 +110,19 @@ async function addAssociations() {
     ////////// Categoires
     // User and categories got many-to-many relationship (prefered categories)
     User.belongsToMany(Category, {
-        through: UserPreference,
+        through: UserCategory,
         foreignKey: "userId",
         onDelete: "CASCADE",
     });
 
     Category.belongsToMany(User, {
-        through: UserPreference,
+        through: UserCategory,
         foreignKey: "categoryId",
         onDelete: "CASCADE",
     });
 
     // Just to be able to get the categories from junction table
-    UserPreference.belongsTo(Category, {
+    UserCategory.belongsTo(Category, {
         foreignKey: "categoryId",
         onDelete: "CASCADE",
     });

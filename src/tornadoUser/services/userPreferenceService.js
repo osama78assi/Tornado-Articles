@@ -3,7 +3,7 @@ import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import Category from "../../tornadoCategories/models/category.js";
 import Topic from "../../tornadoCategories/models/topic.js";
-import UserPreference from "../models/userPreference.js";
+import UserCategories from "../models/userCategory.js";
 import UserTopic from "../models/userTopic.js";
 
 class ErrorsEnum {
@@ -26,7 +26,7 @@ class UserPreferenceService {
                 };
             });
 
-            const data = await UserPreference.bulkCreate(zip);
+            const data = await UserCategories.bulkCreate(zip);
 
             return data;
         } catch (err) {
@@ -38,7 +38,7 @@ class UserPreferenceService {
 
     static async updatePreferredCategories(userId, categories = []) {
         try {
-            await UserPreference.destroy({
+            await UserCategories.destroy({
                 where: {
                     userId,
                     categoryId: {
@@ -46,7 +46,6 @@ class UserPreferenceService {
                     },
                 },
             });
-
         } catch (err) {
             console.log(err);
             throw err;
@@ -64,7 +63,7 @@ class UserPreferenceService {
                 ? { [Op.gt]: entryItemTitle }
                 : { [Op.lt]: entryItemTitle };
 
-            const preferredCategories = await UserPreference.findAll({
+            const preferredCategories = await UserCategories.findAll({
                 attributes: [],
                 where: {
                     userId,
@@ -101,7 +100,7 @@ class UserPreferenceService {
         limit
     ) {
         try {
-            const categories = await UserPreference.findAll({
+            const categories = await UserCategories.findAll({
                 attributes: ["categoryId", "interestRate"],
                 where: {
                     userId,
@@ -143,7 +142,7 @@ class UserPreferenceService {
         limit
     ) {
         try {
-            const categories = await UserPreference.findAll({
+            const categories = await UserCategories.findAll({
                 attributes: ["categoryId", "interestRate"],
                 where: {
                     userId,

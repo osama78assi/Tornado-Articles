@@ -1,9 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 
-class UserPreference extends Model {}
+class UserCategory extends Model {}
 
-UserPreference.init(
+UserCategory.init(
     {
         userId: {
             type: DataTypes.BIGINT,
@@ -37,4 +37,4 @@ UserPreference.init(
     }
 );
 
-export default UserPreference;
+export default UserCategory;
