@@ -1,5 +1,6 @@
 import { Router } from "express";
 // Controllers
+import adminBanUser from "../controllers/adminBanUser.js";
 import adminGetUsers from "../controllers/adminGetUsers.js";
 import changeName from "../controllers/changeName.js";
 import changeProfilePic from "../controllers/changeProfilePic.js";
@@ -9,30 +10,29 @@ import followUser from "../controllers/followUser.js";
 import getFollowers from "../controllers/getFollowers.js";
 import getFollowings from "../controllers/getFollowings.js";
 import getPreferredCategories from "../controllers/getPreferredCategories.js";
+import getPreferredTopics from "../controllers/getPreferredTopics.js";
 import getUserProfile from "../controllers/getUserProfile.js";
+import removePreferredTopics from "../controllers/removePreferredTopics.js";
 import searchForUsers from "../controllers/searchForUsers.js";
 import setPreferredCategories from "../controllers/setPreferredCategories.js";
+import setPreferredTopics from "../controllers/setPreferredTopics.js";
 import unfollowUser from "../controllers/unfollowUser.js";
 import updateCookiesAccess from "../controllers/updateCookiesAccess.js";
-import updatedPreferredCategories from "../controllers/updatePreferredCategories.js";
+import removePreferredCategories from "../controllers/removePreferredCategories.js";
 
 // Middlewares
 import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js";
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
-import adminBanUser from "../controllers/adminBanUser.js";
-import getPreferredTopics from "../controllers/getPreferredTopics.js";
-import setPreferredTopics from "../controllers/setPreferredTopics.js";
 import adminBanUserValidate from "../middlewares/adminBanUser.validate.js";
 import changeNameValidate from "../middlewares/changeName.validate.js";
 import editBriefValidate from "../middlewares/editBrief.validate.js";
 import getDataValidate from "../middlewares/getData.validate.js";
+import removePreferredDataValidate from "../middlewares/removePreferredData.validate.js";
 import searchForUsersValidate from "../middlewares/searchForUsers.validate.js";
 import setPreferredDataValidate from "../middlewares/setPreferredData.validate.js";
 import updateCookiesAccessValidate from "../middlewares/updateCookiesAccess.validate.js";
-import updatePreferredDataValidate from "../middlewares/updatePreferredData.validate.js";
-import updatePreferredTopics from "../controllers/updatePreferredTopics.js";
 
 const userRoutes = Router();
 
@@ -86,11 +86,13 @@ userRoutes.get(
     getDataValidate,
     getPreferredCategories
 );
+
+// Patch because there is a body
 userRoutes.patch(
     "/users/categories/preferred",
     isAuthenticated,
-    updatePreferredDataValidate,
-    updatedPreferredCategories
+    removePreferredDataValidate,
+    removePreferredCategories
 );
 
 userRoutes.post(
@@ -105,11 +107,13 @@ userRoutes.get(
     getDataValidate,
     getPreferredTopics
 );
+
+// Patch because there is a body
 userRoutes.patch(
     "/users/topics/preferred",
     isAuthenticated,
-    updatePreferredDataValidate,
-    updatePreferredTopics
+    removePreferredDataValidate,
+    removePreferredTopics
 );
 
 // Anyone can search for users (by name)

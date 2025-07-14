@@ -6,29 +6,27 @@ import UserPreferenceService from "../services/userPreferenceService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function updatePreferredCategories(req, res, next) {
+async function removePreferredCategories(req, res, next) {
     try {
-        let { toDelete, toAdd } = req?.body;
+        let { data: categories } = req?.body;
 
         const userId = req.userInfo.id;
 
         // Same reason to get meaningful error message
-        toDelete = removeDuplicated(toDelete);
-        toAdd = removeDuplicated(toAdd);
+        categories = removeDuplicated(categories);
 
         await UserPreferenceService.updatePreferredCategories(
             userId,
-            toAdd,
-            toDelete
+            categories,
         );
 
         return res.status(200).json({
             success: true,
-            message: "Preferred categoires edited successfully.",
+            message: "Categoires removed from your preferred categories successfully.",
         });
     } catch (err) {
         next(err);
     }
 }
 
-export default updatePreferredCategories;
+export default removePreferredCategories;

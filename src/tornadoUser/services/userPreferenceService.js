@@ -1,5 +1,4 @@
 import { Op } from "sequelize";
-import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import Category from "../../tornadoCategories/models/category.js";
@@ -37,44 +36,19 @@ class UserPreferenceService {
         }
     }
 
-    static async updatePreferredCategories(userId, toAdd = [], toDelete = []) {
-        // Start unmanaged transaction
-        const t = await sequelize.transaction();
-
-        // Zip the toAdd
-        const toAddZip = toAdd.map((categoryId) => {
-            return {
-                userId,
-                categoryId,
-            };
-        });
-
+    static async updatePreferredCategories(userId, categories = []) {
         try {
-            // If there is something to add
-            // Add the new items. Pass the transaction
-            toAddZip.length !== 0 &&
-                (await UserPreference.bulkCreate(toAddZip, {
-                    transaction: t,
-                    individualHooks: true,
-                }));
-
-            // If no errors happened let's do the same for delete
-            toDelete.length !== 0 &&
-                (await UserPreference.destroy({
-                    where: {
-                        categoryId: {
-                            [Op.in]: toDelete, // If faced any ID from this array delete it
-                        },
+            await UserPreference.destroy({
+                where: {
+                    userId,
+                    categoryId: {
+                        [Op.in]: categories,
                     },
-                    transaction: t,
-                }));
+                },
+            });
 
-            // No error happened ? commit
-            await t.commit();
         } catch (err) {
             console.log(err);
-            // any error ? rolback and throw that error
-            await t.rollback();
             throw err;
         }
     }
@@ -261,44 +235,20 @@ class UserPreferenceService {
         }
     }
 
-    static async updatePreferredTopics(userId, toAdd = [], toDelete = []) {
-        // Start unmanaged transaction
-        const t = await sequelize.transaction();
-
-        // Zip the toAdd
-        const toAddZip = toAdd.map((topicId) => {
-            return {
-                userId,
-                topicId,
-            };
-        });
-
+    static async removePreferredTopics(userId, topics = []) {
         try {
-            // If there is something to add
-            // Add the new items. Pass the transaction
-            toAddZip.length !== 0 &&
-                (await UserTopic.bulkCreate(toAddZip, {
-                    transaction: t,
-                    individualHooks: true,
-                }));
-
-            // If no errors happened let's do the same for delete
-            toDelete.length !== 0 &&
-                (await UserTopic.destroy({
-                    where: {
-                        topicId: {
-                            [Op.in]: toDelete, // If faced any ID from this array delete it
-                        },
+            const removedCount = await UserTopic.destroy({
+                where: {
+                    userId,
+                    topicId: {
+                        [Op.in]: topics, // If faced any ID from this array delete it
                     },
-                    transaction: t,
-                }));
+                },
+            });
 
-            // No error happened ? commit
-            await t.commit();
+            return removedCount;
         } catch (err) {
             console.log(err);
-            // any error ? rolback and throw that error
-            await t.rollback();
             throw err;
         }
     }
