@@ -62,33 +62,4 @@ async function addPartialIndexArticle() {
     }
 }
 
-// For making search for user name more efficient using and specially
-// Fuzzy search with partial or misspelled names
-async function addTrigramIndexUser() {
-    try {
-        // Add the extension
-        await sequelize.query(`
-            CREATE EXTENSION IF NOT EXISTS pg_trgm;
-        `);
-
-        // Add the index
-        await sequelize.query(`
-            CREATE INDEX IF NOT EXISTS fullName_trgm_idx
-            ON "Users"
-            USING GIN ("fullName" gin_trgm_ops);
-        `);
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-async function dropTrigramIndexUser() {
-    try {
-        // Add the index
-        await sequelize.query(`DROP INDEX IF EXISTS fullName_trgm_idx;`);
-    } catch (err) {
-        console.log(err);
-    }
-}
-
 export { connectDB, sequelize };

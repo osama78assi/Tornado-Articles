@@ -16,7 +16,7 @@ class ErrorsEnum {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function searchCategoryValidate(req, res, next) {
+async function searchValidate(req, res, next) {
     try {
         const {
             query = null,
@@ -63,4 +63,4 @@ async function searchCategoryValidate(req, res, next) {
     }
 }
 
-export default searchCategoryValidate;
+export default searchValidate;

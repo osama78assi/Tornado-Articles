@@ -22,14 +22,17 @@ import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
 import adminBanUser from "../controllers/adminBanUser.js";
+import getPreferredTopics from "../controllers/getPreferredTopics.js";
+import setPreferredTopics from "../controllers/setPreferredTopics.js";
 import adminBanUserValidate from "../middlewares/adminBanUser.validate.js";
 import changeNameValidate from "../middlewares/changeName.validate.js";
 import editBriefValidate from "../middlewares/editBrief.validate.js";
 import getDataValidate from "../middlewares/getData.validate.js";
 import searchForUsersValidate from "../middlewares/searchForUsers.validate.js";
-import setPreferredCategoriesValidate from "../middlewares/setPreferredCategories.validate.js";
+import setPreferredDataValidate from "../middlewares/setPreferredData.validate.js";
 import updateCookiesAccessValidate from "../middlewares/updateCookiesAccess.validate.js";
-import updatePreferredCategoriesValidate from "../middlewares/updatePreferredCategories.validate.js";
+import updatePreferredDataValidate from "../middlewares/updatePreferredData.validate.js";
+import updatePreferredTopics from "../controllers/updatePreferredTopics.js";
 
 const userRoutes = Router();
 
@@ -70,24 +73,43 @@ userRoutes.delete(
     unfollowUser
 );
 
-// User can manage his preferred categories
+// User can manage his preferred categories and topics
 userRoutes.post(
-    "/users/preferred-categories",
+    "/users/categories/preferred",
     isAuthenticated,
-    setPreferredCategoriesValidate,
+    setPreferredDataValidate,
     setPreferredCategories
 );
 userRoutes.get(
-    "/users/preferred-categories",
+    "/users/categories/preferred",
     isAuthenticated,
     getDataValidate,
     getPreferredCategories
 );
 userRoutes.patch(
-    "/users/preferred-categories",
+    "/users/categories/preferred",
     isAuthenticated,
-    updatePreferredCategoriesValidate,
+    updatePreferredDataValidate,
     updatedPreferredCategories
+);
+
+userRoutes.post(
+    "/users/topics/preferred",
+    isAuthenticated,
+    setPreferredDataValidate,
+    setPreferredTopics
+);
+userRoutes.get(
+    "/users/topics/preferred",
+    isAuthenticated,
+    getDataValidate,
+    getPreferredTopics
+);
+userRoutes.patch(
+    "/users/topics/preferred",
+    isAuthenticated,
+    updatePreferredDataValidate,
+    updatePreferredTopics
 );
 
 // Anyone can search for users (by name)
@@ -112,7 +134,7 @@ userRoutes.get(
 
 // Admin can ban users from publishing articles
 userRoutes.post(
-    "/admin/users/ban/:userId",
+    "/users/ban/:userId",
     isAuthenticated,
     isAdmin,
     adminBanUserValidate,

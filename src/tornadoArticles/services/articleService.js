@@ -9,6 +9,8 @@ import {
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
+import Topic from "../../tornadoCategories/models/topic.js";
+import TopicService from "../../tornadoCategories/services/topicService.js";
 import FollowingService from "../../tornadoUser/services/followingService.js";
 import TornadoUserService from "../../tornadoUser/services/tornadoUserService.js";
 import UserPreferenceService from "../../tornadoUser/services/userPreferenceService.js";
@@ -82,6 +84,12 @@ class ErrorsEnum {
         403,
         "BANNED"
     );
+
+    static TOPIC_WITHOUT_CATEGORY = new APIError(
+        "One of the topics haven't their category associated with it. Topic must have it's category",
+        400,
+        "VALIDATION_ERROR"
+    );
 }
 
 class ArticleService {
@@ -107,7 +115,8 @@ class ArticleService {
         contentPics,
         categories,
         tags,
-        headline
+        headline,
+        topics
     ) {
         // Start unmanaged transaction
         const t = await sequelize.transaction();
@@ -134,6 +143,15 @@ class ArticleService {
                 userData.limits.banTill < new Date()
             )
                 throw ErrorsEnum.BANNED_FROM_PUBLISH;
+
+            // Let's check the topics if they are related to the passed categories or not
+            const isFound = await TopicService.isTopicsContainedIn(
+                topics,
+                categories
+            );
+
+            if (isFound === null || !isFound)
+                throw ErrorsEnum.TOPIC_WITHOUT_CATEGORY;
 
             // Add the article
             const article = await Article.create(
@@ -265,6 +283,15 @@ class ArticleService {
                         as: "categories",
                     },
                     {
+                        // Get teh topics
+                        model: Topic,
+                        attributes: ["id", "title"],
+                        through: {
+                            attributes: [],
+                        },
+                        as: "topics",
+                    },
+                    {
                         // Get the tags
                         model: Tag,
                         through: {
@@ -319,14 +346,21 @@ class ArticleService {
                         through: {
                             attributes: [], // Don't include anything from junction table
                         },
-                        attributes: {
-                            exclude: ["createdAt", "description"],
-                        },
+                        attributes: ["id", "title"],
                         ...(categories.length > 0 && {
                             where: {
                                 id: { [Op.in]: categories },
                             },
                         }),
+                    },
+                    {
+                        // Get teh topics
+                        model: Topic,
+                        attributes: ["id", "title"],
+                        through: {
+                            attributes: [],
+                        },
+                        as: "topics",
                     },
                     {
                         model: Tag,
@@ -388,7 +422,7 @@ class ArticleService {
                 };
 
             let articles = await Article.findAll({
-                attributes: this._searchArticleAttrs,
+                attributes: [...this._searchArticleAttrs, "articleRank"],
                 include: [
                     {
                         // Get the necessary info about the publisher
@@ -402,14 +436,21 @@ class ArticleService {
                         through: {
                             attributes: [],
                         },
-                        attributes: {
-                            exclude: ["createdAt", "description"],
-                        },
+                        attributes: ["id", "title"],
                         ...(categories.length > 0 && {
                             where: {
                                 id: { [Op.in]: categories },
                             },
                         }),
+                    },
+                    {
+                        // Get teh topics
+                        model: Topic,
+                        attributes: ["id", "title"],
+                        through: {
+                            attributes: [],
+                        },
+                        as: "topics",
                     },
                     {
                         model: Tag,
@@ -531,10 +572,17 @@ class ArticleService {
                         through: {
                             attributes: [],
                         },
-                        attributes: {
-                            exclude: ["createdAt", "description"],
-                        },
+                        attributes: ["id", "title"],
                         as: "categories",
+                    },
+                    {
+                        // Get teh topics
+                        model: Topic,
+                        attributes: ["id", "title"],
+                        through: {
+                            attributes: [],
+                        },
+                        as: "topics",
                     },
                     {
                         // Get the tags
@@ -626,7 +674,7 @@ class ArticleService {
             // Get the articles for those followings
             // After getting the followings get article for them
             const articles = await Article.findAll({
-                attributes: this._searchArticleAttrs,
+                attributes: [...this._searchArticleAttrs, "articleRank"],
                 where: {
                     id: {
                         [Op.notIn]: ignore,
@@ -656,10 +704,17 @@ class ArticleService {
                         through: {
                             attributes: [],
                         },
-                        attributes: {
-                            exclude: ["createdAt", "description"],
-                        },
+                        attributes: ["id", "title"],
                         as: "categories",
+                    },
+                    {
+                        // Get teh topics
+                        model: Topic,
+                        attributes: ["id", "title"],
+                        through: {
+                            attributes: [],
+                        },
+                        as: "topics",
                     },
                     {
                         // Get the tags

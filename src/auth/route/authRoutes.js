@@ -41,13 +41,21 @@ authRouter.post(
 
 // Admin can create accounts
 authRouter.post(
-    "/admin/auth/users",
+    "/auth/users",
     isAuthenticated,
     isAdmin,
     validateSession,
     validateSignup, // Same validations
     downloadProfilePic,
     adminCreateAccount
+);
+
+// User can delete his/her account. With these middlewares we make sure that the user should have both tokens valid
+authRouter.delete(
+    "/auth/users",
+    isAuthenticated,
+    isThereSession,
+    deleteAccount
 );
 
 // The user must be logged in to be able to logout
@@ -61,13 +69,6 @@ authRouter.post(
     forgetPassword
 );
 
-// The user can reset the password when he is logged in
-authRouter.put(
-    "/auth/reset-password/:tokenId",
-    resetPassByTokenValidate,
-    resetPasswordByToken
-);
-
 // The user can change his password
 authRouter.put(
     "/auth/reset-password",
@@ -78,18 +79,18 @@ authRouter.put(
     resetPassword
 );
 
-// User can delete his/her account. With these middlewares we make sure that the user should have both tokens valid
-authRouter.delete(
-    "/auth/users",
-    isAuthenticated,
-    isThereSession,
-    deleteAccount
+// The user can reset the password when he is logged in
+authRouter.put(
+    "/auth/reset-password/:tokenId",
+    resetPassByTokenValidate,
+    resetPasswordByToken
 );
+
 
 // Admin can delete user account
 // Used POST becasue there is a body
 authRouter.post(
-    "/admin/auth/users/:userId",
+    "/auth/users/:userId/delete",
     isAuthenticated,
     isAdmin,
     adminDeleteUserValidate,
@@ -109,7 +110,7 @@ authRouter.get(
 
 // Logout from another device
 authRouter.delete(
-    "/auth/logout-device",
+    "/auth/loggedin-devices",
     isAuthenticated,
     validateSession,
     logoutDeviceValidate,

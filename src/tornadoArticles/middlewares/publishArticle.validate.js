@@ -3,6 +3,7 @@ import {
     boolean,
     literal,
     object,
+    record,
     string,
     union,
     ZodError,
@@ -12,6 +13,7 @@ import {
     MAX_ARTICLE_CONTENT_LENGTH,
     MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_TAGS_ARTICLE_COUNT,
+    MAX_TOPICS_ARTICLE_COUNT,
 } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
@@ -51,6 +53,24 @@ class ErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
+
+    static CATEGORY_ID_NOT_PROVIDED = new APIError(
+        "There is a categoryId in topics keys that are not included in the provided categories array. Topic must have its category(ies).",
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static TOPICS_LIMIT_EXCEEDED = new APIError(
+        `The article can have up to ${MAX_TOPICS_ARTICLE_COUNT} topics`,
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_TOPICS = new APIError(
+        "The topics must be object. Its keys are the categories IDs (string numbers and must be provided in the provided categories IDs). And the keys are of type array contains topics IDs (topic must be related to the category)",
+        400,
+        "VALIDATION_ERROR"
+    );
 }
 
 /**
@@ -67,6 +87,7 @@ async function publishArticleValidate(req, res, next) {
             language = "english",
             categories = [],
             tags = [],
+            topics = {}, // This will include categoryId: [topicsIds] BUT the categoryId must be in categories. And 7 topics only
             headline = null,
         } = req?.body ?? {};
 
@@ -85,6 +106,10 @@ async function publishArticleValidate(req, res, next) {
             categories: array(string().regex(/^\d+$/)).max(
                 MAX_CATEGORIES_ARTICLE_COUNT
             ),
+            topics: record(
+                string().regex(/^\d+$/),
+                array(string().regex(/^\d+$/))
+            ),
             tags: array(string()).max(MAX_TAGS_ARTICLE_COUNT),
             headline: union([string(), literal(null)]),
         });
@@ -99,8 +124,29 @@ async function publishArticleValidate(req, res, next) {
                 categories,
                 tags,
                 headline,
+                topics,
             })
         );
+
+        // Save topicsIds
+        const topicsIDs = [];
+
+        // Now check the topics
+        for (let categoryId in topics) {
+            // Check if the key is exists in the categories list you have provided
+            if (!categories.includes(categoryId))
+                return next(ErrorsEnum.CATEGORY_ID_NOT_PROVIDED);
+
+            // Add that topic
+            topicsIDs.push(categoryId);
+        }
+
+        // Check topics IDs length
+        if (topicsIDs.length > MAX_TOPICS_ARTICLE_COUNT)
+            return next(ErrorsEnum.TOPICS_LIMIT_EXCEEDED);
+
+        // Now update the topics in the request body
+        req.body.topics = topicsIDs;
 
         next();
     } catch (err) {
@@ -126,6 +172,12 @@ async function publishArticleValidate(req, res, next) {
 
             if (code === "invalid_union" && path === "headline")
                 return next(ErrorsEnum.INVALID_HEADLINE);
+
+            if (
+                (code === "invalid_type" || code === "invalid_format") &&
+                path === "topics"
+            )
+                return next(ErrorsEnum.INVALID_TOPICS);
 
             // The left here are functions
             if (errToThrow[code]) return next(errToThrow[code](path, expected));

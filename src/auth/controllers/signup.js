@@ -35,7 +35,7 @@ async function signup(req, res, next) {
             birthDate,
             gender,
             profilePicName,
-            "user" // The rule
+            "user" // The role always user
         );
 
         // Save the id

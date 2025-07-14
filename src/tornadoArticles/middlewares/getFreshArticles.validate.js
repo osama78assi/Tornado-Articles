@@ -62,7 +62,7 @@ async function getFreshArticlesValidate(req, res, next) {
 
             // For those which intersect by two different errors code
             if (
-                (code === "invalid_type" || code === "invalid_format") &&
+                ["invalid_type", "invalid_format", "too_big"].includes(code) &&
                 ["categories", "ignore", "lastArticleId"].includes(path)
             )
                 return next(errToThrow[path]);

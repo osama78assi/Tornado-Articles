@@ -9,6 +9,7 @@ import errorHandler from "./publicMiddlewares/errorHandler.js";
 import authRouter from "./src/auth/route/authRoutes.js";
 import articleRouter from "./src/tornadoArticles/routes/artcileRoutes.js";
 import categoryRoutes from "./src/tornadoCategories/routes/categoryRoutes.js";
+import topicRoutes from "./src/tornadoCategories/routes/topicRoutes.js";
 import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
 import APIError from "./util/APIError.js";
 
@@ -46,12 +47,13 @@ app.use("/api/v1", articleRouter);
 // app.use('/api/v1/articles/:articleId/comment');
 
 // Categories I will just leave it here as it is because there is admin routes in this route
-app.use("/api/v1", categoryRoutes); // like admin/categories and /categories
+app.use("/api/v1", categoryRoutes);
+
+// Topics
+app.use("/api/v1", topicRoutes);
 
 // Users
-app.use("/api/v1", TornadoUserRoutes); // may have search so ?=''
-// It have two things admin can block users
-// api/v1/admin/users or api/v1/users
+app.use("/api/v1", TornadoUserRoutes);
 
 // Notifications
 // app.use('/api/v1/users/:userId/notifications')

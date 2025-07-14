@@ -7,12 +7,13 @@ class ErrorsEnum {
     static INVALID_TOKEN = new APIError(
         "Invalid token. Please login again before requesting",
         401,
-        "error"
+        "INVALID_ACCESS_TOKEN"
     );
 
     static EXPIRED_TOKEN = new APIError(
         "Token has expired. Please login again before requesting",
-        401
+        401,
+        "ACCESS_TOKEN_EXPIRED"
     );
 }
 

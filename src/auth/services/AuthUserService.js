@@ -135,11 +135,6 @@ class AuthUserService {
                     "followerCounts",
                     "followingCounts",
                     "articleCounts",
-                    // "fullNameChangeAt",
-                    // "passwordChangedAt",
-                    // "banTill",
-                    // "articlePublishedAt",
-                    // "canGenForgetPassAt",
                     "allowCookies",
                 ],
                 where: {
@@ -172,6 +167,8 @@ class AuthUserService {
                         id: userId,
                     },
                     transaction: t,
+                    individualHooks: true,
+                    validate: true
                 }
             );
 

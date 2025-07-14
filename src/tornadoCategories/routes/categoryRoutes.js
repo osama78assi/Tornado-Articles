@@ -1,76 +1,73 @@
 import { Router } from "express";
-import adminAddCategories from "../controllers/adminAddCategories.js";
-import adminDeleteCategory from "../controllers/adminDeleteCategory.js";
-import adminUpdateCategory from "../controllers/adminUpdateCategory.js";
+import addCategories from "../controllers/addCategories.js";
+import deleteCategory from "../controllers/deleteCategory.js";
 import getCategories from "../controllers/getCategories.js";
-
-import isAdmin from "../../../publicMiddlewares/isAdmin.js";
-import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
-import adminGetPreferred from "../controllers/adminGetPreferred.js";
-import adminSearchCategories from "../controllers/adminSearchCategories.js";
 import getCategoriesDetails from "../controllers/getCategoryDetails.js";
+import getPreferred from "../controllers/getPreferredCategories.js";
+import searchCategories from "../controllers/searchCategories.js";
+import updateCategory from "../controllers/updateCategory.js";
 import userSearchCategory from "../controllers/userSearchCategory.js";
-import adminAddCategoriesValidate from "../middlewares/adminAddCategories.validate.js";
-import adminGetPreferredValidate from "../middlewares/adminGetPreferred.validate.js";
-import adminUpdateCategoryValidate from "../middlewares/adminUpdateCategory.validate.js";
-import getCategoriesValidate from "../middlewares/getCategory.validate.js";
-import searchCategoryValidate from "../middlewares/searchCategory.validate.js";
 
+import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import isModerator from "../../../publicMiddlewares/isModerator.js";
+import addCategoriesValidate from "../middlewares/addCategories.validate.js";
+import getPaginateDataValidate from "../middlewares/getPaginateData.validate.js";
+import getPreferredValidate from "../middlewares/getPreferred.validate.js";
+import searchValidate from "../middlewares/search.validate.js";
+import updateCategoryValidate from "../middlewares/updateCategory.validate.js";
+
+// Remember what moderator can do. Admin can do (specially here)
 const categoryRoutes = Router();
 
 // Admin can add categories
 categoryRoutes.post(
-    "/admin/categories",
+    "/categories",
     isAuthenticated,
-    isAdmin,
-    adminAddCategoriesValidate,
-    adminAddCategories
+    isModerator,
+    addCategoriesValidate,
+    addCategories
 );
 
-// Adimn can see the preferred categories
+// Anyone can see the categories
+categoryRoutes.get("/categories", getPaginateDataValidate, getCategories);
+
+// Admin can see the preferred categories
 categoryRoutes.get(
-    "/admin/categories/preferred",
+    "/categories/preferred",
     isAuthenticated,
-    isAdmin,
-    adminGetPreferredValidate,
-    adminGetPreferred
+    isModerator,
+    getPreferredValidate,
+    getPreferred
 );
 
 // Admin can search for categories (he get one additional info)
 categoryRoutes.get(
-    "/admin/categories/search",
+    "/categories/preferred/search",
     isAuthenticated,
-    isAdmin,
-    searchCategoryValidate,
-    adminSearchCategories
+    isModerator,
+    searchValidate,
+    searchCategories
 );
 
 // Users can search for categories
-categoryRoutes.get(
-    "/categories/search",
-    searchCategoryValidate,
-    userSearchCategory
-);
+categoryRoutes.get("/categories/search", searchValidate, userSearchCategory);
 
 // Admin can delete categories
 categoryRoutes.delete(
-    "/admin/categories/:categoryId",
+    "/categories/:categoryId",
     isAuthenticated,
-    isAdmin,
-    adminDeleteCategory
+    isModerator,
+    deleteCategory
 );
 
-// Admin can edit category title
+// Admin can edit category data
 categoryRoutes.patch(
-    "/admin/categories/:categoryId",
+    "/categories/:categoryId",
     isAuthenticated,
-    isAdmin,
-    adminUpdateCategoryValidate,
-    adminUpdateCategory
+    isModerator,
+    updateCategoryValidate,
+    updateCategory
 );
-
-// Anyone can see the categories
-categoryRoutes.get("/categories", getCategoriesValidate, getCategories);
 
 categoryRoutes.get("/categories/:categoryId", getCategoriesDetails);
 

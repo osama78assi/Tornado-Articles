@@ -35,7 +35,7 @@ export default class GlobalErrorsEnum {
 
     static INVALID_BIGINT_ID = (field) =>
         new APIError(
-            `${field} must be valid integer number (without sign eg 986574)`,
+            `${field} must be a valid integer number (without sign eg 986574)`,
             400,
             "VALIDATION_ERROR"
         );

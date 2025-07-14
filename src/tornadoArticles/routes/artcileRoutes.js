@@ -14,19 +14,19 @@ import searchForArticleByTags from "../controllers/searchForArtilcesByTags.js";
 
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import isEmailVerified from "../../../publicMiddlewares/isEmailVerified.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
 import getArticlesCategoriesFresh from "../controllers/getArticlesCategoriesFresh.js";
 import getArticlesCategoriesOptimal from "../controllers/getArticlesCategoriesOptimal.js";
 import getArticlesFollowingsOptimal from "../controllers/getArticlesFollowingsOptimal.js";
-import getArtilcesRecomendsFresh from "../controllers/getArtilcesRecomendsFresh.js";
-import getArtilcesRecomendsOptimal from "../controllers/getArtilcesRecomendsOptimal.js";
+import getArtilcesTopicFresh from "../controllers/getArtilcesTopicFresh.js";
+import getArtilcesTopicOptimal from "../controllers/getArtilcesTopicOptimal.js";
 import categoryDataVaildate from "../middlewares/categoryData.vaildate.js";
 import downloadArticlesPics from "../middlewares/downloadArtilcesPics.js";
 import followingsDataValidate from "../middlewares/followingsData.validate.js";
 import getFreshArticlesValidate from "../middlewares/getFreshArticles.validate.js";
 import getOptimalArticlesValidate from "../middlewares/getOptimalArticls.validate.js";
 import publishArticleValidate from "../middlewares/publishArticle.validate.js";
-import isEmailVerified from "../../../publicMiddlewares/isEmailVerified.js";
 
 const articleRouter = Router();
 
@@ -48,6 +48,9 @@ articleRouter.post(
 
 // Anyone can get the articles for any user
 articleRouter.get("/articles/:userId", getArticlesFor); // TODO
+
+// User can delete his article
+articleRouter.delete("/articles/:articleId", isAuthenticated, deleteArticle); // TODO
 
 // User get recommended articles. Following stage (fresh)
 articleRouter.post(
@@ -85,22 +88,22 @@ articleRouter.post(
     getArticlesCategoriesOptimal
 ); // WORKING
 
-// User get recommended articles. recomend stage by cookies for example (fresh)
+// User get recommended articles. recomend stage by topic(fresh)
 articleRouter.post(
-    "/articles/recommends/recomends/fresh",
+    "/articles/recommends/topics/fresh",
     isAuthenticated,
-    getArtilcesRecomendsFresh
+    getArtilcesTopicFresh
 ); // TODO
 
-// User get recommended articles. recomend stage by cookies for example (optimal)
+// User get recommended articles. recomend stage by topic(optimal)
 articleRouter.post(
-    "/articles/recommends/recomends/optimal",
+    "/articles/recommends/topics/optimal",
     isAuthenticated,
-    getArtilcesRecomendsOptimal
+    getArtilcesTopicOptimal
 ); // TODO
 
 // Get the article details
-articleRouter.get("/articles/view/:articleId", getArticle); // DONE
+articleRouter.get("/articles/:articleId/view", getArticle); // DONE
 
 // User can edit the title of the article
 articleRouter.patch(
@@ -115,9 +118,6 @@ articleRouter.patch(
     isAuthenticated,
     editArticleContent
 ); // TODO
-
-// User can delete his article
-articleRouter.delete("/articles/:articleId", isAuthenticated, deleteArticle); // TODO
 
 // Admin delete any article
 articleRouter.delete(

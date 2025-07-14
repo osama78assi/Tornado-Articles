@@ -2,6 +2,7 @@ import { Op, QueryTypes } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import Category from "../models/category.js";
 
 class ErrorsEnum {
@@ -17,18 +18,14 @@ class ErrorsEnum {
             400,
             "NOT_FOUND"
         );
-
-    static INVALID_CATEGORY_ID = new APIError(
-        "The category id must be string number",
-        400,
-        "VALIDATION_ERROR"
-    );
 }
 
 class CategoryService {
     static async addCategories(categoriesData) {
         try {
-            const categories = await Category.bulkCreate(categoriesData);
+            const categories = await Category.bulkCreate(categoriesData, {
+                validate: true,
+            });
 
             return categories;
         } catch (err) {
@@ -55,19 +52,17 @@ class CategoryService {
     static async updateCategory(categoryId, newTitle, newDescription) {
         let updateObj = {};
 
-        if (newTitle) {
-            updateObj.title = newTitle;
-        }
+        if (newTitle !== undefined) updateObj.title = newTitle;
 
-        if (newDescription) {
+        if (newDescription !== undefined)
             updateObj.description = newDescription;
-        }
 
         try {
             const updatedObject = await Category.update(updateObj, {
                 where: {
                     id: categoryId,
                 },
+                validate: true,
                 returning: true,
             });
 
@@ -84,6 +79,7 @@ class CategoryService {
                 : { [Op.lt]: entryItemTitle };
 
             const categories = await Category.findAll({
+                attributes: ["id", "title"],
                 where: {
                     title: dir,
                 },
@@ -121,10 +117,7 @@ class CategoryService {
             const categories = await sequelize.query(q, {
                 type: QueryTypes.SELECT,
                 replacements: {
-                    entryInterestedCounts:
-                        entryInterestedCounts === Number.POSITIVE_INFINITY
-                            ? "9223372036854775807" // Bigest big integer in postgresql
-                            : entryInterestedCounts,
+                    entryInterestedCounts,
                     entryItemTitle,
                     limit,
                 },
@@ -141,7 +134,8 @@ class CategoryService {
 
     static async getCategoryDetails(id) {
         try {
-            if (/^\d+$/.test(String(id))) throw ErrorsEnum.INVALID_CATEGORY_ID;
+            if (!/^\d+$/.test(String(id)))
+                throw GlobalErrorsEnum.INVALID_BIGINT_ID("categoryId");
 
             const category = await Category.findByPk(id);
 
@@ -172,7 +166,7 @@ class CategoryService {
         }
     }
 
-    static async adminSearchCategories(query, lastEntryTitle, limit) {
+    static async moderatorSearchCategories(query, lastEntryTitle, limit) {
         try {
             // For the same reason it will be messy if builded with sequelize
             const q = `
@@ -198,7 +192,9 @@ class CategoryService {
             });
 
             return results;
-        } catch (err) {}
+        } catch (err) {
+            throw err;
+        }
     }
 }
 

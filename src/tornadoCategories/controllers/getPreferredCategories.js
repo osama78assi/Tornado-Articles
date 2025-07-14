@@ -5,8 +5,9 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminGetPreferred(req, res, next) {
+async function getPreferredCategories(req, res, next) {
     try {
+        // To know how many user interested in categories
         const { entryInterestedCounts, entryItemTitle, limit } =
             req?.validatedQuery;
 
@@ -25,4 +26,4 @@ async function adminGetPreferred(req, res, next) {
     }
 }
 
-export default adminGetPreferred;
+export default getPreferredCategories;

@@ -3,10 +3,11 @@ import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import sanitize from "../../../util/sanitize.js";
 import AuthService from "../services/AuthUserService.js";
+import { TORNADO_ROLES } from "../../../config/settings.js";
 
 class ErrorsEnum {
     static INVALID_VALUE = new APIError(
-        "Role must be either 'user' or 'admin'",
+        `Role must be one of these ${TORNADO_ROLES.join(", ")}`,
         400,
         "VALIDATION_ERROR"
     );
@@ -35,7 +36,7 @@ async function adminCreateAccount(req, res, next) {
 
         role = role.toLowerCase();
 
-        if (!["user", "admin"].includes(role)) {
+        if (!TORNADO_ROLES.includes(role)) {
             return next(ErrorsEnum.INVALID_VALUE);
         }
 

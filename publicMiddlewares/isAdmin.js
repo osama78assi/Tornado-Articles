@@ -11,7 +11,7 @@ async function isAdmin(req, res, next) {
         const { role } = req.userInfo;
 
         if (role !== "admin") {
-            return next(new APIError("You aren't admin man !", 401));
+            return next(new APIError("You aren't admin man !", 401, "UNAUTHORIZED"));
         }
         // Pass to next middelware
         next();

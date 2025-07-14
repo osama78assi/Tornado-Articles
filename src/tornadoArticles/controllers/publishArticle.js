@@ -10,12 +10,21 @@ import ArticleService from "../services/articleService.js";
  */
 async function publishArticle(req, res, next) {
     try {
-        let { title, content, isPrivate, language, categories, tags, headline } =
-            req?.body;
+        let {
+            title,
+            content,
+            isPrivate,
+            language,
+            categories,
+            tags,
+            headline,
+            topics,
+        } = req?.body;
 
-        // Remove duplicated values from categories and tags (silently) you can change the behavior and throw an error
+        // Remove duplicated values from categories and tags, categories and topics (silently) you can change the behavior and throw an error
         categories = removeDuplicated(categories);
         tags = removeDuplicated(tags);
+        topics = removeDuplicated(topics);
 
         // Get user Id
         const userId = req.userInfo.id;
@@ -81,7 +90,8 @@ async function publishArticle(req, res, next) {
             contentPics,
             categories,
             tags,
-            headline
+            headline,
+            topics
         );
 
         // For testing

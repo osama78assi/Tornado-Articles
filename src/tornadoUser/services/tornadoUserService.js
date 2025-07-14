@@ -82,11 +82,6 @@ class TornadoUserService {
                         "allowCookies",
                         "updatedAt",
                         "email",
-                        // "passwordChangeAt",
-                        // "fullNameChangedAt",
-                        // "banTill",
-                        // "articlePublishedAt",
-                        // "canGenForgetPassAt",
                     ],
                 },
             });
@@ -185,6 +180,7 @@ class TornadoUserService {
                     where: {
                         id: userId,
                     },
+                    validate: true,
                     returning: true,
                 }
             );
@@ -283,6 +279,7 @@ class TornadoUserService {
                     where: {
                         id: userId,
                     },
+                    validate: true,
                     returning: true,
                     transaction: t,
                 }

@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import APIError from "../../../util/APIError.js";
 import { generateSnowFlakeIdCategory } from "../../../config/snowFlake.js";
+import APIError from "../../../util/APIError.js";
 
 class Category extends Model {}
 
@@ -24,10 +24,7 @@ Category.init(
                         );
                 },
             },
-            unique: {
-                name: "Unique_category",
-                msg: "This category already exists.",
-            }, // Cooking must not be repeated again in the db (example)
+            // unique: true, // Cooking must not be repeated again in the db (example)
             allowNull: false,
         },
         description: {
@@ -62,35 +59,16 @@ Category.init(
             },
         ],
         hooks: {
-            beforeBulkCreate(categories) {
-                categories.forEach((category) => {
-                    category.dataValues.title = category.dataValues.title
-                        .trim()
-                        .toLocaleLowerCase();
-
-                    if (typeof category.dataValues.description === "string")
-                        category.dataValues.description =
-                            category.dataValues.description
-                                .trim()
-                                .toLocaleLowerCase();
-                });
-            },
-            beforeBulkUpdate(options) {
-                // To check if the title is included into update statement
-                if (options.fields.includes("title")) {
-                    options.attributes.title = options.attributes.title
-                        .trim()
-                        .toLocaleLowerCase();
+            beforeValidate(category) {
+                // Normalize
+                if (typeof category.dataValues?.title === "string") {
+                    category.dataValues.title =
+                        category.dataValues.title.trim().toLowerCase();
                 }
 
-                if (
-                    options.fields.includes("description") &&
-                    typeof options.attributes.description === "string"
-                ) {
-                    options.attributes.description =
-                        options.attributes.description
-                            .trim()
-                            .toLocaleLowerCase();
+                if (typeof category.dataValues?.description === "string") {
+                    category.dataValues.description =
+                        category.dataValues.description.trim().toLowerCase();
                 }
             },
         },

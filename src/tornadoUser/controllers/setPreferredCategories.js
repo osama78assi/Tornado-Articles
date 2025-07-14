@@ -9,7 +9,7 @@ import UserPreferenceService from "../services/userPreferenceService.js";
  */
 async function setPreferredCategories(req, res, next) {
     try {
-        let { categories } = req?.body;
+        let { data: categories } = req?.body;
 
         const userId = req.userInfo.id;
 

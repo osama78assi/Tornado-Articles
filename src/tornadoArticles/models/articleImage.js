@@ -31,10 +31,10 @@ ArticleImage.init(
                 using: "BTREE",
             },
         ],
+        noPrimaryKey: false // Don't allow sequlize add primary kay id
     }
 );
 
 // It create the id by itself and make it primary key while it's usless
-ArticleImage.removeAttribute("id");
 
 export default ArticleImage;

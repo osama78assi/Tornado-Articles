@@ -3,8 +3,6 @@ import { Model, DataTypes } from "sequelize";
 
 class ArticleCategory extends Model {}
 
-// Both IDs are primary key because the article could have the category only once
-
 ArticleCategory.init(
     {
         articleId: {

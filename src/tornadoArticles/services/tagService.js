@@ -17,6 +17,7 @@ class TagService {
                 transaction,
                 ignoreDuplicates: true, // ON CONFLICT DO NOTHING
                 returning: true,
+                validate: true
             });
 
             return tagsData;

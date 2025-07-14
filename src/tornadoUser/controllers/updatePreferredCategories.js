@@ -1,20 +1,5 @@
-import APIError from "../../../util/APIError.js";
 import removeDuplicated from "../../../util/removeDuplicated.js";
 import UserPreferenceService from "../services/userPreferenceService.js";
-
-class ErrorEnum {
-    static EMPTY_DATA = new APIError(
-        "Please provide either categories to add. Or categories to delete.",
-        400,
-        "MISSING_DATA"
-    );
-
-    static INVALID_DATA_TYPE = new APIError(
-        "`toAdd` or `toDelete` must be arrays.",
-        400,
-        "WRONG_DATATYPE"
-    );
-}
 
 /**
  *

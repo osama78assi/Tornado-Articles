@@ -5,12 +5,12 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminSearchCategories(req, res, next) {
+async function searchCategories(req, res, next) {
     try {
         // The difference here is the admin can see how many interested people in X category
         const { query, lastEntryTitle, limit } = req?.validatedQuery;
 
-        const results = await CategoryService.adminSearchCategories(
+        const results = await CategoryService.moderatorSearchCategories(
             query,
             lastEntryTitle,
             limit
@@ -25,4 +25,4 @@ async function adminSearchCategories(req, res, next) {
     }
 }
 
-export default adminSearchCategories;
+export default searchCategories;

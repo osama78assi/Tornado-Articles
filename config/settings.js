@@ -20,7 +20,10 @@ const MAX_ARTICLE_PICS_SIZE_MB = 5;
 const MAX_ARTICLE_CONTENT_PICS_COUNT = 5;
 
 // The maximum number of categories that the article can relate to
-const MAX_CATEGORIES_ARTICLE_COUNT = 5;
+const MAX_CATEGORIES_ARTICLE_COUNT = 2;
+
+// The maximum number of topics that the article can relate to
+const MAX_TOPICS_ARTICLE_COUNT = 7;
 
 // The maximum number of tags that the article can have
 const MAX_TAGS_ARTICLE_COUNT = 5;
@@ -63,6 +66,9 @@ const GENERATE_EMAIL_CODES_LIMITS = [
     "15 minutes",
     "12 hours",
 ];
+
+// May the roles grow in the future. But I've used them a lot so it's better for cache and use
+const TORNADO_ROLES = ["admin", "moderator", "user"];
 
 // In my recommendation system I will give score high priority over read counts
 // but also consider it in my equation. As artilces the reads aren't a good way to rank
@@ -120,10 +126,12 @@ export {
     MAX_PROFILE_PIC_SIZE_MB,
     MAX_RESULTS,
     MAX_TAGS_ARTICLE_COUNT,
+    MAX_TOPICS_ARTICLE_COUNT,
     MIN_RESULTS,
     PASSWORD_TOKEN_ALLOWED_COUNTS,
     PUBLISH_ARTICLE_LIMIT,
     SUPPORTED_ARTICLES_LANGUAGES,
+    TORNADO_ROLES,
     UPDATE_NAME_LIMIT,
     UPDATE_PASSWORD_LIMIT,
     UPDATE_RANK,

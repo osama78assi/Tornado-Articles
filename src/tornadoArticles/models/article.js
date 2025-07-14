@@ -42,7 +42,7 @@ Article.init(
             allowNull: false,
             validate: {
                 isLargeEnough(content) {
-                    if (content.length < 10) {
+                    if (typeof content === "string" && content.length < 10) {
                         throw new APIError(
                             "Article content should be at least made of 10 chars",
                             400,
@@ -51,7 +51,10 @@ Article.init(
                     }
                 },
                 isSmallEnough(content) {
-                    if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
+                    if (
+                        typeof content === "string" &&
+                        content.length > MAX_ARTICLE_CONTENT_LENGTH
+                    ) {
                         throw new APIError(
                             `Article content should be ${Math.floor(
                                 MAX_ARTICLE_CONTENT_LENGTH / 1000
@@ -113,7 +116,7 @@ Article.init(
             allowNull: true,
             validate: {
                 isLargeEnough(headline) {
-                    if (headline !== null && headline?.length < 50) {
+                    if (typeof headline === "string" && headline?.length < 50) {
                         throw new APIError(
                             "Article headline should be at least made of 50 chars",
                             400,
@@ -123,7 +126,7 @@ Article.init(
                 },
                 isSmallEnough(headline) {
                     if (
-                        headline !== null &&
+                        typeof headline === "string" &&
                         headline?.length > MAX_ARTICLE_CONTENT_LENGTH
                     ) {
                         throw new APIError(
@@ -147,41 +150,16 @@ Article.init(
         //     },
         // ],
         hooks: {
-            beforeCreate(article) {
-                // Trim the content and title
-                article.dataValues.title = article.dataValues.title.trim();
-                // Normalize the header
-                article.dataValues.title =
-                    article.dataValues.title.toLowerCase();
-
-                article.dataValues.content = article.dataValues.content.trim();
-
-                // Normalize the headline if exists
-                if (article.dataValues.headline)
-                    article.dataValues.headline = article.dataValues.headline
-                        .trim()
-                        .toLowerCase();
-            },
-            beforeBulkUpdate(options) {
-                // Trim the content, title and headline
-                if (options.fields.includes("title"))
-                    options.attributes.password.title =
-                        options.attributes.password.title.trim().toLowerCase();
-
-                if (options.fields.includes("content"))
-                    options.attributes.password.content =
-                        options.attributes.password.content
-                            .trim()
-                            .toLowerCase();
-
-                if (
-                    options.fields.includes("headline") &&
-                    options.attributes.password.headline
-                )
-                    options.attributes.password.headline =
-                        options.attributes.password.headline
-                            .trim()
-                            .toLowerCase();
+            beforeValidate(article) {
+                // Trim the content, title aand headline
+                if (typeof article.dataValues.title === "string")
+                    article.dataValues.title = article.dataValues.title.trim();
+                if (typeof article.dataValues.content === "string")
+                    article.dataValues.content =
+                        article.dataValues.content.trim();
+                if (typeof article.dataValues.headline === "string")
+                    article.dataValues.headline =
+                        article.dataValues.headline.trim();
             },
         },
     }

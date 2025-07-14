@@ -48,7 +48,7 @@ function generateSnowFlakeIdUser() {
 }
 
 /**
- * Generate new id for users
+ * Generate new id for comments
  * @returns {number}
  */
 function generateSnowFlakeIdComment() {
@@ -56,7 +56,7 @@ function generateSnowFlakeIdComment() {
 }
 
 /**
- * Generate new id for users
+ * Generate new id for categories and topics
  * @returns {number}
  */
 function generateSnowFlakeIdCategory() {

@@ -6,7 +6,7 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminUpdateCategory(req, res, next) {
+async function updateCategory(req, res, next) {
     try {
         const { categoryId } = req?.params;
 
@@ -36,4 +36,4 @@ async function adminUpdateCategory(req, res, next) {
     }
 }
 
-export default adminUpdateCategory;
+export default updateCategory;

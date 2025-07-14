@@ -21,7 +21,7 @@ UserPreference.init(
                 key: "id",
             },
             primaryKey: true,
-            onDelete: "CASCADE", // When user deletes his/her account. Delete the preferences
+            onDelete: "CASCADE", // When category get deleted. Delete the preferences
         },
         interestRate: {
             // To know what is the most interested category for the user

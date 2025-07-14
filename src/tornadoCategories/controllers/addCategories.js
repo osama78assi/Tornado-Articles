@@ -5,19 +5,19 @@ import CategoryService from "../services/categoryService.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminDeleteCategory(req, res, next) {
+async function addCategories(req, res, next) {
     try {
-        const { categoryId } = req?.params;
+        const { categories: categoriesData } = req?.body;
 
-        await CategoryService.deleteCategory(categoryId);
+        const categories = await CategoryService.addCategories(categoriesData);
 
         return res.status(200).json({
             success: true,
-            message: "Category deleted successfully",
+            data: categories,
         });
     } catch (err) {
         next(err);
     }
 }
 
-export default adminDeleteCategory;
+export default addCategories;

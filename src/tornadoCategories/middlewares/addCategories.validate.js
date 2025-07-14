@@ -15,7 +15,7 @@ class ErrorsEnum {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminAddCategoriesValidate(req, res, next) {
+async function addCategoriesValidate(req, res, next) {
     try {
         const { categories = null } = req?.body ?? {};
 
@@ -23,8 +23,8 @@ async function adminAddCategoriesValidate(req, res, next) {
 
         const Categories = array(
             object({
-                title: string().trim().min(3).max(100),
-                description: string().trim().min(10).max(350).optional(),
+                title: string(),
+                description: string().optional(),
             })
         );
 
@@ -34,14 +34,6 @@ async function adminAddCategoriesValidate(req, res, next) {
         if (err instanceof ZodError) {
             let errToThrow = {
                 invalid_type: {
-                    title: GlobalErrorsEnum.INVALID_TITLE,
-                    description: GlobalErrorsEnum.INVALID_DESCRIPTION,
-                },
-                too_big: {
-                    title: GlobalErrorsEnum.INVALID_TITLE,
-                    description: GlobalErrorsEnum.INVALID_DESCRIPTION,
-                },
-                too_small: {
                     title: GlobalErrorsEnum.INVALID_TITLE,
                     description: GlobalErrorsEnum.INVALID_DESCRIPTION,
                 },
@@ -56,4 +48,4 @@ async function adminAddCategoriesValidate(req, res, next) {
     }
 }
 
-export default adminAddCategoriesValidate;
+export default addCategoriesValidate;

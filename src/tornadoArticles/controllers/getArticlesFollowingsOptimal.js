@@ -1,3 +1,4 @@
+import modifyIgnore from "../../../util/modifyIgnore.js";
 import ArticleService from "../services/articleService.js";
 
 /**
@@ -23,6 +24,9 @@ async function getArticlesFollowingsOptimal(req, res, next) {
 
         const { id } = req?.userInfo;
 
+        // To know if the ignore list have motified. Return the index that we sliced from it
+        const ignoreSlicedFrom = modifyIgnore(ignore);
+
         const data = await ArticleService.getArticlesFollowingOptimal(
             id,
             firstPublisherId,
@@ -40,6 +44,7 @@ async function getArticlesFollowingsOptimal(req, res, next) {
         return res.status(200).json({
             success: true,
             data,
+            ignoreSlicedFrom,
         });
     } catch (err) {
         next(err);

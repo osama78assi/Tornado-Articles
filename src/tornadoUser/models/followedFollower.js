@@ -33,15 +33,15 @@ FollowedFollower.init(
         updatedAt: false, // No need to updatedAt
         createdAt: true,
         indexes: [
-            {
-                // This will help in recommendation system (get the following for certain user)
-                name: "follower_id_follower_following_btree_index",
-                fields: [
-                    { name: "followerId" },
-                    { name: "createdAt", order: "DESC" },
-                ],
-                using: "BTREE",
-            },
+            // {
+            //
+            //     name: "follower_id_follower_following_btree_index",
+            //     fields: [
+            //         { name: "followerId" },
+            //         { name: "createdAt", order: "DESC" },
+            //     ],
+            //     using: "BTREE",
+            // },
         ],
     }
 );

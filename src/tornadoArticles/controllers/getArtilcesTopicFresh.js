@@ -3,7 +3,7 @@
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function getArtilcesRecomendsFresh(req, res, next) {
+async function getArtilcesTopicFresh(req, res, next) {
     try {
         // This route meant to suggest articles based on tags.
         // Tags are saved in cookies to make the suggest based on device
@@ -12,4 +12,4 @@ async function getArtilcesRecomendsFresh(req, res, next) {
     }
 }
 
-export default getArtilcesRecomendsFresh;
+export default getArtilcesTopicFresh;

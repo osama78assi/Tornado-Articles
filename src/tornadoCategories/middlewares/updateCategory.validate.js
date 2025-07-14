@@ -15,7 +15,7 @@ class ErrorsEnum {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function adminUpdateCategoryValidate(req, res, next) {
+async function updateCategoryValidate(req, res, next) {
     try {
         // undefined used here because when object property isn't found it's undefined
         const { categoryTitle = undefined, categoryDescription = undefined } =
@@ -25,8 +25,8 @@ async function adminUpdateCategoryValidate(req, res, next) {
             return next(ErrorsEnum.ONE_FIELD_REQUIRED);
 
         const Category = object({
-            categoryTitle: string().trim().min(3).max(100).optional(),
-            categoryDescription: string().trim().min(10).max(350).optional(),
+            categoryTitle: string().optional(),
+            categoryDescription: string().optional(),
         });
 
         Object.assign(
@@ -40,15 +40,7 @@ async function adminUpdateCategoryValidate(req, res, next) {
                 invalid_type: {
                     categoryTitle: GlobalErrorsEnum.INVALID_TITLE,
                     categoryDescription: GlobalErrorsEnum.INVALID_DESCRIPTION,
-                },
-                too_big: {
-                    categoryTitle: GlobalErrorsEnum.INVALID_TITLE,
-                    categoryDescription: GlobalErrorsEnum.INVALID_DESCRIPTION,
-                },
-                too_small: {
-                    categoryTitle: GlobalErrorsEnum.INVALID_TITLE,
-                    categoryDescription: GlobalErrorsEnum.INVALID_DESCRIPTION,
-                },
+                }
             };
 
             let code = err.issues[0].code;
@@ -60,4 +52,4 @@ async function adminUpdateCategoryValidate(req, res, next) {
     }
 }
 
-export default adminUpdateCategoryValidate;
+export default updateCategoryValidate;

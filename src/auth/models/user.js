@@ -1,11 +1,12 @@
 import { genSalt, hash } from "bcryptjs";
 import { DataTypes, Model } from "sequelize";
-import validator from "validator";
+import { email } from "zod/v4";
 import { sequelize } from "../../../config/sequelize.js";
+import { TORNADO_ROLES } from "../../../config/settings.js";
+import { generateSnowFlakeIdUser } from "../../../config/snowFlake.js";
 import APIError from "../../../util/APIError.js";
 import validateFullName from "../../../util/validateFullName.js";
 import validatePassword from "../../../util/validatePassword.js";
-import { generateSnowFlakeIdUser } from "../../../config/snowFlake.js";
 
 class User extends Model {
     // To override the toJSON method and exclude the password attribute
@@ -29,9 +30,7 @@ User.init(
         fullName: {
             type: DataTypes.STRING(150),
             validate: {
-                validate(name) {
-                    validateFullName(name.trim());
-                },
+                validateFullName,
             },
             allowNull: false,
             // unique: true // Commented because I use sync with alter set to true and this duplicate the constraint in my DB
@@ -39,12 +38,14 @@ User.init(
         email: {
             type: DataTypes.STRING(254),
             validate: {
-                isValidEmail(email) {
-                    if (!validator.isEmail(email)) {
+                isValidEmail(userEmail) {
+                    try {
+                        email().parse(userEmail);
+                    } catch (err) {
                         throw new APIError(
                             "The email is invalid",
                             400,
-                            "INVALID_EMAIL"
+                            "VALIDATION_ERROR"
                         );
                     }
                 },
@@ -67,7 +68,7 @@ User.init(
                         throw new APIError(
                             "Invalid birth date.",
                             400,
-                            "INVALID_BIRTH_DATE"
+                            "VALIDATION_ERROR"
                         );
                 },
             },
@@ -77,35 +78,12 @@ User.init(
             allowNull: false,
         },
         role: {
-            type: DataTypes.ENUM("admin", "user"),
+            type: DataTypes.ENUM(...TORNADO_ROLES),
             allowNull: false,
         },
         profilePic: {
             type: DataTypes.STRING(150),
         },
-        // passwordChangeAt: {
-        //     // To keep track of changing timestamp
-        //     type: DataTypes.DATE,
-        //     allowNull: true,
-        // },
-        // fullNameChangeAt: {
-        //     type: DataTypes.DATE,
-        //     allowNull: true,
-        // },
-        // articlePublishedAt: {
-        //     type: DataTypes.DATE,
-        //     allowNull: true,
-        // },
-        // banTill: {
-        //     // Like a warnning to the user ban about 7 months from publishing articles
-        //     type: DataTypes.DATE,
-        //     allowNull: true,
-        // },
-        // canGenForgetPassAt: {
-        //     // To block user a period of time when he/she ask many times for forget password token
-        //     type: DataTypes.DATE,
-        //     allowNull: true,
-        // },
         brief: {
             type: DataTypes.STRING(150),
             validate: {
@@ -170,15 +148,23 @@ User.init(
             },
         ],
         hooks: {
+            beforeValidate(user) {
+                // Trim the spaces
+                if (typeof user.fullName === "string")
+                    user.fullName = user.fullName?.trim();
+                if (typeof user.email === "string")
+                    user.email = user.email?.trim();
+                if (typeof user.gender === "string")
+                    user.gender = user.gender?.trim()?.toLowerCase();
+                if (typeof user.role === "string")
+                    user.role = user.role?.trim()?.toLowerCase();
+                if (typeof user.password === "string")
+                    user.password = user.password?.trim();
+                if (typeof user.brief === "string")
+                    user.brief = user.brief?.trim();
+            },
             async beforeCreate(user) {
                 try {
-                    // Trim the spaces
-                    user.fullName = user.fullName?.trim();
-                    user.email = user.email?.trim();
-                    user.gender = user.gender?.trim()?.toLowerCase();
-                    user.password = user.password?.trim();
-                    user.brief = user.brief?.trim();
-
                     // Custom password validation (run here before hashing)
                     validatePassword(user.password);
                     const salt = await genSalt(10);
@@ -205,19 +191,19 @@ User.init(
                         options.attributes.changeDate = new Date(); // Save the time when password changes. Sequelize will inlude that in the update statement
                     }
 
-                    // The full name
-                    if (options.fields.includes("fullName")) {
-                        options.attributes.fullName =
-                            options.attributes.fullName?.trim();
+                    // // The full name
+                    // if (options.fields.includes("fullName")) {
+                    //     options.attributes.fullName =
+                    //         options.attributes.fullName?.trim();
 
-                        validateFullName(options.attributes.fullName);
-                    }
+                    //     validateFullName(options.attributes.fullName);
+                    // }
 
                     // Brief
-                    if (options.fields.includes("brief")) {
-                        options.attributes.brief =
-                            options.attributes.brief?.trim();
-                    }
+                    // if (options.fields.includes("brief")) {
+                    //     options.attributes.brief =
+                    //         options.attributes.brief?.trim();
+                    // }
                 } catch (err) {
                     throw err;
                 }

@@ -39,6 +39,18 @@ async function addAssociations() {
         "../auth/models/passwordToken.js"
     );
     const { default: UserLimit } = await import("../auth/models/userLimit.js");
+    const { default: Topic } = await import(
+        "../tornadoCategories/models/topic.js"
+    );
+    const { default: TopicCategory } = await import(
+        "../tornadoCategories/models/topicCategory.js"
+    );
+    const { default: UserTopic } = await import(
+        "../tornadoUser/models/userTopic.js"
+    );
+    const { default: ArticleTopic } = await import(
+        "../tornadoArticles/models/articleTopic.js"
+    );
 
     //////// Users Followings
     // Many to Many relationship between users (like user A get an array with who is following)
@@ -92,20 +104,19 @@ async function addAssociations() {
         foreignKey: "userId",
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
-        as: "limits"
+        as: "limits",
     });
-
 
     ////////// Categoires
     // User and categories got many-to-many relationship (prefered categories)
     User.belongsToMany(Category, {
-        through: { model: UserPreference, unique: false },
+        through: UserPreference,
         foreignKey: "userId",
         onDelete: "CASCADE",
     });
 
     Category.belongsToMany(User, {
-        through: { model: UserPreference, unique: false },
+        through: UserPreference,
         foreignKey: "categoryId",
         onDelete: "CASCADE",
     });
@@ -116,12 +127,48 @@ async function addAssociations() {
         onDelete: "CASCADE",
     });
 
+    ////////// Topics
+    // Topic must have a category
+    Topic.belongsToMany(Category, {
+        foreignKey: "topicId",
+        through: TopicCategory,
+        onDelete: "CASCADE",
+        as: "categories",
+    });
+
+    Category.belongsToMany(Topic, {
+        foreignKey: "categoryId",
+        through: TopicCategory,
+        onDelete: "CASCADE",
+        as: "topics",
+    });
+
+    ////////// User Topics
+    User.belongsToMany(Topic, {
+        through: UserTopic,
+        foreignKey: "userId",
+        onDelete: "CASCADE",
+    });
+
+    Topic.belongsToMany(User, {
+        through: UserTopic,
+        foreignKey: "topicId",
+        onDelete: "CASCADE",
+    });
+
+    // Just to be able to get the topics from junction table
+    UserTopic.belongsTo(Topic, {
+        foreignKey: "topicId",
+        onDelete: "CASCADE",
+    });
+
     /////// Comments
     // Many-to-Many relation with users through comments
     Article.belongsToMany(User, {
         through: { model: Comment, unique: false },
         foreignKey: "articleId",
         onDelete: "SET NULL",
+        uniqueKey: false,
     });
 
     // Many-to-many between users and aritcles through commnets
@@ -130,19 +177,20 @@ async function addAssociations() {
         through: { model: Comment, unique: false },
         foreignKey: "userId",
         onDelete: "SET NULL",
+        uniqueKey: false,
     });
 
     //// Scores comments
     // M:N between users and comments
-    User.belongsToMany(Comment, {
-        through: CommentScore,
-        foreignKey: "userId",
-        onDelete: "SET NULL",
-    });
-
     Comment.belongsToMany(User, {
         through: CommentScore,
         foreignKey: "commentId",
+        onDelete: "CASCADE",
+    });
+
+    User.belongsToMany(Comment, {
+        through: CommentScore,
+        foreignKey: "userId",
         onDelete: "SET NULL",
     });
 
@@ -215,6 +263,19 @@ async function addAssociations() {
         onDelete: "CASCADE",
     });
 
+    Article.belongsToMany(Topic, {
+        through: ArticleTopic,
+        foreignKey: "articleId",
+        onDelete: "CASCADE",
+        as: "topics",
+    });
+
+    Topic.belongsToMany(Article, {
+        through: ArticleTopic,
+        foreignKey: "topicId",
+        onDelete: "CASCADE",
+    });
+
     /////////// Article Tags
     Article.belongsToMany(Tag, {
         through: ArticleTag,
@@ -235,7 +296,8 @@ async function addAssociations() {
         through: ArticleScore,
         foreignKey: "articleId",
         otherKey: "userId",
-        onDelete: "SET NULL",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
     });
 
     // Many-to-many between users and aritcles through scores
@@ -243,7 +305,7 @@ async function addAssociations() {
         through: ArticleScore,
         foreignKey: "userId",
         otherKey: "articleId",
-        onDelete: "SET NULL",
+        onDelete: "SET NULL", // When user get deleted leave his score
     });
 }
 

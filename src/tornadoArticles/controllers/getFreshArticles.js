@@ -1,4 +1,4 @@
-import { ALLOWED_IGNORE_COUNT } from "../../../config/settings.js";
+import modifyIgnore from "../../../util/modifyIgnore.js";
 import ArticleService from "../services/articleService.js";
 
 /**
@@ -8,17 +8,16 @@ import ArticleService from "../services/articleService.js";
  */
 async function getFreshArticles(req, res, next) {
     try {
-        let { articlesLimit: limit, since, categories, lastArticleId, ignore } = req?.body;
+        let {
+            articlesLimit: limit,
+            since,
+            categories,
+            lastArticleId,
+            ignore,
+        } = req?.body;
 
-        // To know if the ignore list have motified
-        let entry = -1;
-
-        // Extract last ALLOWED_IGNORE_COUNT if it's exceeded
-        if (ignore.length > ALLOWED_IGNORE_COUNT) {
-            // To get the entry point of slicing
-            entry = Math.abs(ALLOWED_IGNORE_COUNT - ignore.length);
-            ignore.splice(entry);
-        }
+        // To know if the ignore list have motified. Return the index that we sliced from it
+        const ignoreSlicedFrom = modifyIgnore(ignore);
 
         const articles = await ArticleService.getFreshArticles(
             limit,
@@ -28,11 +27,10 @@ async function getFreshArticles(req, res, next) {
             ignore
         );
 
-        // End the controller here
         return res.status(200).json({
             success: true,
             data: articles,
-            modifiedEntry: entry,
+            ignoreSlicedFrom,
         });
     } catch (err) {
         next(err);

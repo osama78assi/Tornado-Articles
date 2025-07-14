@@ -40,7 +40,7 @@ Tag.init(
             },
         ],
         hooks: {
-            beforeBulkCreate(tags) {
+            beforeValidate(tags) {
                 tags.forEach((tag) => {
                     tag.dataValues.tagName = normalizeTag(
                         tag.dataValues.tagName

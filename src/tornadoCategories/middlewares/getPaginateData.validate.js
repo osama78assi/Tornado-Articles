@@ -7,7 +7,7 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function getCategoryValidate(req, res, next) {
+async function getPaginateDataValidate(req, res, next) {
     try {
         let {
             limit = MIN_RESULTS,
@@ -36,7 +36,10 @@ async function getCategoryValidate(req, res, next) {
                 invalid_union: GlobalErrorsEnum.INVALID_DIRECTION,
 
                 // This will be called only in case of limit has an invalid data type
-                invalid_type: GlobalErrorsEnum.INVALID_LIMIT("limit", MAX_RESULTS),
+                invalid_type: GlobalErrorsEnum.INVALID_LIMIT(
+                    "limit",
+                    MAX_RESULTS
+                ),
             };
 
             let code = err.issues[0].code;
@@ -52,4 +55,4 @@ async function getCategoryValidate(req, res, next) {
     }
 }
 
-export default getCategoryValidate;
+export default getPaginateDataValidate;
