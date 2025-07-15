@@ -5,6 +5,7 @@ import APIError from "../../../util/APIError.js";
 import {
     extractCategoriesRanges,
     extractFollowingRanges,
+    extractTopicsRanges,
 } from "../../../util/extractRanges.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User from "../../auth/models/user.js";
@@ -283,7 +284,7 @@ class ArticleService {
                         as: "categories",
                     },
                     {
-                        // Get teh topics
+                        // Get the topics
                         model: Topic,
                         attributes: ["id", "title"],
                         through: {
@@ -328,6 +329,7 @@ class ArticleService {
         since,
         lastArticleId,
         categories,
+        topics,
         ignore
     ) {
         try {
@@ -347,6 +349,8 @@ class ArticleService {
                             attributes: [], // Don't include anything from junction table
                         },
                         attributes: ["id", "title"],
+
+                        // If passed categories filter by them
                         ...(categories.length > 0 && {
                             where: {
                                 id: { [Op.in]: categories },
@@ -354,13 +358,20 @@ class ArticleService {
                         }),
                     },
                     {
-                        // Get teh topics
+                        // Get the topics
                         model: Topic,
                         attributes: ["id", "title"],
                         through: {
                             attributes: [],
                         },
                         as: "topics",
+
+                        // Again if he wants topics filter by them
+                        ...(topics.length > 0 && {
+                            where: {
+                                id: { [Op.in]: topics },
+                            },
+                        }),
                     },
                     {
                         model: Tag,
@@ -397,7 +408,7 @@ class ArticleService {
             });
 
             // As the filter on categories. Not all categories for the article will be back from the query
-            articles = this._attachAllCategories(articles);
+            articles = this._attachAllCategoriesTopics(articles);
 
             return articles;
         } catch (err) {
@@ -408,6 +419,7 @@ class ArticleService {
     static async getOptimalArticles(
         limit,
         categories,
+        topics,
         lastArticleId,
         lastArticleRank = Number.POSITIVE_INFINITY,
         ignore = []
@@ -444,13 +456,20 @@ class ArticleService {
                         }),
                     },
                     {
-                        // Get teh topics
+                        // Get the topics
                         model: Topic,
                         attributes: ["id", "title"],
                         through: {
                             attributes: [],
                         },
                         as: "topics",
+
+                        // Again if he wants topics filter by them
+                        ...(topics.length > 0 && {
+                            where: {
+                                id: { [Op.in]: topics },
+                            },
+                        }),
                     },
                     {
                         model: Tag,
@@ -482,7 +501,7 @@ class ArticleService {
             });
 
             // As the filter on categories. Not all categories for the article will be back from the query
-            articles = this._attachAllCategories(articles);
+            articles = this._attachAllCategoriesTopics(articles);
 
             return articles;
         } catch (err) {
@@ -576,7 +595,7 @@ class ArticleService {
                         as: "categories",
                     },
                     {
-                        // Get teh topics
+                        // Get the topics
                         model: Topic,
                         attributes: ["id", "title"],
                         through: {
@@ -708,7 +727,7 @@ class ArticleService {
                         as: "categories",
                     },
                     {
-                        // Get teh topics
+                        // Get the topics
                         model: Topic,
                         attributes: ["id", "title"],
                         through: {
@@ -801,7 +820,7 @@ class ArticleService {
                     );
             }
 
-            // Etract the rangess
+            // Extract the rangess
             ({ categoriesIds, categoriesIdsRange, categoriesRates } =
                 extractCategoriesRanges(categoriesIds));
 
@@ -811,6 +830,7 @@ class ArticleService {
                 since,
                 lastArticleId,
                 categoriesIds,
+                [], // Pass empty topics list
                 ignore
             );
 
@@ -874,7 +894,7 @@ class ArticleService {
                     );
             }
 
-            // Etract the rangess
+            // Extract the rangess
             ({ categoriesIds, categoriesIdsRange, categoriesRates } =
                 extractCategoriesRanges(categoriesIds));
 
@@ -882,6 +902,7 @@ class ArticleService {
             let articles = await this.getOptimalArticles(
                 articlesLimit,
                 categoriesIds,
+                [], // Pass empty topics array
                 lastArticleId,
                 lastArticleRank,
                 ignore
@@ -902,10 +923,163 @@ class ArticleService {
         }
     }
 
+    static async getArticlesTopicsFresh(
+        userId,
+        firstInterestRate,
+        lastInterestRate,
+        firstTopicId,
+        lastTopicId,
+        topicsLimit,
+        since,
+        lastArticleId,
+        ignore,
+        articlesLimit,
+        keepTheRange
+    ) {
+        try {
+            let topicsIdsRange = {
+                firstTopicId: null,
+                lastTopicId: null,
+            };
+
+            let topicsRates = {
+                firstTopicRate: null,
+                lastTopicRate: null,
+            };
+
+            let topicsIds = null;
+
+            if (keepTheRange) {
+                topicsIds =
+                    await UserPreferenceService.getPreferredTopicsBetweenRates(
+                        userId,
+                        firstInterestRate,
+                        lastInterestRate,
+                        firstTopicId,
+                        lastTopicId,
+                        topicsLimit
+                    );
+            } else {
+                topicsIds =
+                    await UserPreferenceService.getPreferredTopicsAfterRate(
+                        userId,
+                        lastInterestRate,
+                        lastTopicId,
+                        topicsLimit
+                    );
+            }
+
+            // Extract the rangess
+            ({ topicsIds, topicsIdsRange, topicsRates } =
+                extractTopicsRanges(topicsIds));
+
+            // Use the same function but send the categories
+            let articles = await this.getFreshArticles(
+                articlesLimit,
+                since,
+                lastArticleId,
+                [], // Pass empty array as categories
+                topicsIds,
+                ignore
+            );
+
+            return {
+                articles,
+                topicsIds: topicsIdsRange,
+                topicsRates: topicsRates,
+                lastArticleId:
+                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
+                lastArtilceCreatedAt:
+                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
+            };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getArticlesTopicsOptimal(
+        userId,
+        firstInterestRate,
+        lastInterestRate,
+        firstTopicId,
+        lastTopicId,
+        topicsLimit,
+        lastArticleRank,
+        lastArticleId,
+        ignore,
+        articlesLimit,
+        keepTheRange
+    ) {
+        try {
+            let topicsIdsRange = {
+                firstTopicId: null,
+                lastTopicId: null,
+            };
+
+            let topicsRates = {
+                firstTopicRate: null,
+                lastTopicRate: null,
+            };
+
+            let topicsIds = null;
+
+            if (keepTheRange) {
+                topicsIds =
+                    await UserPreferenceService.getPreferredTopicsBetweenRates(
+                        userId,
+                        firstInterestRate,
+                        lastInterestRate,
+                        firstTopicId,
+                        lastTopicId,
+                        topicsLimit
+                    );
+            } else {
+                topicsIds =
+                    await UserPreferenceService.getPreferredTopicsAfterRate(
+                        userId,
+                        lastInterestRate,
+                        lastTopicId,
+                        topicsLimit
+                    );
+            }
+
+            // Extract the rangess
+            ({
+                topicsIds,
+                topicsIdsRange,
+                topicsRates,
+            } = extractTopicsRanges(topicsIds));
+
+            // Use the same function but send the categories
+            let articles = await this.getOptimalArticles(
+                articlesLimit,
+                [], // Pass empty categories array
+                topicsIds,
+                lastArticleId,
+                lastArticleRank,
+                ignore
+            );
+
+            return {
+                articles,
+                topicsIds: topicsIdsRange,
+                topicsRates,
+                lastArticleId:
+                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
+                lastArtilceCRank:
+                    articles?.at(-1)?.dataValues?.articleRank ??
+                    String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
+            };
+        } catch (err) {
+            throw err;
+        }
+    }
+
     // This helper methods don't use them outside the class
-    static async _attachAllCategories(articles) {
+    static async _attachAllCategoriesTopics(articles) {
         try {
             let articlesCategories = [];
+
             if (articles.length) {
                 let mapIdToIndex = {}; // This will be helpful
 
@@ -922,24 +1096,40 @@ class ArticleService {
                             [Op.in]: articlesIds, // Exctract articles Ids
                         },
                     },
-                    include: {
-                        attributes: ["id", "title"],
-                        model: Category,
-                        as: "categories",
-                        through: {
-                            attributes: [],
+                    include: [
+                        {
+                            // Get the categories
+                            attributes: ["id", "title"],
+                            model: Category,
+                            as: "categories",
+                            through: {
+                                attributes: [],
+                            },
                         },
-                    },
+                        // Get the topics
+                        {
+                            attributes: ["id", "title"],
+                            model: Topic,
+                            through: {
+                                attributes: [],
+                            },
+                            as: "topics",
+                        },
+                    ],
                 });
 
                 // Attach the categories to articles using the map between ids and indexes
-                articlesCategories.forEach((category) => {
+                articlesCategories.forEach((article) => {
                     // Get the id
-                    let articleId = category.dataValues.id;
+                    let articleId = article.dataValues.id;
 
                     // Get the index of that Id and change its categories
                     articles[mapIdToIndex[articleId]].dataValues.categories =
-                        category.dataValues.categories;
+                        article.dataValues.categories;
+
+                    // And the topics
+                    articles[mapIdToIndex[articleId]].dataValues.topics =
+                        article.dataValues.topics;
                 });
             }
 

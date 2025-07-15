@@ -1,5 +1,5 @@
 /**
- * Take array of followings data and returns IDs array with interset rate ranges, first and last followers IDs
+ * Takes an array of followings data and returns IDs array with interset rate ranges, first and last followers IDs
  *
  */
 function extractFollowingRanges(followings) {
@@ -28,7 +28,7 @@ function extractFollowingRanges(followings) {
 }
 
 /**
- * Take array of categories data and returns IDs array with interset rate ranges, first and last category IDs
+ * Takes an array of categories data and returns IDs array with interset rate ranges, first and last category IDs
  */
 function extractCategoriesRanges(categories) {
     let categoriesRates = { firstCategoryRate: null, lastCategoryRate: null };
@@ -59,4 +59,32 @@ function extractCategoriesRanges(categories) {
     };
 }
 
-export { extractFollowingRanges, extractCategoriesRanges };
+/**
+ * Takes an array of topics data and returns IDs array with interset rate ranges, first and last topics IDs
+ */
+function extractTopicsRanges(topics) {
+    let topicsRates = { firstTopicRate: null, lastTopicRate: null };
+    let topicsIdsRange = { firstTopicId: null, lastTopicId: null };
+
+    topics = topics?.map((topic, i) => {
+        // Save rate range and IDs range
+        if (i === 0) {
+            topicsIdsRange.firstTopicId = topic?.dataValues?.topicId;
+
+            topicsRates.firstTopicRate = topic?.dataValues?.interestRate;
+        } else if (i === topics.length - 1) {
+            topicsIdsRange.lastTopicId = topic?.dataValues?.topicId;
+
+            topicsRates.lastTopicRate = topic?.dataValues?.interestRate;
+        }
+        return topic?.dataValues?.topicId;
+    });
+
+    return {
+        topicsIds: topics,
+        topicsRates,
+        topicsIdsRange,
+    };
+}
+
+export { extractCategoriesRanges, extractFollowingRanges, extractTopicsRanges };

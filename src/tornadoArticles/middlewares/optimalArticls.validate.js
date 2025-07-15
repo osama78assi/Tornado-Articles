@@ -2,6 +2,7 @@ import { array, int, literal, object, string, union, ZodError } from "zod/v4";
 import {
     MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_RESULTS,
+    MAX_TOPICS_ARTICLE_COUNT,
     MIN_RESULTS,
 } from "../../../config/settings.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
@@ -11,11 +12,12 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function getOptimalArticlsValidate(req, res, next) {
+async function optimalArticlsValidate(req, res, next) {
     try {
         let {
             articlesLimit = MIN_RESULTS, // How many articles you want
             categories = [], // The categories he wants
+            topics = [], // The topics he wants
             lastArticleRank = Number.POSITIVE_INFINITY, // This will be used by optimal articles
             lastArticleId = "9223372036854775807", // When there is the same rank
             ignore = [], // To ignore articles that has been recommended
@@ -26,12 +28,15 @@ async function getOptimalArticlsValidate(req, res, next) {
             categories: array(string().regex(/^\d+$/)).max(
                 MAX_CATEGORIES_ARTICLE_COUNT
             ),
+            topics: array(string().regex(/^\d+$/)).max(
+                MAX_TOPICS_ARTICLE_COUNT
+            ),
 
             lastArticleRank: union([
                 // It maybe positive infinity or number
                 string().regex(/^\d+(\.{0,1}\d+)?$/),
                 literal(Number.POSITIVE_INFINITY),
-                literal("Infinity")
+                literal("Infinity"),
             ]),
 
             lastArticleId: string().regex(/^\d+$/),
@@ -49,53 +54,52 @@ async function getOptimalArticlsValidate(req, res, next) {
                         : String(lastArticleRank), // To accept both numbers as string or numbers
                 lastArticleId: String(lastArticleId),
                 ignore,
+                topics,
             })
         );
 
         next();
     } catch (err) {
         if (err instanceof ZodError) {
-            // Reduce nested 'if' as much as possible
-            const errToThrow = {
-                too_big: GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS),
-                too_small: GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS),
-                invalid_union: {
-                    lastArticleRank:
-                        GlobalErrorsEnum.INVALID_FLOAT_NUMBER(
-                            "lastArticleRank"
-                        ),
-                },
-
+            let commonErrs = {
                 categories: GlobalErrorsEnum.INVALID_CATEGORIES,
+                topics: GlobalErrorsEnum.INVALID_TOPICS,
                 ignore: GlobalErrorsEnum.INVALID_IGNORE,
                 lastArticleId:
                     GlobalErrorsEnum.INVALID_BIGINT_ID("lastArticleId"),
             };
 
-            // Some keywords saved for same reason
-            let pathKeywords = ["categories", "ignore", "lastArticleId"];
+            // Reduce nested 'if' as much as possible
+            let errToThrow = {
+                articlesLimit: GlobalErrorsEnum.INVALID_LIMIT(
+                    "articlesLimit",
+                    MAX_RESULTS
+                ),
+                lastArticleRank:
+                    GlobalErrorsEnum.INVALID_FLOAT_NUMBER("lastArticleRank"),
+
+                invalid_type: commonErrs, // No copy here it will take the reference
+                invalid_format: commonErrs,
+                too_big: commonErrs, // It will use only topics and categories btw
+            };
 
             let code = err?.issues?.[0]?.code;
             let path = err?.issues?.[0]?.path?.[0];
             let expected = err?.issues?.[0]?.expected;
 
-            // For those fields which intersect by two different errors code
-            if (
-                (code === "invalid_type" || code === "invalid_format") &&
-                pathKeywords.includes(path)
-            )
-                return next(errToThrow[path]);
+            // Specific path
+            if (errToThrow[path]) return next(errToThrow[path]);
 
+            // Path specified by the code
+            if (errToThrow[code][path]) return next(errToThrow[code][path]);
+
+            // If not. Take only this case
             if (code === "invalid_type")
                 return next(GlobalErrorsEnum.INVALID_DATATYPE(path, expected));
-
-            if (code === "invalid_union") return next(errToThrow[code][path]);
-
-            if (errToThrow[code]) return next(errToThrow[code]);
         }
 
         next(err);
     }
 }
 
-export default getOptimalArticlsValidate;
+export default optimalArticlsValidate;

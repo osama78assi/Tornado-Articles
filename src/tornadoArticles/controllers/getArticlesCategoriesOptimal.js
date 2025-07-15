@@ -8,13 +8,13 @@ import ArticleService from "../services/articleService.js";
  */
 async function getArticlesCategoriesOptimal(req, res, next) {
     try {
-        // Check [categoriesData.validate.js, getOptimalArticles.validate.js] to know what are these fields
+        // Check [preferenceData.validate.js, getOptimalArticles.validate.js] to know what are these fields
         const {
             firstInterestRate,
             lastInterestRate,
-            firstCategoryId,
-            lastCategoryId,
-            categoriesLimit,
+            firstEntryId: firstCategoryId,
+            lastEntryId: lastCategoryId,
+            preferenceLimit: categoriesLimit,
             keepTheRange,
             articlesLimit,
             lastArticleRank,

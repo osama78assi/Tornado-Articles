@@ -12,6 +12,7 @@ async function getFreshArticles(req, res, next) {
             articlesLimit: limit,
             since,
             categories,
+            topics,
             lastArticleId,
             ignore,
         } = req?.body;
@@ -24,6 +25,7 @@ async function getFreshArticles(req, res, next) {
             since,
             lastArticleId,
             categories,
+            topics,
             ignore
         );
 

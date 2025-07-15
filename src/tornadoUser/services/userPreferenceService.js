@@ -175,6 +175,90 @@ class UserPreferenceService {
         }
     }
 
+    static async getPreferredTopicsBetweenRates(
+        userId,
+        firstTopicRate,
+        lastTopicRate,
+        firstTopicId,
+        lastTopicId,
+        limit
+    ) {
+        try {
+            const topics = await UserTopic.findAll({
+                attributes: ["topicId", "interestRate"],
+                where: {
+                    userId,
+                    [Op.or]: [
+                        {
+                            interestRate: {
+                                // Take the range
+                                [Op.lt]: firstTopicRate,
+                                [Op.gt]: lastTopicRate,
+                            },
+                        },
+                        // And when the rates is the same take the range according to the id
+                        {
+                            interestRate: lastTopicRate,
+                            topicId: {
+                                [Op.lte]: firstTopicId,
+                                [Op.gte]: lastTopicId,
+                            },
+                        },
+                    ],
+                },
+                order: [
+                    ["interestRate", "DESC"],
+                    ["topicId", "DESC"],
+                ],
+                limit,
+            });
+
+            return topics;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getPreferredTopicsAfterRate(
+        userId,
+        lastTopicRate,
+        lastTopicId,
+        limit
+    ) {
+        try {
+            const topics = await UserTopic.findAll({
+                attributes: ["topicId", "interestRate"],
+                where: {
+                    userId,
+                    [Op.or]: [
+                        {
+                            // Less in rate first
+                            interestRate: {
+                                [Op.lt]: lastTopicRate,
+                            },
+                        },
+                        {
+                            // When the rate is equal take less ID
+                            interestRate: lastTopicRate,
+                            topicId: {
+                                [Op.lt]: lastTopicId,
+                            },
+                        },
+                    ],
+                },
+                order: [
+                    ["interestRate", "DESC"],
+                    ["topicId", "DESC"],
+                ],
+                limit,
+            });
+
+            return topics;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     static async addPreferredTopics(userId, topicsIds) {
         try {
             // The records we want to add

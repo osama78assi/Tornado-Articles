@@ -1,3 +1,6 @@
+import modifyIgnore from '../../../util/modifyIgnore.js';
+import ArticleService from '../services/articleService.js';
+
 /**
  *
  * @param {import('express').Request} req
@@ -5,8 +8,46 @@
  */
 async function getArtilcesTopicFresh(req, res, next) {
     try {
-        // This route meant to suggest articles based on tags.
-        // Tags are saved in cookies to make the suggest based on device
+        // Check [preferenceData.validate.js, getFreshArticles.validate.js] to know what are these fields
+        const {
+            firstInterestRate,
+            lastInterestRate,
+            firstEntryId: firstTopicId,
+            lastEntryId: lastTopicId,
+            preferenceLimit: topicsLimit,
+            since,
+            lastArticleId,
+            ignore,
+            articlesLimit,
+            keepTheRange,
+        } = req?.body;
+
+        console.log('\n\n###########\n', req.body, '\n\n###########\n')
+
+        const { id } = req?.userInfo;
+
+        // To know if the ignore list have motified. Return the index that we sliced from it
+        const ignoreSlicedFrom = modifyIgnore(ignore);
+
+        const data = await ArticleService.getArticlesTopicsFresh(
+            id,
+            firstInterestRate,
+            lastInterestRate,
+            firstTopicId,
+            lastTopicId,
+            topicsLimit,
+            since,
+            lastArticleId,
+            ignore,
+            articlesLimit,
+            keepTheRange
+        );
+
+        return res.status(200).json({
+            success: true,
+            data,
+            ignoreSlicedFrom,
+        });
     } catch (err) {
         next(err);
     }

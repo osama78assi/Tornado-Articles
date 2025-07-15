@@ -1,4 +1,3 @@
-import { ALLOWED_IGNORE_COUNT } from "../../../config/settings.js";
 import modifyIgnore from "../../../util/modifyIgnore.js";
 import ArticleService from "../services/articleService.js";
 
@@ -12,6 +11,7 @@ async function getOptimalArticle(req, res, next) {
         let {
             articlesLimit: limit, // rename it
             categories,
+            topics,
             lastArticleRank,
             lastArticleId,
             ignore,
@@ -24,6 +24,7 @@ async function getOptimalArticle(req, res, next) {
         const articles = await ArticleService.getOptimalArticles(
             limit,
             categories,
+            topics,
             lastArticleId,
             lastArticleRank,
             ignore

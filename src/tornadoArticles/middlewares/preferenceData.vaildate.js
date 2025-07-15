@@ -1,7 +1,10 @@
 import { boolean, int, literal, object, string, union, ZodError } from "zod/v4";
 import {
     ARTICLES_CATEGORIES_MAX_LIMIT,
-    ARTICLES_CATEGORIES_MIN_LIMIT,
+    ARTICLES_TOPICS_MAX_LIMIT,
+    ARTICLES_TOPICS_MIN_LIMIT,
+    MAX_RESULTS,
+    MIN_RESULTS,
 } from "../../../config/settings.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
@@ -10,14 +13,34 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function categoryDataVaildate(req, res, next) {
+async function preferenceDataVaildate(req, res, next) {
+    // Again to know if topics or categories by catetgories
+    const url = req?.url;
+    let defPreferenceLimit = MIN_RESULTS; // Default MAX_RESULTS
+    let defMax = MAX_RESULTS;
+
+    let entryName = "entry";
+    if (url.includes("topic")) {
+        entryName = "(topic)";
+
+        // Change the values
+        defPreferenceLimit = ARTICLES_TOPICS_MIN_LIMIT;
+        defMax = ARTICLES_TOPICS_MAX_LIMIT;
+    } else if (url.includes("categories")) {
+        entryName = "(category)";
+
+        // Change the values
+        defPreferenceLimit = ARTICLES_TOPICS_MIN_LIMIT;
+        defMax = ARTICLES_TOPICS_MAX_LIMIT;
+    }
+
     try {
         const {
             firstInterestRate = Number.POSITIVE_INFINITY, // First interest rate to make a range
             lastInterestRate = "0", // Last one to complete the range
-            firstCategoryId = "9223372036854775807", // In case of interest rate the same we will rely on IDs
-            lastCategoryId = "0", // To complete the range
-            categoriesLimit = ARTICLES_CATEGORIES_MIN_LIMIT, // How many categories to get articles from
+            firstEntryId = "9223372036854775807", // In case of interest rate the same we will rely on IDs
+            lastEntryId = "0", // To complete the range
+            preferenceLimit = defPreferenceLimit, // How many (categories|topics) to get articles from
             keepTheRange = true, // Whether to keep the current range (or result range for initial request) or replace it
         } = req?.body ?? {};
 
@@ -27,9 +50,9 @@ async function categoryDataVaildate(req, res, next) {
                 literal(Number.POSITIVE_INFINITY),
             ]),
             lastInterestRate: string().regex(/^\d+(\.{0,1}\d+)?$/),
-            firstCategoryId: string().regex(/^\d+$/),
-            lastCategoryId: string().regex(/^\d+$/),
-            categoriesLimit: int(),
+            firstEntryId: string().regex(/^\d+$/),
+            lastEntryId: string().regex(/^\d+$/),
+            preferenceLimit: int(),
             keepTheRange: boolean(),
         });
 
@@ -41,22 +64,16 @@ async function categoryDataVaildate(req, res, next) {
                         ? String(firstInterestRate)
                         : firstInterestRate,
                 lastInterestRate: String(lastInterestRate),
-                firstCategoryId: String(firstCategoryId),
-                lastCategoryId: String(lastCategoryId),
-                categoriesLimit,
+                firstEntryId: String(firstEntryId),
+                lastEntryId: String(lastEntryId),
+                preferenceLimit,
                 keepTheRange,
             })
         );
 
-        if (
-            categoriesLimit < 1 ||
-            categoryDataVaildate > ARTICLES_CATEGORIES_MAX_LIMIT
-        )
+        if (preferenceLimit < 1 || preferenceDataVaildate > defMax)
             return next(
-                GlobalErrorsEnum.INVALID_LIMIT(
-                    "categoriesLimit",
-                    ARTICLES_CATEGORIES_MIN_LIMIT
-                )
+                GlobalErrorsEnum.INVALID_LIMIT("preferenceLimit", defMax)
             );
 
         return next();
@@ -64,18 +81,17 @@ async function categoryDataVaildate(req, res, next) {
         if (err instanceof ZodError) {
             // Build this only once
             let commonErrObj = {
-                categoriesLimit: GlobalErrorsEnum.INVALID_LIMIT(
-                    "categoriesLimit",
+                preferenceLimit: GlobalErrorsEnum.INVALID_LIMIT(
+                    "preferenceLimit",
                     ARTICLES_CATEGORIES_MAX_LIMIT
                 ),
                 lastInterestRate:
                     GlobalErrorsEnum.INVALID_FLOAT_NUMBER("lastInterestRate"),
                 firstInterestRate:
                     GlobalErrorsEnum.INVALID_FLOAT_NUMBER("firstInterestRate"),
-                firstCategoryId:
-                    GlobalErrorsEnum.INVALID_BIGINT_ID("firstCategoryId"),
-                lastCategoryId:
-                    GlobalErrorsEnum.INVALID_BIGINT_ID("lastCategoryId"),
+                firstEntryId:
+                    GlobalErrorsEnum.INVALID_BIGINT_ID(`firstEntryId ${entryName}`),
+                lastEntryId: GlobalErrorsEnum.INVALID_BIGINT_ID(`lastEntryId ${entryName}`),
                 keepTheRange: GlobalErrorsEnum.INVALID_DATATYPE(
                     "keepTheRange",
                     "boolean"
@@ -99,4 +115,4 @@ async function categoryDataVaildate(req, res, next) {
     }
 }
 
-export default categoryDataVaildate;
+export default preferenceDataVaildate;

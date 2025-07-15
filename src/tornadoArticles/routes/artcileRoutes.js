@@ -4,8 +4,13 @@ import deleteArticle from "../controllers/deleteArticle.js";
 import editArticleContent from "../controllers/editArticleContent.js";
 import editArticleTitle from "../controllers/editArticleTitle.js";
 import getArticle from "../controllers/getArticle.js";
+import getArticlesCategoriesFresh from "../controllers/getArticlesCategoriesFresh.js";
+import getArticlesCategoriesOptimal from "../controllers/getArticlesCategoriesOptimal.js";
 import getArticlesFollowingsFresh from "../controllers/getArticlesFollowingsFresh.js";
+import getArticlesFollowingsOptimal from "../controllers/getArticlesFollowingsOptimal.js";
 import getArticlesFor from "../controllers/getArticlesFor.js";
+import getArtilcesTopicFresh from "../controllers/getArtilcesTopicFresh.js";
+import getArtilcesTopicOptimal from "../controllers/getArtilcesTopicOptimal.js";
 import getFreshArticles from "../controllers/getFreshArticles.js";
 import getOptimalArticles from "../controllers/getOptimalArticle.js";
 import publishArticle from "../controllers/publishArticle.js";
@@ -16,16 +21,11 @@ import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isEmailVerified from "../../../publicMiddlewares/isEmailVerified.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
-import getArticlesCategoriesFresh from "../controllers/getArticlesCategoriesFresh.js";
-import getArticlesCategoriesOptimal from "../controllers/getArticlesCategoriesOptimal.js";
-import getArticlesFollowingsOptimal from "../controllers/getArticlesFollowingsOptimal.js";
-import getArtilcesTopicFresh from "../controllers/getArtilcesTopicFresh.js";
-import getArtilcesTopicOptimal from "../controllers/getArtilcesTopicOptimal.js";
-import categoryDataVaildate from "../middlewares/categoryData.vaildate.js";
 import downloadArticlesPics from "../middlewares/downloadArtilcesPics.js";
 import followingsDataValidate from "../middlewares/followingsData.validate.js";
-import getFreshArticlesValidate from "../middlewares/getFreshArticles.validate.js";
-import getOptimalArticlesValidate from "../middlewares/getOptimalArticls.validate.js";
+import freshArticlesValidate from "../middlewares/freshArticles.validate.js";
+import optimalArticlesValidate from "../middlewares/optimalArticls.validate.js";
+import preferenceDataValidate from "../middlewares/preferenceData.vaildate.js";
 import publishArticleValidate from "../middlewares/publishArticle.validate.js";
 
 const articleRouter = Router();
@@ -35,14 +35,14 @@ const articleRouter = Router();
 articleRouter.post(
     "/articles/fresh",
     isLoggedIn,
-    getFreshArticlesValidate,
+    freshArticlesValidate,
     getFreshArticles
 ); // DONE
 
 articleRouter.post(
     "/articles/optimal",
     isLoggedIn,
-    getOptimalArticlesValidate,
+    optimalArticlesValidate,
     getOptimalArticles
 ); // DONE
 
@@ -57,7 +57,7 @@ articleRouter.post(
     "/articles/recommends/followings/fresh",
     isAuthenticated,
     followingsDataValidate,
-    getFreshArticlesValidate, // Here is the same but we don't care about passed categories array
+    freshArticlesValidate, // Here is the same but we don't care about passed categories array
     getArticlesFollowingsFresh
 ); // DONE
 
@@ -66,7 +66,7 @@ articleRouter.post(
     "/articles/recommends/followings/optimal",
     isAuthenticated,
     followingsDataValidate,
-    getOptimalArticlesValidate, // This is the same but here we don't care about passed categories array
+    optimalArticlesValidate, // This is the same but here we don't care about passed categories array
     getArticlesFollowingsOptimal
 ); // DONE
 
@@ -74,8 +74,8 @@ articleRouter.post(
 articleRouter.post(
     "/articles/recommends/categories/fresh",
     isAuthenticated,
-    categoryDataVaildate,
-    getFreshArticlesValidate, // This is the same as getFreshArticle only instead here we don't care about the categories array
+    preferenceDataValidate,
+    freshArticlesValidate, // This is the same as getFreshArticle only instead here we don't care about the categories array
     getArticlesCategoriesFresh
 ); // DONE
 
@@ -83,24 +83,28 @@ articleRouter.post(
 articleRouter.post(
     "/articles/recommends/categories/optimal",
     isAuthenticated,
-    categoryDataVaildate,
-    getOptimalArticlesValidate,
+    preferenceDataValidate,
+    optimalArticlesValidate,
     getArticlesCategoriesOptimal
-); // WORKING
+); // DONE
 
 // User get recommended articles. recomend stage by topic(fresh)
 articleRouter.post(
     "/articles/recommends/topics/fresh",
     isAuthenticated,
+    preferenceDataValidate,
+    freshArticlesValidate,
     getArtilcesTopicFresh
-); // TODO
+); // DONE
 
 // User get recommended articles. recomend stage by topic(optimal)
 articleRouter.post(
     "/articles/recommends/topics/optimal",
     isAuthenticated,
+    preferenceDataValidate,
+    optimalArticlesValidate,
     getArtilcesTopicOptimal
-); // TODO
+); // DONE
 
 // Get the article details
 articleRouter.get("/articles/:articleId/view", getArticle); // DONE

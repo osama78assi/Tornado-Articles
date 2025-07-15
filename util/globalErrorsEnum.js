@@ -1,4 +1,4 @@
-import { MAX_CATEGORIES_ARTICLE_COUNT } from "../config/settings.js";
+import { MAX_CATEGORIES_ARTICLE_COUNT, MAX_TOPICS_ARTICLE_COUNT } from "../config/settings.js";
 import APIError from "./APIError.js";
 
 export default class GlobalErrorsEnum {
@@ -87,6 +87,12 @@ export default class GlobalErrorsEnum {
     // For articles
     static INVALID_CATEGORIES = new APIError(
         `The "catgeories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_TOPICS = new APIError(
+        `The "topics" must be array contains ${MAX_TOPICS_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
         400,
         "VALIDATION_ERROR"
     );
