@@ -55,7 +55,7 @@ async function isAuthenticated(req, res, next) {
             ["passwordChangedAt", "verifiedEmail"]
         );
 
-        // Check if there is something changed password
+        // Check if there is he/she changed password
         // When the date is after the initilize of the token
         if (
             user.limits.passwordChangedAt !== null &&

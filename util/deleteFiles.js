@@ -3,7 +3,7 @@ import { unlink } from "fs/promises";
 async function deleteFiles(files) {
     try {
         // Don't continue when there is no files
-        if(!files) return;
+        if (!files) return;
 
         // This function is really for any files attached my express-fileupload and my custom configurations
         const keys = Object.keys(files);
@@ -14,7 +14,7 @@ async function deleteFiles(files) {
                 await Promise.all(
                     files[key].map(async (file) => {
                         // Check if uploaded
-                        if (file?.diskPath) await unlink(file?.diskPath);
+                        if (file?.diskPath) return unlink(file?.diskPath); // Return don't await it
                     })
                 );
             } else {

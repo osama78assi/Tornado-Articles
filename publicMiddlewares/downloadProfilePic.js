@@ -1,4 +1,5 @@
 import profilePicStorage from "../config/profilePicStorage.js";
+import APIError from "../util/APIError.js";
 import {
     SingleFileError,
     singleTornadoFile,
@@ -26,6 +27,9 @@ async function downloadProfilePicV1(req, res, next) {
                         )
                     );
                 }
+
+                // If the error is known
+                if (err instanceof APIError) return next(err);
 
                 // Log the error if you want
                 return next(

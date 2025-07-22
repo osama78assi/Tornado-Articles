@@ -1,4 +1,8 @@
-import { MAX_CATEGORIES_ARTICLE_COUNT, MAX_TOPICS_ARTICLE_COUNT } from "../config/settings.js";
+import {
+    MAX_CATEGORIES_ARTICLE_COUNT,
+    MAX_TAGS_ARTICLE_COUNT,
+    MAX_TOPICS_ARTICLE_COUNT,
+} from "../config/settings.js";
 import APIError from "./APIError.js";
 
 export default class GlobalErrorsEnum {
@@ -47,6 +51,21 @@ export default class GlobalErrorsEnum {
             "VALIDATION_ERROR"
         );
 
+    static NOT_AUTHORIZED = new APIError(
+        "You aren't authorized to do this action",
+        401,
+        "UNAUTHROIZED"
+    );
+
+    static UNSUPPORTED_IMAGES = (exts) =>
+        new APIError(
+            `Only images accepted. And type of it must be one of these (${exts.join(
+                ","
+            )})`,
+            400,
+            "INVALID_IMAGE_TYPE"
+        );
+
     // For Auth
     static MISSING_REFRESH_TOKEN = new APIError(
         "No refresh token provided. Please login again",
@@ -86,7 +105,7 @@ export default class GlobalErrorsEnum {
 
     // For articles
     static INVALID_CATEGORIES = new APIError(
-        `The "catgeories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
+        `The "categories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
         400,
         "VALIDATION_ERROR"
     );
@@ -102,6 +121,40 @@ export default class GlobalErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
+
+    static ARTICLE_IMAGES_LIMIT_EXCCEDED = (max) =>
+        new APIError(
+            `Content pictures limit exceeded. Allowed only ${max} pictures.`,
+            400,
+            "VALIDATION_ERROR"
+        );
+
+    static TOPICS_LIMIT_EXCEEDED = new APIError(
+        `The article can have up to ${MAX_TOPICS_ARTICLE_COUNT} topics`,
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_TAGS = new APIError(
+        `The article can have up to ${MAX_TAGS_ARTICLE_COUNT} tags`,
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static INVALID_LANGUAGE = (lang, expected) =>
+        new APIError(
+            `The language ${lang} isn't supported. the supported are [${expected.join(
+                ", "
+            )}].`,
+            400,
+            "VALIDATION_ERROR",
+            [
+                [
+                    "warning",
+                    "If you set the language to one of supported but the actual language isn't that type your artilce will face issues in searching",
+                ],
+            ]
+        );
 
     // For categories
     static INVALID_CATEGORY_LENGTH = new APIError(
@@ -121,4 +174,11 @@ export default class GlobalErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
+
+    static ARTICLE_NOT_FOUND = (id) =>
+        new APIError(
+            `The article with id ${id} either deleted or not existed in first place.`,
+            404,
+            "ARTICLE_NOT_FOUND"
+        );
 }

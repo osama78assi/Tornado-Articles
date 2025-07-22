@@ -1,5 +1,6 @@
 import APIError from "../../../util/APIError.js";
 import deleteFiles from "../../../util/deleteFiles.js";
+import injectImgsInContent from "../../../util/injectImgsInContent.js";
 import removeDuplicated from "../../../util/removeDuplicated.js";
 import ArticleService from "../services/articleService.js";
 
@@ -26,6 +27,8 @@ async function publishArticle(req, res, next) {
         tags = removeDuplicated(tags);
         topics = removeDuplicated(topics);
 
+        console.log('\n\n###### FROM controllers #####\n', topics, '\n\n###########\n')
+
         // Get user Id
         const userId = req.userInfo.id;
 
@@ -43,41 +46,13 @@ async function publishArticle(req, res, next) {
         let contentPics = [];
         if (req?.files?.contentPics?.length > 0) {
             contentPics =
-                req?.files?.contentPics?.map(
-                    (file) =>
-                        `${protocol}://${host}/uploads/articles/${file?.newName}`
-                ) || []; // return empty array if the contentPics doesn't exists
+            req?.files?.contentPics?.map(
+                (file) =>
+                    `${protocol}://${host}/uploads/articles/${file?.newName}`
+            ) || []; // return empty array if the contentPics doesn't exists
         }
 
-        // If the user uploaded images and didn't used them (or at least one of them)
-        let menthionedImgs = 0;
-
-        // Replace the placeholders for images with images URLs.
-        // Allowing the user to add images in any place of the article
-        if (contentPics.length !== 0) {
-            content = content.replaceAll(/\{\{\d\}\}/g, function (placeholder) {
-                // That number is the number of the image not the index
-                const index = +placeholder[1] - 1;
-                if (index >= contentPics.length || index < 0)
-                    return placeholder;
-                else {
-                    menthionedImgs++;
-                    return `![content-image-${index}](${contentPics[index]})`;
-                }
-            });
-        }
-
-        // Throw an error in case he didn't used them
-        if (menthionedImgs !== contentPics.length) {
-            await deleteFiles(req.files);
-            return next(
-                new APIError(
-                    "You've not used all the uploaded images",
-                    400,
-                    "VALIDATION_ERROR"
-                )
-            );
-        }
+        content = injectImgsInContent(contentPics, content)
 
         // Safe the document (due to the complex relationships I will made one query getting publisher, likes count and comments count)
         const artilceId = await ArticleService.publishArticle(

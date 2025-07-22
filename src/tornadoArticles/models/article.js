@@ -116,9 +116,9 @@ Article.init(
             allowNull: true,
             validate: {
                 isLargeEnough(headline) {
-                    if (typeof headline === "string" && headline?.length < 50) {
+                    if (typeof headline === "string" && headline?.length < 10) {
                         throw new APIError(
-                            "Article headline should be at least made of 50 chars",
+                            "Article headline should be at least made of 10 chars",
                             400,
                             "VALIDATION_ERROR"
                         );

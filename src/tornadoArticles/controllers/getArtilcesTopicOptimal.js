@@ -1,5 +1,5 @@
 import modifyIgnore from '../../../util/modifyIgnore.js';
-import ArticleService from '../services/articleService.js';
+import RecommendationService from "../services/recommendationService.js";
 
 /**
  *
@@ -27,7 +27,7 @@ async function getArtilcesTopicOptimal(req, res, next) {
         // To know if the ignore list have motified. Return the index that we sliced from it
         const ignoreSlicedFrom = modifyIgnore(ignore);
 
-        const data = await ArticleService.getArticlesTopicsOptimal(
+        const data = await RecommendationService.getArticlesTopicsOptimal(
             id,
             firstInterestRate,
             lastInterestRate,

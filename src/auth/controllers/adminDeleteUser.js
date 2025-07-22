@@ -1,5 +1,5 @@
 import redis from "../../../config/redisConfig.js";
-import sendReasonDeleteUser from "../../../services/sendReasonDeleteUser.js";
+import sendDeleteUserReason from "../../../services/sendDeleteUserReason.js";
 import APIError from "../../../util/APIError.js";
 import AuthUserService from "../services/AuthUserService.js";
 
@@ -42,7 +42,7 @@ async function adminDeleteUser(req, res, next) {
             await redis.del(...JTIs, `loggedin:${userId}`);
         }
 
-        sendReasonDeleteUser(
+        sendDeleteUserReason(
             {
                 userName: user.dataValues.fullName,
                 userEmail: user.dataValues.email,

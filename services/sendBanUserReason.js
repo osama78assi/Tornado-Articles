@@ -10,7 +10,7 @@ import sendEmailService from "./sendEmailService.js";
  * @param {string} warningDuration The warning duration to delete the account permanently after the ban
  * @returns {Promise} The info of the email result (after sending it)
  */
-async function sendReasonBanUser(
+async function sendBanUserReason(
     { userName, userEmail },
     auth,
     reason,
@@ -48,4 +48,4 @@ async function sendReasonBanUser(
     }
 }
 
-export default sendReasonBanUser;
+export default sendBanUserReason;

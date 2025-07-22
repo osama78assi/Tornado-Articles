@@ -51,6 +51,9 @@ async function addAssociations() {
     const { default: ArticleTopic } = await import(
         "../tornadoArticles/models/articleTopic.js"
     );
+    const { default: ArticleLimit } = await import(
+        "../tornadoArticles/models/articleLimit.js"
+    );
 
     //////// Users Followings
     // Many to Many relationship between users (like user A get an array with who is following)
@@ -228,6 +231,19 @@ async function addAssociations() {
     ArticleImage.belongsTo(Article, {
         foreignKey: "articleId",
         onDelete: "CASCADE",
+    });
+
+    ////// Article limits
+    ArticleLimit.belongsTo(Article, {
+        foreignKey: "articleId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    });
+
+    Article.hasOne(ArticleLimit, {
+        foreignKey: "articleId",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
     });
 
     ///// Articles Publisher

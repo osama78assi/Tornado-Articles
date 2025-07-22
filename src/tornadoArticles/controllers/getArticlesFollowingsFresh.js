@@ -1,5 +1,5 @@
 import modifyIgnore from "../../../util/modifyIgnore.js";
-import ArticleService from "../services/articleService.js";
+import RecommendationService from "../services/recommendationService.js";
 
 /**
  *
@@ -27,7 +27,7 @@ async function getArticlesFollowingsFresh(req, res, next) {
         // To know if the ignore list have motified. Return the index that we sliced from it
         const ignoreSlicedFrom = modifyIgnore(ignore);
 
-        let data = await ArticleService.getArticlesFollowingFresh(
+        let data = await RecommendationService.getArticlesFollowingFresh(
             id,
             since,
             lastArticleId,

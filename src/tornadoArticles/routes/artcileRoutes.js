@@ -1,8 +1,10 @@
 import { Router } from "express";
-import adminDeleteArticle from "../controllers/adminDeleteArticle.js";
 import deleteArticle from "../controllers/deleteArticle.js";
+import editArticle from "../controllers/editArticle.js";
+import editArticleCatTopics from "../controllers/editArticleCatTopics.js";
 import editArticleContent from "../controllers/editArticleContent.js";
-import editArticleTitle from "../controllers/editArticleTitle.js";
+import editArticleCoverPic from "../controllers/editArticleCoverPic.js";
+import editArticleTags from "../controllers/editArticleTags.js";
 import getArticle from "../controllers/getArticle.js";
 import getArticlesCategoriesFresh from "../controllers/getArticlesCategoriesFresh.js";
 import getArticlesCategoriesOptimal from "../controllers/getArticlesCategoriesOptimal.js";
@@ -13,22 +15,49 @@ import getArtilcesTopicFresh from "../controllers/getArtilcesTopicFresh.js";
 import getArtilcesTopicOptimal from "../controllers/getArtilcesTopicOptimal.js";
 import getFreshArticles from "../controllers/getFreshArticles.js";
 import getOptimalArticles from "../controllers/getOptimalArticle.js";
+import moderatorDeleteArticle from "../controllers/moderatorDeleteArticle.js";
 import publishArticle from "../controllers/publishArticle.js";
 import searchForArticleBytTitle from "../controllers/searchForArticleByTitle.js";
 import searchForArticleByTags from "../controllers/searchForArtilcesByTags.js";
 
-import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isEmailVerified from "../../../publicMiddlewares/isEmailVerified.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
-import downloadArticlesPics from "../middlewares/downloadArtilcesPics.js";
+import isModerator from "../../../publicMiddlewares/isModerator.js";
+import downloadArticleContentPics from "../middlewares/downloadArticleContentPics.js";
+import downloadArticlePics from "../middlewares/downloadArtilcePics.js";
+import downloadArticleCoverImg from "../middlewares/downloadCoverImg.js";
+import editArticleValidate from "../middlewares/editArticle.validate.js";
+import editArticleCatTopicsValidate from "../middlewares/editArticleCatTopics.validate.js";
+import editArticleContentValidate from "../middlewares/editArticleContent.validate.js";
+import editArticleTagsValidate from "../middlewares/editArticleTags.validate.js";
 import followingsDataValidate from "../middlewares/followingsData.validate.js";
 import freshArticlesValidate from "../middlewares/freshArticles.validate.js";
+import getArticlesForValidate from "../middlewares/getArticlesFor.validate.js";
+import moderatorDeleteArticleValidate from "../middlewares/moderatorDeleteArticle.validate.js";
 import optimalArticlesValidate from "../middlewares/optimalArticls.validate.js";
 import preferenceDataValidate from "../middlewares/preferenceData.vaildate.js";
 import publishArticleValidate from "../middlewares/publishArticle.validate.js";
 
 const articleRouter = Router();
+
+// User can publish articles
+articleRouter.post(
+    "/articles",
+    isAuthenticated,
+    isEmailVerified, // Only verified emails can publish articles
+    downloadArticlePics,
+    publishArticleValidate,
+    publishArticle
+); // DONE
+
+// Anyone can get the articles for any user
+articleRouter.get(
+    "/articles",
+    isLoggedIn,
+    getArticlesForValidate,
+    getArticlesFor
+); // DONE
 
 // Anyone can get articles (home page for guests)
 // While it must GET but I made POST because there is a complex filtering
@@ -46,11 +75,73 @@ articleRouter.post(
     getOptimalArticles
 ); // DONE
 
-// Anyone can get the articles for any user
-articleRouter.get("/articles/:userId", getArticlesFor); // TODO
+// Search by title
+articleRouter.get("/articles/search-by-title", searchForArticleBytTitle); // TODO
+
+// Search by tags
+articleRouter.get("/articles/search-by-tags", searchForArticleByTags); // TODO
+
+// Get the article details
+articleRouter.get("/articles/:articleId", isLoggedIn, getArticle); // DONE
 
 // User can delete his article
-articleRouter.delete("/articles/:articleId", isAuthenticated, deleteArticle); // TODO
+articleRouter.delete("/articles/:articleId", isAuthenticated, deleteArticle); // DONE
+
+// User can edit the (title/minsToRead... all not included fields below) of the article
+articleRouter.patch(
+    "/articles/:articleId",
+    isAuthenticated,
+    downloadArticlePics,
+    editArticleValidate,
+    editArticle
+); // DONE
+
+// Admin/Moderator can delete any article
+// Post because there is a body
+articleRouter.post(
+    "/articles/:articleId/delete",
+    isAuthenticated,
+    isModerator,
+    moderatorDeleteArticleValidate,
+    moderatorDeleteArticle
+); // DONE
+
+// User can update article's content
+articleRouter.patch(
+    "/articles/:articleId/content",
+    isAuthenticated,
+    downloadArticleContentPics,
+    editArticleContentValidate,
+    editArticleContent
+); // DONE
+
+// User can change categories and topics for his article
+articleRouter.patch(
+    "/articles/:articleId/categories",
+    isAuthenticated,
+    editArticleCatTopicsValidate,
+    // measureHandlerTime(
+    //     editArticleCatTopics,
+    //     "Update Article categories and topics"
+    // )
+    editArticleCatTopics
+); // DONE
+
+// User can change his article's cover image
+articleRouter.patch(
+    "/articles/:articleId/cover",
+    isAuthenticated,
+    downloadArticleCoverImg,
+    editArticleCoverPic
+); // DONE
+
+// User can change tags for his article
+articleRouter.patch(
+    "/articles/:articleId/tags",
+    isAuthenticated,
+    editArticleTagsValidate,
+    editArticleTags
+); // DONE
 
 // User get recommended articles. Following stage (fresh)
 articleRouter.post(
@@ -105,46 +196,5 @@ articleRouter.post(
     optimalArticlesValidate,
     getArtilcesTopicOptimal
 ); // DONE
-
-// Get the article details
-articleRouter.get("/articles/:articleId/view", getArticle); // DONE
-
-// User can edit the title of the article
-articleRouter.patch(
-    "/articles/:articleId/title",
-    isAuthenticated,
-    editArticleTitle
-); // TODO
-
-// User can edit the content
-articleRouter.patch(
-    "/articles/:articleId/content",
-    isAuthenticated,
-    editArticleContent
-); // TODO
-
-// Admin delete any article
-articleRouter.delete(
-    "/admin/articles/:articleId",
-    isAuthenticated,
-    isAdmin,
-    adminDeleteArticle
-); // TODO
-
-// User can publish articles
-articleRouter.post(
-    "/articles",
-    isAuthenticated,
-    isEmailVerified, // Only verified emails can publish articles
-    downloadArticlesPics,
-    publishArticleValidate,
-    publishArticle
-); // DONE
-
-// Search by title
-articleRouter.get("/articles/search-by-title", searchForArticleBytTitle); // TODO
-
-// Search by tags
-articleRouter.get("/articles/search-by-tags", searchForArticleByTags); // TODO
 
 export default articleRouter;

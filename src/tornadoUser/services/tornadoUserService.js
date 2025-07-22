@@ -39,7 +39,7 @@ class TornadoUserService {
             });
 
             if (user === null)
-                throw GlobalErrorsEnum.NO_USER_WITH(userId, falses);
+                throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
 
             return user;
         } catch (err) {

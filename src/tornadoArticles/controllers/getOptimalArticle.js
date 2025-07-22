@@ -1,5 +1,5 @@
 import modifyIgnore from "../../../util/modifyIgnore.js";
-import ArticleService from "../services/articleService.js";
+import RecommendationService from "../services/recommendationService.js";
 
 /**
  *
@@ -21,7 +21,7 @@ async function getOptimalArticle(req, res, next) {
         const ignoreSlicedFrom = modifyIgnore(ignore);
 
         // Get optimal articles
-        const articles = await ArticleService.getOptimalArticles(
+        const articles = await RecommendationService.getOptimalArticles(
             limit,
             categories,
             topics,
@@ -30,9 +30,20 @@ async function getOptimalArticle(req, res, next) {
             ignore
         );
 
+        // Extract some info for more API friendly. if these are null then no more articles
+        let details = {
+            lastArticleId:
+                articles.length > 0 ? articles.at(-1)?.dataValues?.id : null,
+            lastArticleRank:
+                articles.length > 0
+                    ? String(articles.at(-1)?.dataValues?.articleRank)
+                    : null,
+        };
+
         return res.status(200).json({
             success: true,
             data: articles,
+            ...details,
             ignoreSlicedFrom,
         });
     } catch (err) {

@@ -1,6 +1,5 @@
 import { Op, QueryTypes } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import loggingService from "../../../services/loggingService.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import Category from "../models/category.js";
@@ -282,7 +281,7 @@ class TopicService {
                         WHERE "categoryId" IN (:categoriesIds)
                         GROUP BY "topicId"
                     )
-                )  AS "isFound";
+                ) AS "isFound";
             `;
 
             // Get any replacements that will not throw an error instead either null, true or false get returned
@@ -304,6 +303,7 @@ class TopicService {
             throw err;
         }
     }
+
 }
 
 export default TopicService;

@@ -1,11 +1,9 @@
 import articleImgsStorage from "../../../config/articleImgsStorage.js";
-import { MAX_ARTICLE_CONTENT_PICS_COUNT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import deleteFiles from "../../../util/deleteFiles.js";
 import {
-    fieldsTornadoFiles,
-    FileLimitExceeded,
     SingleFileError,
+    singleTornadoFile,
 } from "../../../util/fileUploaderHandlers.js";
 
 /**
@@ -13,14 +11,11 @@ import {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function downloadArtilcesPics(req, res, next) {
+async function downloadArticleCover(req, res, next) {
     try {
-        fieldsTornadoFiles({
+        singleTornadoFile({
             storage: articleImgsStorage,
-            fields: [
-                { name: "coverPic", maxCount: 1 },
-                { name: "contentPics", maxCount: 5 },
-            ],
+            fieldName: "coverPic",
         })(req, res, async function (err) {
             try {
                 if (err) {
@@ -37,15 +32,8 @@ async function downloadArtilcesPics(req, res, next) {
                         );
                     }
 
-                    if (err instanceof FileLimitExceeded) {
-                        return next(
-                            new APIError(
-                                `Content pictures limit exceeded. Allowed only ${MAX_ARTICLE_CONTENT_PICS_COUNT} pictures.`,
-                                400,
-                                "VALIDATION_ERROR"
-                            )
-                        );
-                    }
+                    // If the error is known
+                    if (err instanceof APIError) return next(err);
 
                     // Log the error if you want
                     return next(err);
@@ -62,4 +50,4 @@ async function downloadArtilcesPics(req, res, next) {
     }
 }
 
-export default downloadArtilcesPics;
+export default downloadArticleCover;

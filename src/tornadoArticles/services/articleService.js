@@ -1,24 +1,30 @@
 import { ForeignKeyConstraintError, Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import { PUBLISH_ARTICLE_LIMIT } from "../../../config/settings.js";
-import APIError from "../../../util/APIError.js";
 import {
-    extractCategoriesRanges,
-    extractFollowingRanges,
-    extractTopicsRanges,
-} from "../../../util/extractRanges.js";
+    ARTICLE_ATTRIBUTES,
+    ARTICLE_CONTENT_UPDATE_LIMIT,
+    ARTICLE_PREFERENCES_UPDATE_LIMIT,
+    ARTICLE_TAGS_UPDATE_LIMIT,
+    ARTICLE_TITLE_LANGUAGE_UPDATE_LIMIT,
+    MAX_CATEGORIES_ARTICLE_COUNT,
+    MAX_TOPICS_ARTICLE_COUNT,
+    PUBLISH_ARTICLE_LIMIT,
+} from "../../../config/settings.js";
+import APIError from "../../../util/APIError.js";
+import generateDateAfter from "../../../util/generateDateAfter.js";
+import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
 import Topic from "../../tornadoCategories/models/topic.js";
 import TopicService from "../../tornadoCategories/services/topicService.js";
-import FollowingService from "../../tornadoUser/services/followingService.js";
 import TornadoUserService from "../../tornadoUser/services/tornadoUserService.js";
-import UserPreferenceService from "../../tornadoUser/services/userPreferenceService.js";
 import Article from "../models/article.js";
 import ArticleCategory from "../models/articleCategory.js";
 import ArticleImage from "../models/articleImage.js";
+import ArticleLimit from "../models/articleLimit.js";
 import ArticleTag from "../models/articleTag.js";
+import ArticleTopic from "../models/articleTopic.js";
 import Tag from "../models/tag.js";
 import TagService from "../services/tagService.js";
 
@@ -68,10 +74,10 @@ class ErrorsEnum {
         "CATEGORY_NOT_FOUND"
     );
 
-    static ARTICLE_NOT_FOUND = new APIError(
-        "The article either deleted or not existed in first place.",
+    static TOPIC_NOT_FOUND = new APIError(
+        "One of the topics isn't exists",
         404,
-        "ARTICLE_NOT_FOUND"
+        "TOPIC_NOT_FOUND"
     );
 
     static ARTICLE_PUBLISH_LIMIT = new APIError(
@@ -87,25 +93,87 @@ class ErrorsEnum {
     );
 
     static TOPIC_WITHOUT_CATEGORY = new APIError(
-        "One of the topics haven't their category associated with it. Topic must have it's category",
+        "One of the topics haven't their category associated with it. Topic must have its category",
         400,
         "VALIDATION_ERROR"
     );
+
+    static COULDNOT_DELETE = new APIError(
+        "couldn't delete the article or it's already deleted",
+        400,
+        "VALIDATION_ERROR"
+    );
+
+    static ARTICLE_NOT_FOR_USER = new APIError(
+        "The article isn't for the user. You can't delete it",
+        401,
+        "NOT_AUTHORIZED"
+    );
+
+    static UPDATE_TITLE_LANG_LIMIT = (canUpdateAt) =>
+        new APIError(
+            `You can't update this article's (title or language) right now. You can update them after last update by ${ARTICLE_TITLE_LANGUAGE_UPDATE_LIMIT}`,
+            429,
+            "UPDATE_TITLE_LANGUAGE_LIMIT",
+            [["canUpdateAt", canUpdateAt]]
+        );
+
+    static UPDATE_CONTENT_LIMIT = (canUpdateAt) =>
+        new APIError(
+            `You can't update this article's content right now. You can update content after last update by ${ARTICLE_CONTENT_UPDATE_LIMIT}`,
+            429,
+            "UPDATE_CONTENT_LIMIT",
+            [["canUpdateAt", canUpdateAt]]
+        );
+
+    static CATEGORIES_MAX_LIMIT = new APIError(
+        `The article can have up to ${MAX_CATEGORIES_ARTICLE_COUNT} categroies`,
+        400,
+        "CATEGORIES_MAX_LIMIT"
+    );
+
+    static TOPICS_MAX_LIMIT = new APIError(
+        `The article can have up to ${MAX_TOPICS_ARTICLE_COUNT} topics`,
+        400,
+        "TOPICS_MAX_LIMIT"
+    );
+
+    static CATEGORY_ALREADY_ATTACHED = new APIError(
+        "There is a category that is already attached to the article",
+        409,
+        "DUPLICATED_VALUE_ERROR"
+    );
+
+    static TOPIC_ALREADY_ATTACHED = new APIError(
+        "There is a topic that is already attached to the article",
+        409,
+        "DUPLICATED_VALUE_ERROR"
+    );
+
+    static TAG_ALREADY_ATTACHED = new APIError(
+        "There is a tag that is already attached to the article",
+        409,
+        "DUPLICATED_VALUE_ERROR"
+    );
+
+    static UPDATE_PREFERENCES_LIMIT = (canUpdateAt) =>
+        new APIError(
+            `You can't change categories and topics for this article right now. You can change them after last change by ${ARTICLE_PREFERENCES_UPDATE_LIMIT}`,
+            429,
+            "UPDATE_PREFERENCES_LIMIT",
+            [["canUpdateAt", canUpdateAt]]
+        );
+
+    static UPDATE_TAGS_LIMIT = (canUpdateAt) =>
+        new APIError(
+            `You can't change tags for this article right now. You can change them after last change by ${ARTICLE_TAGS_UPDATE_LIMIT}`,
+            429,
+            "UPDATE_TAGS_LIMIT",
+            [["canUpdateAt", canUpdateAt]]
+        );
 }
 
 class ArticleService {
-    // When edit some attributes it will be helpfull
-    static _searchArticleAttrs = [
-        "id",
-        "title",
-        "createdAt",
-        "coverImg",
-        "language",
-        "minsToRead",
-        "headline",
-        "score",
-    ];
-
     static async publishArticle(
         userId,
         title,
@@ -119,6 +187,7 @@ class ArticleService {
         headline,
         topics
     ) {
+        console.log('\n\n####### FROM you know where ####\n', topics, '\n\n###########\n')
         // Start unmanaged transaction
         const t = await sequelize.transaction();
         try {
@@ -145,14 +214,16 @@ class ArticleService {
             )
                 throw ErrorsEnum.BANNED_FROM_PUBLISH;
 
-            // Let's check the topics if they are related to the passed categories or not
-            const isFound = await TopicService.isTopicsContainedIn(
-                topics,
-                categories
-            );
+            if (topics.length > 0) {
+                // Let's check the topics if they are related to the passed categories or not
+                const isFound = await TopicService.isTopicsContainedIn(
+                    topics,
+                    categories
+                );
 
-            if (isFound === null || !isFound)
-                throw ErrorsEnum.TOPIC_WITHOUT_CATEGORY;
+                if (isFound === null || !isFound)
+                    throw ErrorsEnum.TOPIC_WITHOUT_CATEGORY;
+            }
 
             // Add the article
             const article = await Article.create(
@@ -170,6 +241,22 @@ class ArticleService {
                     transaction: t,
                 }
             );
+
+            if (topics.length > 0) {
+                console.log('\n\n###########\n', topics, '\n\n###########\n')
+                // Create the zip
+                const zip = topics.map((topicId) => {
+                    return {
+                        articleId: article.dataValues.id,
+                        topicId,
+                    };
+                });
+
+                // Create the relations
+                await ArticleTopic.bulkCreate(zip, {
+                    transaction: t,
+                });
+            }
 
             // Add the images
             // zip the content images
@@ -240,6 +327,20 @@ class ArticleService {
                 t
             );
 
+            // Now create the limit
+            await ArticleLimit.create(
+                {
+                    articleId: article.dataValues.id,
+                    canUpdateTitleLangAt: null,
+                    canUpdateContentAt: null,
+                    canChangePreferencesAt: null,
+                    canChangeTagsAt: null,
+                },
+                {
+                    transaction: t,
+                }
+            );
+
             await t.commit();
             return article.dataValues.id;
         } catch (err) {
@@ -251,6 +352,11 @@ class ArticleService {
             )
                 throw ErrorsEnum.CATEGORY_NOT_FOUND;
 
+            if (
+                err instanceof ForeignKeyConstraintError &&
+                err.table === "ArticleTopics"
+            )
+                throw ErrorsEnum.TOPIC_NOT_FOUND;
             throw err;
         }
     }
@@ -278,9 +384,7 @@ class ArticleService {
                         through: {
                             attributes: [], // Don't include anything from junction table
                         },
-                        attributes: {
-                            exclude: ["createdAt", "description"],
-                        },
+                        attributes: ["id", "title"],
                         as: "categories",
                     },
                     {
@@ -316,7 +420,7 @@ class ArticleService {
                 // },
             });
 
-            if (!article) throw ErrorsEnum.ARTICLE_NOT_FOUND;
+            if (!article) throw GlobalErrorsEnum.ARTICLE_NOT_FOUND(articleId);
 
             return article;
         } catch (err) {
@@ -324,817 +428,460 @@ class ArticleService {
         }
     }
 
-    static async getFreshArticles(
+    static async deleteArticle(articleId) {
+        try {
+            const deletedCounts = await Article.destroy({
+                where: {
+                    id: articleId,
+                },
+            });
+
+            if (deletedCounts === 0) throw ErrorsEnum.COULDNOT_DELETE;
+
+            return deletedCounts;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async isArticleForUser(articleId, userId, attributes = ["userId"]) {
+        try {
+            const articleData = await Article.findByPk(articleId, {
+                attributes,
+            });
+
+            if (
+                articleData?.dataValues?.userId !== undefined &&
+                articleData?.dataValues?.userId !== userId
+            )
+                throw GlobalErrorsEnum.NOT_AUTHORIZED;
+
+            return articleData;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getArticleProps(articleId, props = []) {
+        try {
+            if (!/^\d+$/.test(articleId))
+                throw GlobalErrorsEnum.INVALID_BIGINT_ID("articleId");
+
+            const article = await Article.findByPk(articleId, {
+                attributes: props,
+            });
+
+            return article;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getArticlesFor(
         limit,
         since,
-        lastArticleId,
-        categories,
-        topics,
-        ignore
+        lastEntryId,
+        authorId,
+        includePrivate = false
     ) {
         try {
-            let articles = await Article.findAll({
-                attributes: this._searchArticleAttrs,
-                include: [
+            const articles = await Article.findAll({
+                where: {
+                    userId: authorId,
+                    createdAt: {
+                        // Less than passed date
+                        [Op.lt]: since,
+                    },
+
+                    // In case the same date (nearly impossible in this case accroding to the cooldown for publsihing articles)
+                    [Op.or]: {
+                        createdAt: since,
+                        id: {
+                            [Op.lt]: lastEntryId,
+                        },
+                    },
+
+                    ...(!includePrivate ? { private: false } : {}),
+                },
+                attributes: [...ARTICLE_ATTRIBUTES, "private"],
+                limit,
+                order: [
+                    ["createdAt", "DESC"],
+                    ["id", "ASC"],
+                ],
+                // benchmark: true,
+                // logging: function (sql, timeMs) {
+                //     loggingService.emit("query-time-usage", { sql, timeMs });
+                // },
+            });
+
+            return articles;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateArticle(
+        articleId,
+        isPrivate,
+        minsToRead,
+        language,
+        title,
+        headline
+    ) {
+        const t = await sequelize.transaction();
+        try {
+            if (title !== undefined || language !== undefined) {
+                // Get the limits
+                const articleLimit = await ArticleLimit.findByPk(articleId, {
+                    attributes: ["canUpdateTitleLangAt"],
+                });
+
+                // Check
+                if (
+                    articleLimit.dataValues.canUpdateTitleLangAt !== null &&
+                    new Date(articleLimit.dataValues.canUpdateTitleLangAt) >
+                        new Date()
+                )
+                    throw ErrorsEnum.UPDATE_TITLE_LANG_LIMIT(
+                        articleLimit.dataValues.canUpdateTitleLangAt
+                    );
+
+                // Update the limit if you can
+                await ArticleLimit.update(
                     {
-                        // Get the necessary info about the publisher
-                        model: User,
-                        as: "publisher",
-                        attributes: ["id", "fullName", "profilePic", "gender"],
+                        canUpdateTitleLangAt: generateDateAfter(
+                            ARTICLE_TITLE_LANGUAGE_UPDATE_LIMIT
+                        ),
                     },
                     {
+                        where: {
+                            articleId,
+                        },
+                        transaction: t,
+                    }
+                );
+            }
+
+            // Update the data
+            await Article.update(
+                {
+                    title,
+                    private: isPrivate,
+                    minsToRead,
+                    language,
+                    headline,
+                },
+                {
+                    where: {
+                        id: articleId,
+                    },
+                    validate: true, // Run the validator
+                    transaction: t,
+                }
+            );
+
+            // Everything is fine then commit
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    static async getArticleImages(articleId) {
+        try {
+            const articleImages = await ArticleImage.findAll({
+                attributes: ["image"],
+                where: { articleId },
+            });
+
+            return articleImages.map((article) => article.dataValues.image);
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateArticleContent(articleId, content, contentPics, images) {
+        const t = await sequelize.transaction();
+        try {
+            // Check if the article's content can be edited
+            const articleLimit = await ArticleLimit.findByPk(articleId, {
+                attributes: ["canUpdateContentAt"],
+            });
+
+            if (
+                articleLimit.dataValues.canUpdateContentAt !== null &&
+                new Date(articleLimit.dataValues.canUpdateContentAt) >
+                    new Date()
+            )
+                throw ErrorsEnum.UPDATE_CONTENT_LIMIT(
+                    articleLimit.dataValues.canUpdateContentAt
+                );
+
+            // Delete the images from the ArticleImage model
+            await ArticleImage.destroy({
+                where: {
+                    articleId,
+                    image: {
+                        [Op.in]: images,
+                    },
+                },
+                transaction: t,
+            });
+
+            // Add the new images if provided
+            if (contentPics.length > 0) {
+                // Create the Zip
+                const zip = contentPics.map((contentPic) => {
+                    return {
+                        articleId,
+                        image: contentPic,
+                    };
+                });
+
+                await ArticleImage.bulkCreate(zip, { transaction: t });
+            }
+
+            // Update the content and cover image if passed
+            await Article.update(
+                {
+                    content,
+                },
+                {
+                    where: { id: articleId },
+                    validate: true,
+                    transaction: t,
+                }
+            );
+
+            // Update the limit
+            await ArticleLimit.update(
+                {
+                    canUpdateContentAt: generateDateAfter(
+                        ARTICLE_CONTENT_UPDATE_LIMIT
+                    ),
+                },
+                { where: { articleId }, transaction: t }
+            );
+
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    static async updateArticleCover(articleId, coverPic) {
+        try {
+            await Article.update(
+                { coverImg: coverPic },
+                {
+                    where: {
+                        id: articleId,
+                    },
+                }
+            );
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateArticleCategoriesTopics(
+        articleId,
+        addCategories,
+        addTopics
+    ) {
+        const t = await sequelize.transaction();
+        try {
+            const articleLimit = await ArticleLimit.findByPk(articleId, {
+                attributes: ["canChangePreferencesAt"],
+            });
+
+            if (
+                articleLimit.canChangePreferencesAt !== null &&
+                new Date(articleLimit.canChangePreferencesAt) > new Date()
+            )
+                throw ErrorsEnum.UPDATE_PREFERENCES_LIMIT(
+                    articleLimit.canChangePreferencesAt
+                );
+
+            // Get the topcis and categories for the article
+            const article = await Article.findByPk(articleId, {
+                attributes: ["id"],
+                include: [
+                    {
+                        // Get the article categories
                         model: Category,
-                        as: "categories",
                         through: {
                             attributes: [], // Don't include anything from junction table
                         },
-                        attributes: ["id", "title"],
-
-                        // If passed categories filter by them
-                        ...(categories.length > 0 && {
-                            where: {
-                                id: { [Op.in]: categories },
-                            },
-                        }),
-                    },
-                    {
-                        // Get the topics
-                        model: Topic,
-                        attributes: ["id", "title"],
-                        through: {
-                            attributes: [],
-                        },
-                        as: "topics",
-
-                        // Again if he wants topics filter by them
-                        ...(topics.length > 0 && {
-                            where: {
-                                id: { [Op.in]: topics },
-                            },
-                        }),
-                    },
-                    {
-                        model: Tag,
-                        as: "tags",
-                        through: {
-                            attributes: [],
-                        },
-                    },
-                ],
-                where: {
-                    id: {
-                        [Op.notIn]: ignore,
-                    },
-                    private: false,
-                    [Op.or]: [
-                        {
-                            createdAt: {
-                                [Op.lt]: since,
-                            },
-                        },
-                        {
-                            createdAt: since,
-                            id: {
-                                [Op.lt]: lastArticleId,
-                            },
-                        },
-                    ],
-                },
-                limit,
-                order: [
-                    ["createdAt", "DESC"],
-                    ["id", "DESC"],
-                ],
-            });
-
-            // As the filter on categories. Not all categories for the article will be back from the query
-            articles = this._attachAllCategoriesTopics(articles);
-
-            return articles;
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getOptimalArticles(
-        limit,
-        categories,
-        topics,
-        lastArticleId,
-        lastArticleRank = Number.POSITIVE_INFINITY,
-        ignore = []
-    ) {
-        try {
-            let compareId = {};
-            // If there is a provided id compare with it
-            if (lastArticleId !== "")
-                compareId = {
-                    articleRank: lastArticleRank, // If they have the same rank
-                    id: { [Op.lt]: lastArticleId }, // Then take where the id is less (snowflake guarantee that the id is sorted naturally by timestamp)
-                };
-
-            let articles = await Article.findAll({
-                attributes: [...this._searchArticleAttrs, "articleRank"],
-                include: [
-                    {
-                        // Get the necessary info about the publisher
-                        model: User,
-                        as: "publisher",
-                        attributes: ["id", "fullName", "profilePic", "gender"],
-                    },
-                    {
-                        model: Category,
+                        attributes: ["id"],
                         as: "categories",
-                        through: {
-                            attributes: [],
-                        },
-                        attributes: ["id", "title"],
-                        ...(categories.length > 0 && {
-                            where: {
-                                id: { [Op.in]: categories },
-                            },
-                        }),
                     },
                     {
                         // Get the topics
                         model: Topic,
-                        attributes: ["id", "title"],
+                        attributes: ["id"],
                         through: {
                             attributes: [],
                         },
                         as: "topics",
-
-                        // Again if he wants topics filter by them
-                        ...(topics.length > 0 && {
-                            where: {
-                                id: { [Op.in]: topics },
-                            },
-                        }),
                     },
-                    {
-                        model: Tag,
-                        as: "tags",
-                        through: {
-                            attributes: [],
-                        },
-                    },
-                ],
-                where: {
-                    id: {
-                        [Op.notIn]: ignore,
-                    },
-                    private: false,
-                    [Op.or]: [
-                        {
-                            articleRank: {
-                                [Op.lt]: lastArticleRank, // Take less than provided article
-                            },
-                        },
-                        compareId, // If there is equality take this
-                    ],
-                },
-                limit,
-                order: [
-                    ["articleRank", "DESC"],
-                    ["id", "DESC"],
                 ],
             });
 
-            // As the filter on categories. Not all categories for the article will be back from the query
-            articles = this._attachAllCategoriesTopics(articles);
+            // Extract topics and categories
+            const topics = article.dataValues.topics.map((topic) => topic.id);
+            const categories = article.dataValues.categories.map(
+                (category) => category.id
+            );
 
-            return articles;
-        } catch (err) {
-            throw err;
-        }
-    }
+            // Remove the old categories and topics
+            await ArticleTopic.destroy({
+                where: {
+                    topicId: {
+                        [Op.in]: topics,
+                    },
+                    articleId,
+                },
+                transaction: t,
+            });
 
-    static async getArticlesFollowingFresh(
-        followedId,
-        since,
-        lastArticleId,
-        firstPublisherId,
-        lastPublisherId,
-        firstPublisherRate,
-        lastPublisherRate,
-        ignore,
-        articlesLimit,
-        followingsLimit,
-        keepTheRange = true // To specify if you want to save the range or get new one
-    ) {
-        try {
-            let followingsIds = null;
-            let followingsRates = {
-                firstPublisherRate: null,
-                lastPublisherRate: null,
-            };
-            let followingsIdsRange = {
-                firstPublisherId: null,
-                lastPublisherId: null,
-            };
+            // Remove categories
+            await ArticleCategory.destroy({
+                where: {
+                    categoryId: {
+                        [Op.in]: categories,
+                    },
+                    articleId,
+                },
 
-            // Either save the range
-            if (keepTheRange) {
-                followingsIds =
-                    await FollowingService.getFollowingsBetweenRates(
-                        followedId,
-                        firstPublisherRate,
-                        lastPublisherRate,
-                        firstPublisherId,
-                        lastPublisherId,
-                        followingsLimit
-                    );
-            } else {
-                // Or get another one after the last rate
-                followingsIds = await FollowingService.getFollowingsAfterRate(
-                    followedId,
-                    lastPublisherRate,
-                    lastPublisherId,
-                    followingsLimit
+                transaction: t,
+            });
+
+            if (addTopics.length > 0) {
+                // Let's check the topics if they are related to the passed categories or not
+                const isFound = await TopicService.isTopicsContainedIn(
+                    topics,
+                    categories
                 );
+
+                if (isFound === null || !isFound)
+                    throw ErrorsEnum.TOPIC_WITHOUT_CATEGORY;
             }
 
-            // Take IDs, Rate range, and first and last publisher id
-            ({ followingsIds, followingsIdsRange, followingsRates } =
-                extractFollowingRanges(followingsIds));
-
-            // Get the articles for those followings
-            // After getting the followings get article for them
-            const articles = await Article.findAll({
-                attributes: this._searchArticleAttrs,
-                where: {
-                    id: {
-                        [Op.notIn]: ignore,
-                    },
-                    private: false,
-                    userId: {
-                        [Op.in]: followingsIds,
-                    },
-                    [Op.or]: [
-                        {
-                            createdAt: {
-                                [Op.lt]: since,
-                            },
-                        },
-                        {
-                            createdAt: since,
-                            id: {
-                                [Op.lt]: lastArticleId,
-                            },
-                        },
-                    ],
-                },
-                include: [
-                    {
-                        // Get the article categories
-                        model: Category,
-                        through: {
-                            attributes: [],
-                        },
-                        attributes: ["id", "title"],
-                        as: "categories",
-                    },
-                    {
-                        // Get the topics
-                        model: Topic,
-                        attributes: ["id", "title"],
-                        through: {
-                            attributes: [],
-                        },
-                        as: "topics",
-                    },
-                    {
-                        // Get the tags
-                        model: Tag,
-                        through: {
-                            attributes: [],
-                        },
-                        attributes: {
-                            exclude: ["createdAt"],
-                        },
-                        as: "tags",
-                    },
-                ],
-                order: [
-                    ["createdAt", "DESC"],
-                    ["id", "DESC"],
-                ],
-                limit: articlesLimit,
-                // benchmark: true,
-                // logging: (sql, timeMs) => {
-                //     loggingService.emit("query-time-usage", { sql, timeMs });
-                // },
-            });
-
-            // Extract all necessary information
-            return {
-                articles,
-                publishersIds: followingsIdsRange,
-                interestRateRange: followingsRates,
-                lastArticleId:
-                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCreatedAt:
-                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
-            };
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getArticlesFollowingOptimal(
-        followedId,
-        firstPublisherId,
-        lastPublisherId,
-        lastPublisherRate,
-        firstPublisherRate,
-        followingsLimit,
-        keepTheRange,
-        articlesLimit,
-        lastArticleRank,
-        lastArticleId,
-        ignore
-    ) {
-        try {
-            let followingsIds = null;
-            let followingsRates = {
-                firstPublisherRate: null,
-                lastPublisherRate: null,
-            };
-            let followingsIdsRange = {
-                firstPublisherId: null,
-                lastPublisherId: null,
-            };
-
-            // Either save the range
-            if (keepTheRange) {
-                followingsIds =
-                    await FollowingService.getFollowingsBetweenRates(
-                        followedId,
-                        firstPublisherRate,
-                        lastPublisherRate,
-                        firstPublisherId,
-                        lastPublisherId,
-                        followingsLimit
-                    );
-            } else {
-                // Or get another one after the last rate
-                followingsIds = await FollowingService.getFollowingsAfterRate(
-                    followedId,
-                    lastPublisherRate,
-                    lastPublisherId,
-                    followingsLimit
-                );
-            }
-
-            // Take IDs, Rate range, and first and last publisher id
-            ({ followingsIds, followingsIdsRange, followingsRates } =
-                extractFollowingRanges(followingsIds));
-
-            // Get the articles for those followings
-            // After getting the followings get article for them
-            const articles = await Article.findAll({
-                attributes: [...this._searchArticleAttrs, "articleRank"],
-                where: {
-                    id: {
-                        [Op.notIn]: ignore,
-                    },
-                    private: false,
-                    userId: {
-                        [Op.in]: followingsIds,
-                    },
-                    [Op.or]: [
-                        {
-                            articleRank: {
-                                [Op.lt]: lastArticleRank,
-                            },
-                        },
-                        {
-                            articleRank: lastArticleRank,
-                            id: {
-                                [Op.lt]: lastArticleId,
-                            },
-                        },
-                    ],
-                },
-                include: [
-                    {
-                        // Get the article categories
-                        model: Category,
-                        through: {
-                            attributes: [],
-                        },
-                        attributes: ["id", "title"],
-                        as: "categories",
-                    },
-                    {
-                        // Get the topics
-                        model: Topic,
-                        attributes: ["id", "title"],
-                        through: {
-                            attributes: [],
-                        },
-                        as: "topics",
-                    },
-                    {
-                        // Get the tags
-                        model: Tag,
-                        through: {
-                            attributes: [],
-                        },
-                        attributes: {
-                            exclude: ["createdAt"],
-                        },
-                        as: "tags",
-                    },
-                ],
-                order: [
-                    ["articleRank", "DESC"],
-                    ["id", "DESC"],
-                ],
-                limit: articlesLimit,
-                // benchmark: true,
-                // logging: (sql, timeMs) => {
-                //     loggingService.emit("query-time-usage", { sql, timeMs });
-                // },
-            });
-
-            // Extract all necessary information
-            return {
-                articles,
-                publishersIds: followingsIdsRange,
-                interestRateRange: followingsRates,
-                lastArticleId:
-                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArticleRank:
-                    articles?.at(-1)?.dataValues?.articleRank ??
-                    String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
-            };
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getArticlesCategoriesFresh(
-        userId,
-        firstInterestRate,
-        lastInterestRate,
-        firstCategoryId,
-        lastCategoryId,
-        categoriesLimit,
-        since,
-        lastArticleId,
-        ignore,
-        articlesLimit,
-        keepTheRange
-    ) {
-        try {
-            let categoriesIdsRange = {
-                firstCategoryId: null,
-                lastCategoryId: null,
-            };
-
-            let categoriesRates = {
-                firstCategoryRate: null,
-                lastCategoryRate: null,
-            };
-
-            let categoriesIds = null;
-
-            if (keepTheRange) {
-                categoriesIds =
-                    await UserPreferenceService.getPreferredCategoriesBetweenRates(
-                        userId,
-                        firstInterestRate,
-                        lastInterestRate,
-                        firstCategoryId,
-                        lastCategoryId,
-                        categoriesLimit
-                    );
-            } else {
-                categoriesIds =
-                    await UserPreferenceService.getPreferredCategoriesAfterRate(
-                        userId,
-                        lastInterestRate,
-                        lastCategoryId,
-                        categoriesLimit
-                    );
-            }
-
-            // Extract the rangess
-            ({ categoriesIds, categoriesIdsRange, categoriesRates } =
-                extractCategoriesRanges(categoriesIds));
-
-            // Use the same function but send the categories
-            let articles = await this.getFreshArticles(
-                articlesLimit,
-                since,
-                lastArticleId,
-                categoriesIds,
-                [], // Pass empty topics list
-                ignore
-            );
-
-            return {
-                articles,
-                categoriesIds: categoriesIdsRange,
-                categoriesRates,
-                lastArticleId:
-                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCreatedAt:
-                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
-            };
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getArticlesCategoriesOptimal(
-        userId,
-        firstInterestRate,
-        lastInterestRate,
-        firstCategoryId,
-        lastCategoryId,
-        categoriesLimit,
-        lastArticleRank,
-        lastArticleId,
-        ignore,
-        articlesLimit,
-        keepTheRange
-    ) {
-        try {
-            let categoriesIdsRange = {
-                firstCategoryId: null,
-                lastCategoryId: null,
-            };
-
-            let categoriesRates = {
-                firstCategoryRate: null,
-                lastCategoryRate: null,
-            };
-
-            let categoriesIds = null;
-
-            if (keepTheRange) {
-                categoriesIds =
-                    await UserPreferenceService.getPreferredCategoriesBetweenRates(
-                        userId,
-                        firstInterestRate,
-                        lastInterestRate,
-                        firstCategoryId,
-                        lastCategoryId,
-                        categoriesLimit
-                    );
-            } else {
-                categoriesIds =
-                    await UserPreferenceService.getPreferredCategoriesAfterRate(
-                        userId,
-                        lastInterestRate,
-                        lastCategoryId,
-                        categoriesLimit
-                    );
-            }
-
-            // Extract the rangess
-            ({ categoriesIds, categoriesIdsRange, categoriesRates } =
-                extractCategoriesRanges(categoriesIds));
-
-            // Use the same function but send the categories
-            let articles = await this.getOptimalArticles(
-                articlesLimit,
-                categoriesIds,
-                [], // Pass empty topics array
-                lastArticleId,
-                lastArticleRank,
-                ignore
-            );
-
-            return {
-                articles,
-                categoriesIds: categoriesIdsRange,
-                categoriesRates,
-                lastArticleId:
-                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCRank:
-                    articles?.at(-1)?.dataValues?.articleRank ??
-                    String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
-            };
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getArticlesTopicsFresh(
-        userId,
-        firstInterestRate,
-        lastInterestRate,
-        firstTopicId,
-        lastTopicId,
-        topicsLimit,
-        since,
-        lastArticleId,
-        ignore,
-        articlesLimit,
-        keepTheRange
-    ) {
-        try {
-            let topicsIdsRange = {
-                firstTopicId: null,
-                lastTopicId: null,
-            };
-
-            let topicsRates = {
-                firstTopicRate: null,
-                lastTopicRate: null,
-            };
-
-            let topicsIds = null;
-
-            if (keepTheRange) {
-                topicsIds =
-                    await UserPreferenceService.getPreferredTopicsBetweenRates(
-                        userId,
-                        firstInterestRate,
-                        lastInterestRate,
-                        firstTopicId,
-                        lastTopicId,
-                        topicsLimit
-                    );
-            } else {
-                topicsIds =
-                    await UserPreferenceService.getPreferredTopicsAfterRate(
-                        userId,
-                        lastInterestRate,
-                        lastTopicId,
-                        topicsLimit
-                    );
-            }
-
-            // Extract the rangess
-            ({ topicsIds, topicsIdsRange, topicsRates } =
-                extractTopicsRanges(topicsIds));
-
-            // Use the same function but send the categories
-            let articles = await this.getFreshArticles(
-                articlesLimit,
-                since,
-                lastArticleId,
-                [], // Pass empty array as categories
-                topicsIds,
-                ignore
-            );
-
-            return {
-                articles,
-                topicsIds: topicsIdsRange,
-                topicsRates: topicsRates,
-                lastArticleId:
-                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCreatedAt:
-                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
-            };
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    static async getArticlesTopicsOptimal(
-        userId,
-        firstInterestRate,
-        lastInterestRate,
-        firstTopicId,
-        lastTopicId,
-        topicsLimit,
-        lastArticleRank,
-        lastArticleId,
-        ignore,
-        articlesLimit,
-        keepTheRange
-    ) {
-        try {
-            let topicsIdsRange = {
-                firstTopicId: null,
-                lastTopicId: null,
-            };
-
-            let topicsRates = {
-                firstTopicRate: null,
-                lastTopicRate: null,
-            };
-
-            let topicsIds = null;
-
-            if (keepTheRange) {
-                topicsIds =
-                    await UserPreferenceService.getPreferredTopicsBetweenRates(
-                        userId,
-                        firstInterestRate,
-                        lastInterestRate,
-                        firstTopicId,
-                        lastTopicId,
-                        topicsLimit
-                    );
-            } else {
-                topicsIds =
-                    await UserPreferenceService.getPreferredTopicsAfterRate(
-                        userId,
-                        lastInterestRate,
-                        lastTopicId,
-                        topicsLimit
-                    );
-            }
-
-            // Extract the rangess
-            ({
-                topicsIds,
-                topicsIdsRange,
-                topicsRates,
-            } = extractTopicsRanges(topicsIds));
-
-            // Use the same function but send the categories
-            let articles = await this.getOptimalArticles(
-                articlesLimit,
-                [], // Pass empty categories array
-                topicsIds,
-                lastArticleId,
-                lastArticleRank,
-                ignore
-            );
-
-            return {
-                articles,
-                topicsIds: topicsIdsRange,
-                topicsRates,
-                lastArticleId:
-                    articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCRank:
-                    articles?.at(-1)?.dataValues?.articleRank ??
-                    String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
-            };
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    // This helper methods don't use them outside the class
-    static async _attachAllCategoriesTopics(articles) {
-        try {
-            let articlesCategories = [];
-
-            if (articles.length) {
-                let mapIdToIndex = {}; // This will be helpful
-
-                let articlesIds = articles.map((article, i) => {
-                    mapIdToIndex[article.dataValues.id] = i; // This will reduce one nested loop later
-                    return article.dataValues.id;
+            // When the article have the categories for the topics (or no topics provided)
+            // Add them all
+            if (addCategories.length > 0) {
+                // Create the zip
+                const zip = addCategories.map((categoryId) => {
+                    return {
+                        categoryId,
+                        articleId,
+                    };
                 });
 
-                // This is fast enough using the primary key and no need to additional relation setup in database/index.js
-                articlesCategories = await Article.findAll({
-                    attributes: ["id"],
+                await ArticleCategory.bulkCreate(zip, {
+                    transaction: t,
+                });
+            }
+
+            if (addTopics.length > 0) {
+                // Create the zip
+                const zip = addTopics.map((topicId) => {
+                    return {
+                        topicId,
+                        articleId,
+                    };
+                });
+
+                await ArticleTopic.bulkCreate(zip, {
+                    transaction: t,
+                });
+            }
+
+            await ArticleLimit.update(
+                {
+                    canChangePreferencesAt: generateDateAfter(
+                        ARTICLE_PREFERENCES_UPDATE_LIMIT
+                    ),
+                },
+                {
                     where: {
-                        id: {
-                            [Op.in]: articlesIds, // Exctract articles Ids
-                        },
+                        articleId,
                     },
-                    include: [
-                        {
-                            // Get the categories
-                            attributes: ["id", "title"],
-                            model: Category,
-                            as: "categories",
-                            through: {
-                                attributes: [],
-                            },
-                        },
-                        // Get the topics
-                        {
-                            attributes: ["id", "title"],
-                            model: Topic,
-                            through: {
-                                attributes: [],
-                            },
-                            as: "topics",
-                        },
-                    ],
+                }
+            );
+
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    static async updateArticleTags(articleId, addTags) {
+        const t = await sequelize.transaction();
+        try {
+            const articleLimit = await ArticleLimit.findByPk(articleId, {
+                attributes: ["canChangeTagsAt"],
+            });
+
+            if (
+                articleLimit.canChangeTagsAt !== null &&
+                new Date(articleLimit.canChangeTagsAt) > new Date()
+            )
+                throw ErrorsEnum.UPDATE_TAGS_LIMIT(
+                    articleLimit.canChangeTagsAt
+                );
+
+            // Remvoe all old tags
+            await ArticleTag.destroy({
+                where: {
+                    articleId,
+                },
+                transaction: t,
+            });
+
+            // Create the zip for adding tags
+            if (addTags.length > 0) {
+                const zip = addTags.map((tagId) => {
+                    return {
+                        tagId,
+                        articleId,
+                    };
                 });
 
-                // Attach the categories to articles using the map between ids and indexes
-                articlesCategories.forEach((article) => {
-                    // Get the id
-                    let articleId = article.dataValues.id;
-
-                    // Get the index of that Id and change its categories
-                    articles[mapIdToIndex[articleId]].dataValues.categories =
-                        article.dataValues.categories;
-
-                    // And the topics
-                    articles[mapIdToIndex[articleId]].dataValues.topics =
-                        article.dataValues.topics;
+                await ArticleTag.bulkCreate(zip, {
+                    transaction: t,
                 });
             }
 
-            return articles;
+            await ArticleTag.update(
+                {
+                    canChangeTagsAt: generateDateAfter(
+                        ARTICLE_TAGS_UPDATE_LIMIT
+                    ),
+                },
+                {
+                    where: {
+                        articleId,
+                    },
+                }
+            );
+
+            await t.commit();
         } catch (err) {
+            await t.rollback();
+
+            // Make the error more readable
+            if (
+                err?.name === "SequelizeUniqueConstraintError" &&
+                err?.parent?.table === "ArticleTags"
+            ) {
+                throw ErrorsEnum.TAG_ALREADY_ATTACHED;
+            }
             throw err;
         }
     }

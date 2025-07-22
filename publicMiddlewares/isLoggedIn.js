@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
-import TornadoUserService from "../src/tornadoUser/services/tornadoUserService.js";
-import APIError from "../util/APIError.js";
 import AuthUserService from "../src/auth/services/AuthUserService.js";
+import APIError from "../util/APIError.js";
 
 class ErrorsEnum {
     static INVALID_TOKEN = new APIError(
@@ -37,8 +36,28 @@ async function isLoggedIn(req, res, next) {
 
         const payload = jwt.verify(token, process.env.ACCESS_SECRET_STRING);
 
-        // Check if user exists
-        await AuthUserService.getUserProps(payload?.id, ["id"]);
+        // Check if user exists. and save his data
+        const user = await AuthUserService.getUserProps(
+            payload?.id,
+            ["id", "role"],
+            ["passwordChangedAt", "verifiedEmail"]
+        );
+
+        // Check if there is he/she changed password
+        // When the date is after the initilize of the token
+        if (
+            user.limits.passwordChangedAt !== null &&
+            user.limits.passwordChangedAt > new Date(payload.iat * 1000)
+        ) {
+            return next(ErrorsEnum.CHANGES_HAPPENED);
+        }
+
+        // Attach the data to use it in another controller
+        req.userInfo = {
+            id: user.id,
+            role: user.role,
+            verifiedEmail: user.limits.verifiedEmail,
+        };
 
         return next();
     } catch (err) {

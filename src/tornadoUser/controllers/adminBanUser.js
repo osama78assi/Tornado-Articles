@@ -1,16 +1,8 @@
-import sendReasonBanUser from "../../../services/sendReasonBanUser.js";
+import sendBanUserReason from "../../../services/sendBanUserReason.js";
 import APIError from "../../../util/APIError.js";
 import generateDateAfter from "../../../util/generateDateAfter.js";
 import { WrongPeriod } from "../../../util/parseStrPeriod.js";
 import TornadoUserService from "../services/tornadoUserService.js";
-
-class ErrorsEnum {
-    static NO_REASON = new APIError(
-        "Please provide the reason for the ban",
-        400,
-        "NO_REASON"
-    );
-}
 
 /**
  *
@@ -26,13 +18,16 @@ async function adminBanUser(req, res, next) {
         const banTill = generateDateAfter(banFor);
 
         // Get the user data
-        const userData = await TornadoUserService.getUserProps(userId, ["email", "fullName"]);
+        const userData = await TornadoUserService.getUserProps(userId, [
+            "email",
+            "fullName",
+        ]);
 
         // Ban the user
         await TornadoUserService.banUserFor(userId, banTill);
 
         // Notify the user by email (TODO: do it in the platform)
-        sendReasonBanUser(
+        sendBanUserReason(
             {
                 userEmail: userData.dataValues.email,
                 userName: userData.dataValues.fullName,

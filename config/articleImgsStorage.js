@@ -3,7 +3,11 @@ import { dirname, extname, join } from "path";
 import { fileURLToPath } from "url";
 import APIError from "../util/APIError.js";
 import { TornadoStorage } from "../util/fileUploaderHandlers.js";
-import { MAX_ARTICLE_PICS_SIZE_MB } from "./settings.js";
+import GlobalErrorsEnum from "../util/globalErrorsEnum.js";
+import {
+    MAX_ARTICLE_PICS_SIZE_MB,
+    SUPPORTED_IMAGES_MIMETYPES as supMimetypes,
+} from "./settings.js";
 
 const articleImgsStorage = new TornadoStorage({
     destination: async (req, file) => {
@@ -16,14 +20,14 @@ const articleImgsStorage = new TornadoStorage({
             );
         }
 
-        if (!(await fileTypeFromBuffer(file.data))?.mime?.startsWith("image")) {
-            // Check the real file type
-            throw new APIError(
-                "Only images accepted",
-                400,
-                "INVALID_IMAGE_TYPE"
+        // Get the mimtype
+        const mimetype = await fileTypeFromBuffer(file.data).mime;
+
+        // Check the real file type
+        if (mimetype !== undefined && !mimetype.startsWith("image") && !supMimetypes[mimetype])
+            throw GlobalErrorsEnum.UNSUPPORTED_IMAGES(
+                Object.values(supMimetypes)
             );
-        }
 
         const __dirname = dirname(fileURLToPath(import.meta.url));
 

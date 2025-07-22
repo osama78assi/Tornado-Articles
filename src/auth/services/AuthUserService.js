@@ -128,6 +128,7 @@ class AuthUserService {
                     "fullName",
                     "password",
                     "email",
+                    "role",
                     "gender",
                     "profilePic",
                     "brief",

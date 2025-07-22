@@ -12,14 +12,16 @@ function extractFollowingRanges(followings) {
             followingsIdsRange.firstPublisherId =
                 following?.dataValues?.followedId;
 
-            followingsRates.firstPublisherRate =
-                following?.dataValues?.interestRate;
+            followingsRates.firstPublisherRate = String(
+                following?.dataValues?.interestRate
+            ); // Always convert it to string
         } else if (i === followings.length - 1) {
             followingsIdsRange.lastPublisherId =
                 following?.dataValues?.followedId;
 
-            followingsRates.lastPublisherRate =
-                following?.dataValues?.interestRate;
+            followingsRates.lastPublisherRate = String(
+                following?.dataValues?.interestRate
+            );
         }
         return following?.dataValues?.followedId;
     });
@@ -40,14 +42,16 @@ function extractCategoriesRanges(categories) {
             categoriesIdsRange.firstCategoryId =
                 category?.dataValues?.categoryId;
 
-            categoriesRates.firstCategoryRate =
-                category?.dataValues?.interestRate;
+            categoriesRates.firstCategoryRate = String(
+                category?.dataValues?.interestRate
+            );
         } else if (i === categories.length - 1) {
             categoriesIdsRange.lastCategoryId =
                 category?.dataValues?.categoryId;
 
-            categoriesRates.lastCategoryRate =
-                category?.dataValues?.interestRate;
+            categoriesRates.lastCategoryRate = String(
+                category?.dataValues?.interestRate
+            );
         }
         return category?.dataValues?.categoryId;
     });
@@ -71,11 +75,13 @@ function extractTopicsRanges(topics) {
         if (i === 0) {
             topicsIdsRange.firstTopicId = topic?.dataValues?.topicId;
 
-            topicsRates.firstTopicRate = topic?.dataValues?.interestRate;
+            topicsRates.firstTopicRate = String(
+                topic?.dataValues?.interestRate
+            );
         } else if (i === topics.length - 1) {
             topicsIdsRange.lastTopicId = topic?.dataValues?.topicId;
 
-            topicsRates.lastTopicRate = topic?.dataValues?.interestRate;
+            topicsRates.lastTopicRate = String(topic?.dataValues?.interestRate);
         }
         return topic?.dataValues?.topicId;
     });

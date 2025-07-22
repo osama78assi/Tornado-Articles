@@ -1,9 +1,8 @@
 import { unlink } from "fs/promises";
+import { TORNADO_ROLES } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-import sanitize from "../../../util/sanitize.js";
 import AuthService from "../services/AuthUserService.js";
-import { TORNADO_ROLES } from "../../../config/settings.js";
 
 class ErrorsEnum {
     static INVALID_VALUE = new APIError(
@@ -62,7 +61,8 @@ async function adminCreateAccount(req, res, next) {
         return res.status(200).json({
             success: true,
             data: user,
-            message: "Please make the added user verify the email before interact with the website"
+            message:
+                "Please make the added user verify the email before interact with the website",
         });
     } catch (err) {
         // When facing the error the photo now in the dist. Delete it

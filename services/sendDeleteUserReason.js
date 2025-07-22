@@ -8,7 +8,7 @@ import sendEmailService from "./sendEmailService.js";
  * @param {string} reason simply the reason for deleting the account
  * @returns {Promise} The info of the email result (after sending it)
  */
-async function sendReasonDeleteUser({ userName, userEmail }, auth, reason) {
+async function sendDeleteUserReason({ userName, userEmail }, auth, reason) {
     try {
         // Create a transporter
         const transporter = nodemailer.createTransport({
@@ -40,4 +40,4 @@ async function sendReasonDeleteUser({ userName, userEmail }, auth, reason) {
     }
 }
 
-export default sendReasonDeleteUser;
+export default sendDeleteUserReason;
