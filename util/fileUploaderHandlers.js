@@ -44,7 +44,7 @@ class TornadoStorage {
     }
 
     /**
-     * Write the file
+     * Write the file to the disk
      * @param {import('express').Request} req
      * @param {import('express-fileupload').UploadedFile} file
      * @returns {Promise<{ filePath: string, newName: string }>} The file path in the disk
@@ -164,18 +164,32 @@ function fieldsTornadoFiles({ storage, fields }) {
                             )
                         );
 
-                    // Now loop over these files and upload them one by another
-                    for (let i = 0; i < file.length; i++) {
-                        let singleFile = file[i];
-                        // Exctract tha path
+                    // When we expect more than one file but user send one file epxress-file-upload will save it as one field not array
+                    if (Array.isArray(file)) {
+                        // Now loop over these files and upload them one by another
+                        for (let i = 0; i < file.length; i++) {
+                            let singleFile = file[i];
+                            // Exctract tha path
+                            const { filePath, newName } =
+                                await storage.writeData(req, singleFile);
+
+                            // Attach to the corresponding file
+                            req.files[field.name][i].diskPath = filePath;
+                            req.files[field.name][i].newName = newName;
+                        }
+                    } else {
+                        // In this case it will be single file uploaded
                         const { filePath, newName } = await storage.writeData(
                             req,
-                            singleFile
+                            file
                         );
 
-                        // Attach to the corresponding file
-                        req.files[field.name][i].diskPath = filePath;
-                        req.files[field.name][i].newName = newName;
+                        // Add the file to an array
+                        req.files[field.name] = [req.files[field.name]]
+                        
+                        // Now attact the diskpath and new name
+                        req.files[field.name][0].diskPath = filePath;
+                        req.files[field.name][0].newName = newName;
                     }
                 }
             }
