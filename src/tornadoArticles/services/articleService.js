@@ -187,7 +187,6 @@ class ArticleService {
         headline,
         topics
     ) {
-        console.log('\n\n####### FROM you know where ####\n', topics, '\n\n###########\n')
         // Start unmanaged transaction
         const t = await sequelize.transaction();
         try {
@@ -243,7 +242,6 @@ class ArticleService {
             );
 
             if (topics.length > 0) {
-                console.log('\n\n###########\n', topics, '\n\n###########\n')
                 // Create the zip
                 const zip = topics.map((topicId) => {
                     return {

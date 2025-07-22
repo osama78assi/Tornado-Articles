@@ -27,8 +27,6 @@ async function publishArticle(req, res, next) {
         tags = removeDuplicated(tags);
         topics = removeDuplicated(topics);
 
-        console.log('\n\n###### FROM controllers #####\n', topics, '\n\n###########\n')
-
         // Get user Id
         const userId = req.userInfo.id;
 
