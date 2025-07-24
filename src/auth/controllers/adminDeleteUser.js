@@ -12,24 +12,44 @@ async function adminDeleteUser(req, res, next) {
     try {
         const { userId } = req?.params;
 
-        const { reason } = req?.body;
+        const { reason, userReason } = req?.body;
 
         const currentId = req.userInfo.id;
+        const currentRole = req?.userInfo.role;
 
         if (userId === currentId)
             return next(
                 new APIError(
-                    "Are you serious ? you are the admin how can I delete you ?",
+                    "Are you serious ? you are the same user how can I delete you ?",
                     400,
                     "ILLEGAL_OPERATION"
                 )
             );
 
         // Get the user name and email
-        const user = await AuthUserService.getUserBy(userId, false);
+        const user = await AuthUserService.getUserProps(userId, [
+            "role",
+            "email",
+            "fullName",
+        ]);
+
+        // Moderators can't delete another moderators only super user can do that
+        if (user.role === "moderator" && currentRole === "moderator")
+            return next(
+                new APIError(
+                    "Moderator can't delete another moderator",
+                    401,
+                    "UNAUTHORIZED"
+                )
+            );
 
         // This step is dangerous operation you can add extra comfirm like sending the password or user name
-        await AuthUserService.deleteUser(userId);
+        await AuthUserService.deleteUser(
+            userId,
+            user.fullName,
+            user.email,
+            reason
+        );
 
         // If there is a session then invalidate it
         if (await redis.exists(`loggedin:${userId}`)) {
@@ -44,14 +64,14 @@ async function adminDeleteUser(req, res, next) {
 
         sendDeleteUserReason(
             {
-                userName: user.dataValues.fullName,
-                userEmail: user.dataValues.email,
+                userName: user.fullName,
+                userEmail: user.email,
             },
             {
                 user: process.env.GOOGLE_EMAIL,
                 pass: process.env.GOOGLE_APP_PASS,
             },
-            reason
+            userReason
         );
 
         return res.status(200).json({

@@ -12,19 +12,20 @@ import getFollowings from "../controllers/getFollowings.js";
 import getPreferredCategories from "../controllers/getPreferredCategories.js";
 import getPreferredTopics from "../controllers/getPreferredTopics.js";
 import getUserProfile from "../controllers/getUserProfile.js";
+import removePreferredCategories from "../controllers/removePreferredCategories.js";
 import removePreferredTopics from "../controllers/removePreferredTopics.js";
 import searchForUsers from "../controllers/searchForUsers.js";
 import setPreferredCategories from "../controllers/setPreferredCategories.js";
 import setPreferredTopics from "../controllers/setPreferredTopics.js";
 import unfollowUser from "../controllers/unfollowUser.js";
 import updateCookiesAccess from "../controllers/updateCookiesAccess.js";
-import removePreferredCategories from "../controllers/removePreferredCategories.js";
 
 // Middlewares
 import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js";
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
+import isModerator from "../../../publicMiddlewares/isModerator.js";
 import adminBanUserValidate from "../middlewares/adminBanUser.validate.js";
 import changeNameValidate from "../middlewares/changeName.validate.js";
 import editBriefValidate from "../middlewares/editBrief.validate.js";
@@ -136,11 +137,11 @@ userRoutes.get(
     adminGetUsers
 );
 
-// Admin can ban users from publishing articles
+// Moderator can ban users from publishing articles
 userRoutes.post(
     "/users/ban/:userId",
     isAuthenticated,
-    isAdmin,
+    isModerator,
     adminBanUserValidate,
     adminBanUser
 );

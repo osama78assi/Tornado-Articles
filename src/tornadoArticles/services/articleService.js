@@ -18,6 +18,7 @@ import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
 import Topic from "../../tornadoCategories/models/topic.js";
 import TopicService from "../../tornadoCategories/services/topicService.js";
+import ModeratorActionService from "../../tornadoPlatform/services/moderatorActionService.js";
 import TornadoUserService from "../../tornadoUser/services/tornadoUserService.js";
 import Article from "../models/article.js";
 import ArticleCategory from "../models/articleCategory.js";
@@ -426,18 +427,33 @@ class ArticleService {
         }
     }
 
-    static async deleteArticle(articleId) {
+    static async deleteArticle(articleId, userId, userEmail, userName, reason) {
+        const t = await sequelize.transaction();
         try {
             const deletedCounts = await Article.destroy({
                 where: {
                     id: articleId,
                 },
+                transaction: t,
             });
 
             if (deletedCounts === 0) throw ErrorsEnum.COULDNOT_DELETE;
 
+            // Create the record
+            await ModeratorActionService.addDeleteArticleRecord(
+                userId,
+                userEmail,
+                userName,
+                reason,
+                t
+            );
+
+            await t.commit();
+
             return deletedCounts;
         } catch (err) {
+            await t.rollback();
+
             throw err;
         }
     }

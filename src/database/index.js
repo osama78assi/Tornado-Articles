@@ -54,6 +54,9 @@ async function addAssociations() {
     const { default: ArticleLimit } = await import(
         "../tornadoArticles/models/articleLimit.js"
     );
+    const { default: ModeratorAction } = await import(
+        "../tornadoPlatform/models/moderatorAction.js"
+    );
 
     //////// Users Followings
     // Many to Many relationship between users (like user A get an array with who is following)
@@ -322,6 +325,18 @@ async function addAssociations() {
         foreignKey: "userId",
         otherKey: "articleId",
         onDelete: "SET NULL", // When user get deleted leave his score
+    });
+
+    ///////////// Users activities
+    User.hasMany(ModeratorAction, {
+        foreignKey: "userId",
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
+    });
+    ModeratorAction.belongsTo(User, {
+        foreignKey: "userId",
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
     });
 }
 

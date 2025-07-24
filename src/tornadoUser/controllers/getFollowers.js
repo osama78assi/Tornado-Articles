@@ -12,8 +12,8 @@ async function getFollowers(req, res, next) {
 
         const { limit, entryItemName, getAfter } = req?.validatedQuery;
 
-        // This will throw an error if the user doesn't exists
-        await TornadoUserService.getUserById(userId);
+        // This will throw an error if the user doesn't exist
+        await TornadoUserService.isUserExists(userId);
 
         const followers = await FollowingService.getFollowers(
             userId,

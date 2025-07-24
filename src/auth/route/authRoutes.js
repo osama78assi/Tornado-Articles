@@ -27,6 +27,7 @@ import validateSignin from "../middlewares/signin.validate.js";
 import validateSignup from "../middlewares/signup.validate.js";
 import validateSession from "../middlewares/validateSession.js";
 import verifyEmailValidate from "../middlewares/verifyEmail.validate.js";
+import isModerator from "../../../publicMiddlewares/isModerator.js";
 
 const authRouter = Router();
 
@@ -87,12 +88,12 @@ authRouter.put(
 );
 
 
-// Admin can delete user account
+// (Admin/Moderator) can delete user account
 // Used POST becasue there is a body
 authRouter.post(
     "/auth/users/:userId/delete",
     isAuthenticated,
-    isAdmin,
+    isModerator,
     adminDeleteUserValidate,
     adminDeleteUser
 );

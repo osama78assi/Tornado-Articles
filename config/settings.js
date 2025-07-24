@@ -85,6 +85,9 @@ const ARTICLE_PREFERENCES_UPDATE_LIMIT = "3 minutes";
 // The cooldown for how many times the user can change tags for article's X
 const ARTICLE_TAGS_UPDATE_LIMIT = "5 minutes";
 
+// Warning period is used when user get a ban for some reason. so he get a warning of deleting account if he violate the rules in X days
+const BAN_WARNING_PERIOD = "1 month";
+
 // How many tokens the user can request at the same time to get first blcok time (5 minutes)
 const PASSWORD_TOKEN_ALLOWED_COUNTS = 5;
 
@@ -111,6 +114,15 @@ const GENERATE_EMAIL_CODES_LIMITS = [
 
 // May the roles grow in the future. But I've used them a lot so it's better for cache and use
 const TORNADO_ROLES = ["admin", "moderator", "user"];
+
+// When moderator take an action that will be stored in the database so this is the available actions for now
+const MODERATOR_ACTIONS = [
+    "warning",
+    "ban",
+    "delete account",
+    "delete article",
+    "other", // If moderator select this. he/she must explain everything in the reason
+];
 
 // In my recommendation system I will give score high priority over read counts
 // but also consider it in my equation. As artilces the reads aren't a good way to rank
@@ -171,6 +183,7 @@ export {
     ARTICLES_FOLLOWINGS_MIN_LIMIT,
     ARTICLES_TOPICS_MAX_LIMIT,
     ARTICLES_TOPICS_MIN_LIMIT,
+    BAN_WARNING_PERIOD,
     EMAIL_CODES_ALLOWED_COUNTS,
     GENERATE_EMAIL_CODES_LIMITS,
     GENERATE_PASSWORD_TOKENS_LIMITS,
@@ -183,6 +196,7 @@ export {
     MAX_TAGS_ARTICLE_COUNT,
     MAX_TOPICS_ARTICLE_COUNT,
     MIN_RESULTS,
+    MODERATOR_ACTIONS,
     PASSWORD_TOKEN_ALLOWED_COUNTS,
     PUBLISH_ARTICLE_LIMIT,
     SUPPORTED_ARTICLES_LANGUAGES,

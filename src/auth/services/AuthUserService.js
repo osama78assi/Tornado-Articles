@@ -1,6 +1,7 @@
 import { sequelize } from "../../../config/sequelize.js";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
+import ModeratorActionService from "../../tornadoPlatform/services/moderatorActionService.js";
 import User from "../models/user.js";
 import UserLimit from "../models/userLimit.js";
 
@@ -169,7 +170,7 @@ class AuthUserService {
                     },
                     transaction: t,
                     individualHooks: true,
-                    validate: true
+                    validate: true,
                 }
             );
 
@@ -197,18 +198,31 @@ class AuthUserService {
         }
     }
 
-    static async deleteUser(userId) {
+    static async deleteUser(userId, userName, userEmail, reason) {
+        const t = await sequelize.transaction();
         try {
             const affectedRows = await User.destroy({
                 where: {
                     id: userId,
                 },
+                transaction: t,
             });
+
+            // Save that record
+            await ModeratorActionService.addDeleteUserRecord(
+                userName,
+                userEmail,
+                reason,
+                t
+            );
 
             if (affectedRows === 0) throw ErrorsEnum.COULD_NOT_DELETE;
 
+            await t.commit();
+
             return affectedRows;
         } catch (err) {
+            await t.rollback();
             throw err;
         }
     }

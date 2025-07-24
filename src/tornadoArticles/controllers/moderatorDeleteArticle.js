@@ -10,22 +10,23 @@ import ArticleService from "../services/articleService.js";
 async function moderatorDeleteArticle(req, res, next) {
     try {
         const { articleId } = req?.params;
-        const { reason, userId } = req?.body;
+        const { userReason, reason, userId } = req?.body;
 
         // Get article details
         const article = await ArticleService.getArticleProps(articleId, [
             "title",
             "createdAt",
         ]);
-
-        // Delete the article without checking if it's belong to the user because this is MODERATOR
-        await ArticleService.deleteArticle(articleId);
-
+        
         // Get user details
         const user = await TornadoUserService.getUserProps(userId, [
+            "id",
             "email",
             "fullName",
         ]);
+
+        // Delete the article without checking if it's belong to the user because this is MODERATOR
+        await ArticleService.deleteArticle(articleId, user.id, user.email, user.fullName, reason);
 
         // TODO: send notification in Tornado platfrom
 
@@ -41,7 +42,7 @@ async function moderatorDeleteArticle(req, res, next) {
             {
                 createdAt: article.dataValues.createdAt,
                 title: article.dataValues.title,
-                reason,
+                userReason,
             }
         );
 

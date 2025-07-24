@@ -5,11 +5,11 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
     static INVALID_DATE = () => {
-        const cachedErr = GlobalErrorsEnum.INVALID_DATATYPE("since", "date");
+        const cachedErr = GlobalErrorsEnum.INVALID_DATATYPE("since", "Date");
 
         // Use the same error but add hint
         cachedErr.additionalData.hint =
-            "Check if you are using correct format for ISO date string in the URL. in JavaScript something like URLSearchParams may help";
+            "Check if you are using correct format for ISO date string. and check if it's URL encoded. in JavaScript something like URLSearchParams may help";
         return cachedErr;
     };
 

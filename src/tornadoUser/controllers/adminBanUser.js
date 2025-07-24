@@ -1,6 +1,6 @@
+import { BAN_WARNING_PERIOD } from "../../../config/settings.js";
 import sendBanUserReason from "../../../services/sendBanUserReason.js";
 import APIError from "../../../util/APIError.js";
-import generateDateAfter from "../../../util/generateDateAfter.js";
 import { WrongPeriod } from "../../../util/parseStrPeriod.js";
 import TornadoUserService from "../services/tornadoUserService.js";
 
@@ -12,10 +12,7 @@ import TornadoUserService from "../services/tornadoUserService.js";
 async function adminBanUser(req, res, next) {
     try {
         const { userId } = req?.params;
-        const { banFor, reason } = req?.body;
-
-        // This will throw an error if the period isn't recognized
-        const banTill = generateDateAfter(banFor);
+        const { banFor, reason, userReason } = req?.body;
 
         // Get the user data
         const userData = await TornadoUserService.getUserProps(userId, [
@@ -24,7 +21,13 @@ async function adminBanUser(req, res, next) {
         ]);
 
         // Ban the user
-        await TornadoUserService.banUserFor(userId, banTill);
+        await TornadoUserService.banUserFor(
+            userId,
+            banFor,
+            userData.email,
+            userData.fullName,
+            reason
+        );
 
         // Notify the user by email (TODO: do it in the platform)
         sendBanUserReason(
@@ -36,9 +39,9 @@ async function adminBanUser(req, res, next) {
                 user: process.env.GOOGLE_EMAIL,
                 pass: process.env.GOOGLE_APP_PASS,
             },
-            reason,
+            userReason,
             banFor,
-            "1 month"
+            BAN_WARNING_PERIOD
         );
 
         return res.status(200).json({

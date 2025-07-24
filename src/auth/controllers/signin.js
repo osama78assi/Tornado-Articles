@@ -91,7 +91,7 @@ async function signin(req, res, next) {
             // secure: true,
         });
 
-        sanitize(user, ["email", ["limits", "canGenForgetPassAt"]]);
+        sanitize(user, [["limits", "canGenForgetPassAt"]]);
 
         return res.status(200).json({
             success: true,
