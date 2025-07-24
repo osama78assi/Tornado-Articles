@@ -3,16 +3,10 @@ import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
-    static INVALID_REASON_LENGTH = new APIError(
-        "The reason should be at least 20 characters length",
-        400,
-        "VALIDATION_ERROR"
-    );
-
     static ALL_REASONS_REQUIRED = new APIError(
         "Provide both 'userReason' and 'reason'",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_DATA"
     );
 }
 
@@ -60,9 +54,6 @@ async function adminBanUserValidate(req, res, next) {
 
             if (code === "invalid_type")
                 return next(GlobalErrorsEnum.INVALID_DATATYPE(path, expected));
-
-            if (code === "too_small")
-                return next(ErrorsEnum.INVALID_REASON_LENGTH);
         }
         next(err);
     }

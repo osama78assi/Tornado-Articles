@@ -4,9 +4,9 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
     static ONE_FIELD_REQUIRED = new APIError(
-        "Please provide either the title Or the description",
+        "Provide either the title or the description",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_DATA"
     );
 }
 

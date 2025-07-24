@@ -6,7 +6,7 @@ class ErrorsEnum {
     static ALL_FIELDS_REQUIRED = new APIError(
         "Provide 'userReason', 'userId' and 'reason' to store it in the activities",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_DATA"
     );
 }
 

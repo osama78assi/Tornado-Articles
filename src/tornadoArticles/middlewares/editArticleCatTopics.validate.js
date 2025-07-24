@@ -10,7 +10,7 @@ class ErrorsEnum {
     static ONE_FIELD_REQIURED = new APIError(
         "One field is required at least (categories or topics)",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_DATA"
     );
 }
 

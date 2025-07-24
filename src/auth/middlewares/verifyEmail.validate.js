@@ -6,7 +6,7 @@ class ErrorsEnum {
     static CODE_REQUIRED = new APIError(
         "Please provide the code to validate the email",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_FIELD"
     );
 
     static INVALID_CODE = new APIError(

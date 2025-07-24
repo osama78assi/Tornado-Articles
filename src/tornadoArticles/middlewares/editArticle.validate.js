@@ -7,7 +7,7 @@ class ErrorsEnum {
     static ONE_FIELD_REQUIRED = new APIError(
         "Provide one field at least (title, language, isPrivate, minsToRead, headline)",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_DATA"
     );
 }
 

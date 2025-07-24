@@ -6,7 +6,7 @@ class ErrorsEnum {
     static TOPICS_REQUIRED = new APIError(
         "The topics are required. title and category id are required but description is optional",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_FIELD"
     );
 
     static INVALID_SHAPE = new APIError(

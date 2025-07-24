@@ -7,7 +7,7 @@ class ErrorsEnum {
     static ALL_REQUIRED = new APIError(
         "Provide these fields (userId, userName, userEmail, reason, actionType)",
         400,
-        "VALIDATION_ERROR"
+        "MISSISNG_DATA"
     );
 }
 

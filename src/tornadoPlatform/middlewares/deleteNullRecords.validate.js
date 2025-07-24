@@ -6,7 +6,7 @@ class ErrorsEnum {
     static INCORRECT_DECISION = new APIError(
         "Provide either 'pastDuration' to delete record for last passed duration. or both 'firstDate' and 'lastDate' to delete records between provided dates",
         400,
-        "VALIDATION_ERRORs"
+        "MISSING_DATA"
     );
 
     static INCORRECT_DATE_RANGE = new APIError(
@@ -29,8 +29,7 @@ class ErrorsEnum {
     static INVALID_DATE = (path) => {
         const cachedErr = GlobalErrorsEnum.INVALID_DATATYPE(path, "Date");
 
-        cachedErr.additionalData.hint =
-            `The ${path} must be string date. if you are using ISO date string check if it passed as URL Encoded. if you are using JavaScript URLSearchParams may help`;
+        cachedErr.additionalData.hint = `The ${path} must be string date. if you are using ISO date string check if it passed as URL Encoded. if you are using JavaScript URLSearchParams may help`;
         return cachedErr;
     };
 }

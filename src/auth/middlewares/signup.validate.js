@@ -17,6 +17,12 @@ class ErrorsEnum {
         400,
         "VALIDATION_ERROR"
     );
+
+    static MISSING_DATA = new APIError(
+        "These fields are required (fullName, email, password, birthDate, gender)",
+        400,
+        "MISSING_DATA"
+    );
 }
 
 /**
@@ -35,20 +41,14 @@ async function signupValidate(req, res, next) {
         } = req?.body ?? {};
 
         // Some validation
-        if (fullName === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("full name"));
-
-        if (email === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("email"));
-
-        if (password === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("password"));
-
-        if (birthDate === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("birth date"));
-
-        if (gender === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("gender"));
+        if (
+            fullName === null ||
+            email === null ||
+            password === null ||
+            birthDate === null ||
+            gender === null
+        )
+            return next(ErrorsEnum.MISSING_DATA);
 
         // In expensive controllers I found it a goood idea to reject the access if I know that it will throw error later
         const SigninSchema = object({

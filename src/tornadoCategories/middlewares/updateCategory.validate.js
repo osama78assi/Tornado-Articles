@@ -6,7 +6,7 @@ class ErrorsEnum {
     static ONE_FIELD_REQUIRED = new APIError(
         "Provide either title or description to edit the category",
         400,
-        "VALIDATION_ERROR"
+        "MISSING_DATA"
     );
 }
 

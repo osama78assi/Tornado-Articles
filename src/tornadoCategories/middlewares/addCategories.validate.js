@@ -6,7 +6,7 @@ class ErrorsEnum {
     static CATEGORIES_NOT_PROVIDED = new APIError(
         "Please provide the categories you want to add.",
         400,
-        "MISSING_CATEGORY"
+        "MISSING_FIELD"
     );
 }
 

@@ -16,7 +16,7 @@ class ErrorsEnum {
     static AUTHOR_ID_REQUIRED = new APIError(
         "The authorId is requried parameter",
         400,
-        "VALIDATION_ERROR"
+        "VALIDATION_FIELD"
     );
 }
 
