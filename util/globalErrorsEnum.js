@@ -73,6 +73,13 @@ export default class GlobalErrorsEnum {
         "VALIDATION_ERROR"
     );
 
+    static INVALID_BIRTH_DATE = new APIError(
+        "Invalid birth date",
+        400,
+        "VALIDATION_ERROR",
+        [["hint", "Try this format yyyy-mm-dd"]]
+    );
+
     // For Auth
     static MISSING_REFRESH_TOKEN = new APIError(
         "No refresh token provided. Please login again",

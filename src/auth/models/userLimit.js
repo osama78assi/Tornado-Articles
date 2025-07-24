@@ -54,6 +54,12 @@ UserLimit.init(
             defaultValue: null,
             allowNull: true,
         },
+        updatedDateAt: {
+            // The user can change his birth every year for example
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
     },
     {
         sequelize: sequelize,

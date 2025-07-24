@@ -119,7 +119,7 @@ class AuthUserService {
     // Get user by email or id (for auth meaning it will include password)
     static async getUserBy(getBy, isEmail = true) {
         try {
-            if (!isEmail && !/^\d+$/.tests(getBy))
+            if (!isEmail && !/^\d+$/.test(getBy))
                 throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
 
             let getByObj = isEmail ? { email: getBy } : { id: getBy };

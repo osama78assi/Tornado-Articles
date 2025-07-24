@@ -2,10 +2,8 @@ import { Router } from "express";
 // Controllers
 import adminBanUser from "../controllers/adminBanUser.js";
 import adminGetUsers from "../controllers/adminGetUsers.js";
-import changeName from "../controllers/changeName.js";
 import changeProfilePic from "../controllers/changeProfilePic.js";
 import deletePofilePic from "../controllers/deletePofilePic.js";
-import editBrief from "../controllers/editBrief.js";
 import followUser from "../controllers/followUser.js";
 import getFollowers from "../controllers/getFollowers.js";
 import getFollowings from "../controllers/getFollowings.js";
@@ -18,7 +16,6 @@ import searchForUsers from "../controllers/searchForUsers.js";
 import setPreferredCategories from "../controllers/setPreferredCategories.js";
 import setPreferredTopics from "../controllers/setPreferredTopics.js";
 import unfollowUser from "../controllers/unfollowUser.js";
-import updateCookiesAccess from "../controllers/updateCookiesAccess.js";
 
 // Middlewares
 import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js";
@@ -26,23 +23,29 @@ import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
 import isLoggedIn from "../../../publicMiddlewares/isLoggedIn.js";
 import isModerator from "../../../publicMiddlewares/isModerator.js";
+import editUserData from "../controllers/editUserData.js";
 import adminBanUserValidate from "../middlewares/adminBanUser.validate.js";
-import changeNameValidate from "../middlewares/changeName.validate.js";
-import editBriefValidate from "../middlewares/editBrief.validate.js";
+import editUserValidate from "../middlewares/editUser.validate.js";
 import getDataValidate from "../middlewares/getData.validate.js";
 import removePreferredDataValidate from "../middlewares/removePreferredData.validate.js";
 import searchForUsersValidate from "../middlewares/searchForUsers.validate.js";
 import setPreferredDataValidate from "../middlewares/setPreferredData.validate.js";
-import updateCookiesAccessValidate from "../middlewares/updateCookiesAccess.validate.js";
 
 const userRoutes = Router();
 
-// User can change detials like name
-userRoutes.patch(
-    "/users/name",
+// Anyone can search for users (by name)
+userRoutes.get("/users", isLoggedIn, searchForUsersValidate, searchForUsers);
+
+// User can update some of his data (not related to auth)
+userRoutes.patch("/users", isAuthenticated, editUserValidate, editUserData);
+
+// Admin can browse users
+userRoutes.get(
+    "/admin/users",
     isAuthenticated,
-    changeNameValidate,
-    changeName
+    isAdmin,
+    getDataValidate,
+    adminGetUsers
 );
 
 // And profile pic
@@ -52,27 +55,12 @@ userRoutes.patch(
     downloadProfilePic,
     changeProfilePic
 );
+
 // Or delete the existing one
 userRoutes.delete("/users/profile-pic", isAuthenticated, deletePofilePic);
 
-// User can edit the brief
-userRoutes.patch("/users/brief", isAuthenticated, editBriefValidate, editBrief);
-
-// User can allow cookies or refuse it
-userRoutes.patch(
-    "/users/cookies",
-    isAuthenticated,
-    updateCookiesAccessValidate,
-    updateCookiesAccess
-);
-
-// User can follow and unfollow another user
-userRoutes.post("/users/followings/:followedId", isAuthenticated, followUser);
-userRoutes.delete(
-    "/users/followings/:followedId",
-    isAuthenticated,
-    unfollowUser
-);
+// For getting user profile data (contains followers and following counts)
+userRoutes.get("/users/:userId", getUserProfile);
 
 // User can manage his preferred categories and topics
 userRoutes.post(
@@ -81,6 +69,7 @@ userRoutes.post(
     setPreferredDataValidate,
     setPreferredCategories
 );
+
 userRoutes.get(
     "/users/categories/preferred",
     isAuthenticated,
@@ -102,6 +91,7 @@ userRoutes.post(
     setPreferredDataValidate,
     setPreferredTopics
 );
+
 userRoutes.get(
     "/users/topics/preferred",
     isAuthenticated,
@@ -117,24 +107,14 @@ userRoutes.patch(
     removePreferredTopics
 );
 
-// Anyone can search for users (by name)
-userRoutes.get("/users", isLoggedIn, searchForUsersValidate, searchForUsers);
+// User can follow and unfollow another user
+userRoutes.post("/users/followings/:followedId", isAuthenticated, followUser);
 
-// For getting user profile data (contains followers and following counts)
-userRoutes.get("/users/:userId", getUserProfile);
-
-// User can see his followers
-userRoutes.get("/users/:userId/followers", getDataValidate, getFollowers);
-// User can see his followings
-userRoutes.get("/users/:userId/followings", getDataValidate, getFollowings);
-
-// Admin can browse users
-userRoutes.get(
-    "/admin/users",
+// unfollow
+userRoutes.delete(
+    "/users/followings/:followedId",
     isAuthenticated,
-    isAdmin,
-    getDataValidate,
-    adminGetUsers
+    unfollowUser
 );
 
 // Moderator can ban users from publishing articles
@@ -145,5 +125,11 @@ userRoutes.post(
     adminBanUserValidate,
     adminBanUser
 );
+
+// User can see his followers
+userRoutes.get("/users/:userId/followers", getDataValidate, getFollowers);
+
+// User can see his followings
+userRoutes.get("/users/:userId/followings", getDataValidate, getFollowings);
 
 export default userRoutes;

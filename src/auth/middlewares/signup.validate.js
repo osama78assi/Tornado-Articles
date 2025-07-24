@@ -65,7 +65,7 @@ async function signupValidate(req, res, next) {
                 fullName,
                 email,
                 password,
-                birthDate: new Date(birthDate),
+                birthDate: birthDate !== null ? new Date(birthDate) : null,
                 gender: gender.trim().toLowerCase(),
             })
         );
@@ -85,6 +85,9 @@ async function signupValidate(req, res, next) {
             let code = err.issues[0].code;
             let path = err.issues[0].path[0];
             let expected = err.issues[0].expected;
+
+            if (code === "invalid_type" && path === "birthDate")
+                return next(GlobalErrorsEnum.INVALID_BIRTH_DATE);
 
             if (code === "invalid_type")
                 return next(GlobalErrorsEnum.INVALID_DATATYPE(path, expected));

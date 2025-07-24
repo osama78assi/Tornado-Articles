@@ -1,17 +1,27 @@
 import { Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
+import {
+    MIN_RESULTS,
+    UPDATE_BIRTH_DATE_LIMIT,
+    UPDATE_NAME_LIMIT,
+} from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
 import generateDateAfter from "../../../util/generateDateAfter.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
-import User, { default as TornadoUser } from "../../auth/models/user.js";
+import TornadoUser from "../../auth/models/user.js";
 import UserLimit from "../../auth/models/userLimit.js";
 import ModeratorActionService from "../../tornadoPlatform/services/moderatorActionService.js";
 
 class ErrorsEnum {
     static CHANGE_NAME_LIMIT = new APIError(
         `You can change name once every ${UPDATE_NAME_LIMIT}`,
+        429,
+        "TOO_AERLY_CHANGE"
+    );
+
+    static CHANGE_BIRTH_DATE_LIMIT = new APIError(
+        `You can change birth date once every ${UPDATE_BIRTH_DATE_LIMIT}`,
         429,
         "TOO_AERLY_CHANGE"
     );
@@ -35,7 +45,7 @@ class TornadoUserService {
                 },
             };
 
-            const user = await User.findByPk(userId, {
+            const user = await TornadoUser.findByPk(userId, {
                 attributes: userFields,
                 ...(limitsFields.length ? include : {}),
             });
@@ -243,7 +253,7 @@ class TornadoUserService {
     static async updateUserName(userId, newName) {
         const t = sequelize.transaction();
         try {
-            const user = await User.findByPk(userId, {
+            const user = await TornadoUser.findByPk(userId, {
                 attributes: [],
                 include: {
                     model: UserLimit,
@@ -295,6 +305,97 @@ class TornadoUserService {
         } catch (err) {
             (await t).rollback();
 
+            throw err;
+        }
+    }
+
+    static async updateUserData(
+        userId,
+        fullName,
+        gender,
+        birthDate,
+        brief,
+        allowCookies
+    ) {
+        const t = await sequelize.transaction();
+        try {
+            const user = await TornadoUser.findByPk(userId, {
+                attributes: [],
+                include: {
+                    model: UserLimit,
+                    as: "limits",
+                    attributes: ["fullNameChangedAt", "updatedDateAt"],
+                },
+            });
+
+            // User can change his name once every month (due to my settings)
+            if (
+                fullName !== undefined &&
+                user.limits.fullNameChangedAt !== null &&
+                !isPassedTimeBy(
+                    new Date(),
+                    user.limits.fullNameChangedAt,
+                    UPDATE_NAME_LIMIT
+                )
+            ) {
+                throw ErrorsEnum.CHANGE_NAME_LIMIT;
+            }
+
+            if (
+                birthDate !== undefined &&
+                user.limits.updatedDateAt !== null &&
+                !isPassedTimeBy(
+                    new Date(),
+                    user.limits.updatedDateAt,
+                    UPDATE_BIRTH_DATE_LIMIT
+                )
+            ) {
+                throw ErrorsEnum.CHANGE_BIRTH_DATE_LIMIT;
+            }
+
+            const [affectedRows] = await TornadoUser.update(
+                {
+                    fullName,
+                    gender,
+                    birthDate,
+                    brief,
+                    allowCookies,
+                },
+                {
+                    where: {
+                        id: userId,
+                    },
+                    validate: true,
+                    transaction: t,
+                }
+            );
+
+            if (affectedRows === 0)
+                throw GlobalErrorsEnum.NO_USER_WITH(userId, false);
+
+            if (fullName !== undefined || birthDate !== undefined) {
+                // Update the limits
+                await UserLimit.update(
+                    {
+                        ...(fullName !== undefined
+                            ? { fullNameChangedAt: new Date() }
+                            : {}),
+                        ...(birthDate !== undefined
+                            ? { updatedDateAt: new Date() }
+                            : {}),
+                    },
+                    {
+                        where: {
+                            userId,
+                        },
+                        transaction: t,
+                    }
+                );
+            }
+
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
             throw err;
         }
     }
@@ -352,7 +453,7 @@ class TornadoUserService {
             // });
 
             // Update also the publish time maybe in one query
-            await User.update(
+            await TornadoUser.update(
                 {
                     articleCounts: articleCounts + 1,
                 },

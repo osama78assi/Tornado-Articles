@@ -15,8 +15,10 @@ import verifyEmail from "../controllers/verifyEmail.js";
 import downloadProfilePic from "../../../publicMiddlewares/downloadProfilePic.js";
 import isAdmin from "../../../publicMiddlewares/isAdmin.js";
 import isAuthenticated from "../../../publicMiddlewares/isAuthenticated.js";
+import isModerator from "../../../publicMiddlewares/isModerator.js";
 import adminCreateAccount from "../controllers/adminCreateAccount.js";
 import askVerifyEmail from "../controllers/askVerifyEmail.js";
+import getUserData from "../controllers/getUserData.js";
 import adminDeleteUserValidate from "../middlewares/adminDeleteUser.validate.js";
 import forgetPasswordValidate from "../middlewares/forgetPassword.validate.js";
 import isThereSession from "../middlewares/isThereSession.js";
@@ -27,7 +29,6 @@ import validateSignin from "../middlewares/signin.validate.js";
 import validateSignup from "../middlewares/signup.validate.js";
 import validateSession from "../middlewares/validateSession.js";
 import verifyEmailValidate from "../middlewares/verifyEmail.validate.js";
-import isModerator from "../../../publicMiddlewares/isModerator.js";
 
 const authRouter = Router();
 
@@ -59,44 +60,8 @@ authRouter.delete(
     deleteAccount
 );
 
-// The user must be logged in to be able to logout
-authRouter.get("/auth/logout", isAuthenticated, validateSession, logout);
-
-// User ask for reset password token
-authRouter.post(
-    "/auth/forget-password",
-    isThereSession,
-    forgetPasswordValidate,
-    forgetPassword
-);
-
-// The user can change his password
-authRouter.put(
-    "/auth/reset-password",
-    isAuthenticated,
-    validateSession,
-    resetPasswordValidate,
-    // measureHandlerTime(resetPassword, "Reset password")
-    resetPassword
-);
-
-// The user can reset the password when he is logged in
-authRouter.put(
-    "/auth/reset-password/:tokenId",
-    resetPassByTokenValidate,
-    resetPasswordByToken
-);
-
-
-// (Admin/Moderator) can delete user account
-// Used POST becasue there is a body
-authRouter.post(
-    "/auth/users/:userId/delete",
-    isAuthenticated,
-    isModerator,
-    adminDeleteUserValidate,
-    adminDeleteUser
-);
+// When someone is logged in user and he closed the website and reopen it. here the same data returns from login
+authRouter.get("/auth/users", isAuthenticated, validateSession, getUserData);
 
 // To get another access token
 authRouter.get("/auth/get-access-token", validateSession, generateAccessToken);
@@ -127,6 +92,44 @@ authRouter.post(
     isAuthenticated,
     verifyEmailValidate,
     verifyEmail
+);
+
+// The user must be logged in to be able to logout
+authRouter.get("/auth/logout", isAuthenticated, validateSession, logout);
+
+// User ask for reset password token
+authRouter.post(
+    "/auth/forget-password",
+    isThereSession,
+    forgetPasswordValidate,
+    forgetPassword
+);
+
+// The user can change his password
+authRouter.put(
+    "/auth/reset-password",
+    isAuthenticated,
+    validateSession,
+    resetPasswordValidate,
+    // measureHandlerTime(resetPassword, "Reset password")
+    resetPassword
+);
+
+// The user can reset the password when he is logged in
+authRouter.put(
+    "/auth/reset-password/:tokenId",
+    resetPassByTokenValidate,
+    resetPasswordByToken
+);
+
+// (Admin/Moderator) can delete user account
+// Used POST becasue there is a body
+authRouter.post(
+    "/auth/users/:userId/delete",
+    isAuthenticated,
+    isModerator,
+    adminDeleteUserValidate,
+    adminDeleteUser
 );
 
 export default authRouter;

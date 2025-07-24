@@ -70,6 +70,9 @@ const UPDATE_PASSWORD_LIMIT = "15 days";
 // The cooldown for how times he can change his name
 const UPDATE_NAME_LIMIT = "1 month";
 
+// The user can change his/her birth date every one year
+const UPDATE_BIRTH_DATE_LIMIT = "1 year";
+
 // The cooldown for how many times the user can publsih an article
 const PUBLISH_ARTICLE_LIMIT = "30 minutes";
 
@@ -202,6 +205,7 @@ export {
     SUPPORTED_ARTICLES_LANGUAGES,
     SUPPORTED_IMAGES_MIMETYPES,
     TORNADO_ROLES,
+    UPDATE_BIRTH_DATE_LIMIT,
     UPDATE_NAME_LIMIT,
     UPDATE_PASSWORD_LIMIT,
     UPDATE_RANK,
