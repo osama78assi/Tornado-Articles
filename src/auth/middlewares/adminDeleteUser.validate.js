@@ -1,10 +1,10 @@
-import { string, ZodError } from "zod/v4";
+import { object, string, ZodError } from "zod/v4";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
-    static REASON_TOO_LONG = new APIError(
-        "The reason string must be less or equal to 300 characters",
+    static ALL_FIELDS_REQUIRED = new APIError(
+        "Provide the 'userReason' to send it to the user and the 'reason' to store in the activities",
         400,
         "VALIDATION_ERROR"
     );
@@ -18,27 +18,34 @@ class ErrorsEnum {
 async function adminDeleteUserValidate(req, res, next) {
     try {
         // Check if the value provided first
-        const { reason = null } = req?.body ?? {};
+        // The reason is by moderator and admins to save in records
+        const { userReason = null, reason = null } = req?.body ?? {};
 
-        if (reason === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("reason"));
+        if (userReason === null || reason === null)
+            return next(ErrorsEnum.ALL_FIELDS_REQUIRED);
 
         // Define the schema
-        const Reason = string().trim().max(300);
+        const Query = object({
+            userReason: string().trim().min(4).max(350),
+            reason: string(), // don't trim. that will happen in model level
+        });
 
         // If something faild this will throw an error
-        req.body.reason = Reason.parse(reason);
+        req.body.reason = Query.parse({ userReason, reason });
 
         next();
     } catch (err) {
         if (err instanceof ZodError) {
             let code = err.issues[0].code;
-            let expected = err.issues[0].expected;
+            let path = err.issues[0].path[0]
 
             if (code === "invalid_type")
-                return next(GlobalErrorsEnum.INVALID_DATATYPE("reason", expected));
+                return next(
+                    GlobalErrorsEnum.INVALID_DATATYPE(path, "string")
+                );
 
-            if (code === "too_big") return next(ErrorsEnum.REASON_TOO_LONG);
+            if (code === "too_big" || code === "too_small")
+                return next(GlobalErrorsEnum.INVALID_REASON);
         }
 
         next(err);

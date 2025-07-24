@@ -21,7 +21,7 @@ async function logoutDeviceValidate(req, res, next) {
         const { deviceName = null } = req?.query ?? {};
 
         if (deviceName === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("device name"));
+            return next(GlobalErrorsEnum.MISSING_FIELD("deviceName"));
 
         // By the way we don't use real devices names but assusming we use it
         const DeviceName = string().trim().min(1).max(255); // Assuming there is a device with that name

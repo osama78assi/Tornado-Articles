@@ -10,8 +10,9 @@ import authRouter from "./src/auth/route/authRoutes.js";
 import articleRouter from "./src/tornadoArticles/routes/artcileRoutes.js";
 import categoryRoutes from "./src/tornadoCategories/routes/categoryRoutes.js";
 import topicRoutes from "./src/tornadoCategories/routes/topicRoutes.js";
-import TornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
+import tornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
 import APIError from "./util/APIError.js";
+import moderatorActionRoutes from "./src/tornadoPlatform/routes/moderatorActionRoutes.js";
 
 let app = express();
 
@@ -53,7 +54,10 @@ app.use("/api/v1", categoryRoutes);
 app.use("/api/v1", topicRoutes);
 
 // Users
-app.use("/api/v1", TornadoUserRoutes);
+app.use("/api/v1", tornadoUserRoutes);
+
+// Moderator actions
+app.use("/api/v1", moderatorActionRoutes);
 
 // Notifications
 // app.use('/api/v1/users/:userId/notifications')

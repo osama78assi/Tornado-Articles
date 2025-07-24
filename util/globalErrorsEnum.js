@@ -2,6 +2,7 @@ import {
     MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_TAGS_ARTICLE_COUNT,
     MAX_TOPICS_ARTICLE_COUNT,
+    MODERATOR_ACTIONS,
 } from "../config/settings.js";
 import APIError from "./APIError.js";
 
@@ -65,6 +66,12 @@ export default class GlobalErrorsEnum {
             400,
             "INVALID_IMAGE_TYPE"
         );
+
+    static INVALID_REASON = new APIError(
+        "The reason must be between 4 characters and 300 maximum",
+        400,
+        "VALIDATION_ERROR"
+    );
 
     // For Auth
     static MISSING_REFRESH_TOKEN = new APIError(
@@ -181,4 +188,13 @@ export default class GlobalErrorsEnum {
             404,
             "ARTICLE_NOT_FOUND"
         );
+
+    //// For moderator actions
+    static UNRECOGNIZED_ACTION_TYPE = new APIError(
+        `action type isn't recognized. the types are (${MODERATOR_ACTIONS.join(
+            ", "
+        )})`,
+        400,
+        "VALIDATION_ERROR"
+    );
 }

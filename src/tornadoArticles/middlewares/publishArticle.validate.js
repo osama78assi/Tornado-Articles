@@ -42,6 +42,20 @@ async function publishArticleValidate(req, res, next) {
         if (content === null)
             return next(GlobalErrorsEnum.MISSING_FIELD("content"));
 
+        // There is a small issue in multipart/form-data. I will solve it with less overhead but with little redundant code
+        // This code will help when user publish an article without images so client can send request with content-type: application/json
+        if (typeof categories === "string") categories = [categories];
+        if (typeof tags === "string") tags = [tags];
+        if (typeof topics === "string") topics = [topics];
+        if (typeof isPrivate === "string") {
+            isPrivate =
+                isPrivate.toLowerCase() === "true"
+                    ? true
+                    : isPrivate.toLowerCase() === "false"
+                    ? true
+                    : null; // null to throw error later :3
+        }
+
         const ArticleSchema = object({
             title: string(),
             content: string(),

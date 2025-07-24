@@ -2,10 +2,12 @@ import { Op } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
 import { MIN_RESULTS, UPDATE_NAME_LIMIT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
+import generateDateAfter from "../../../util/generateDateAfter.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import isPassedTimeBy from "../../../util/isPassedTimeBy.js";
 import User, { default as TornadoUser } from "../../auth/models/user.js";
 import UserLimit from "../../auth/models/userLimit.js";
+import ModeratorActionService from "../../tornadoPlatform/services/moderatorActionService.js";
 
 class ErrorsEnum {
     static CHANGE_NAME_LIMIT = new APIError(
@@ -47,20 +49,14 @@ class TornadoUserService {
         }
     }
 
-    static async getUserById(id) {
+    static async isUserExists(id) {
         try {
             // Check if id is BIGINT
             if (!/^\d+$/.test(id))
                 throw GlobalErrorsEnum.INVALID_BIGINT_ID("userId");
 
             const user = await TornadoUser.findByPk(id, {
-                include: {
-                    model: UserLimit,
-                    as: "limits",
-                    attributes: {
-                        exclude: ["userId"],
-                    },
-                },
+                attributes: ["id"],
             });
 
             if (user === null) throw GlobalErrorsEnum.NO_USER_WITH(id, false);
@@ -77,12 +73,7 @@ class TornadoUserService {
             const userData = await TornadoUser.findAll({
                 where: { id: userId },
                 attributes: {
-                    exclude: [
-                        "role",
-                        "allowCookies",
-                        "updatedAt",
-                        "email",
-                    ],
+                    exclude: ["role", "allowCookies", "updatedAt", "email"],
                 },
             });
 
@@ -308,10 +299,12 @@ class TornadoUserService {
         }
     }
 
-    static async banUserFor(userId, banTill) {
+    static async banUserFor(userId, banTill, userEmail, userName, reason) {
+        const t = await sequelize.transaction();
         try {
             const userData = await UserLimit.findByPk(userId, {
                 attributes: ["banTill"],
+                transaction: t,
             });
 
             // Check if the user is already banned then don't take an action
@@ -320,18 +313,32 @@ class TornadoUserService {
 
             const [, newRowData] = await UserLimit.update(
                 {
-                    banTill,
+                    banTill: generateDateAfter(banTill),
                 },
                 {
                     where: {
                         userId,
                     },
                     returning: true,
+                    transaction: t,
                 }
             );
 
+            // Save the record
+            await ModeratorActionService.addBanRecord(
+                userId,
+                userName,
+                userEmail,
+                banTill,
+                reason,
+                t
+            );
+
+            await t.commit();
+
             return newRowData[0].dataValues.banTill;
         } catch (err) {
+            await t.rollback();
             throw err;
         }
     }

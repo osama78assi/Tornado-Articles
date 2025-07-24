@@ -28,7 +28,7 @@ async function signup(req, res, next) {
 
         let { fullName, email, password, birthDate, gender } = req?.body;
 
-        const user = await AuthUserService.createUser(
+        let user = await AuthUserService.createUser(
             fullName,
             email,
             password,
@@ -37,6 +37,9 @@ async function signup(req, res, next) {
             profilePicName,
             "user" // The role always user
         );
+
+        // Uniform the data shape when user signin in or signup
+        user = await AuthUserService.getUserBy(user.id, false);
 
         // Save the id
         userId = user.dataValues.id;
@@ -97,7 +100,7 @@ async function signup(req, res, next) {
         });
 
         // Delete some info
-        sanitize(user, ["email"]);
+        sanitize(user, [["limits", "canGenForgetPassAt"]]);
 
         // TODO: Send a notifitcation asking for verify the email
 
@@ -105,7 +108,8 @@ async function signup(req, res, next) {
         res.status(200).json({
             success: true,
             data: user,
-            message: "Please verify your email to be able to interact with Tornado Articles website"
+            message:
+                "Please verify your email to be able to interact with Tornado Articles website",
         });
     } catch (err) {
         // When facing the error the photo now in the dist. Delete it

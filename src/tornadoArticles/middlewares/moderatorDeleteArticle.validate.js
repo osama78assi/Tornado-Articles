@@ -3,8 +3,8 @@ import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 class ErrorsEnum {
-    static TOO_LONG_REASON = new APIError(
-        "The reason's characters length should be 300 maximum",
+    static ALL_FIELDS_REQUIRED = new APIError(
+        "Provide 'userReason', 'userId' and 'reason' to store it in the activities",
         400,
         "VALIDATION_ERROR"
     );
@@ -17,29 +17,33 @@ class ErrorsEnum {
  */
 async function moderatorDeleteArticleValidate(req, res, next) {
     try {
-        let { reason = null, userId = null } = req?.body ?? {};
+        let {
+            userReason = null,
+            userId = null,
+            reason = null,
+        } = req?.body ?? {};
 
-        if (reason === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("reason"));
-
-        if (userId === null)
-            return next(GlobalErrorsEnum.MISSING_FIELD("userId"));
+        if (userReason === null || userId === null || reason === null)
+            return next(ErrorsEnum.ALL_FIELDS_REQUIRED);
 
         const Data = object({
-            reason: string(),
+            userReason: string().trim(),
             userId: string().regex(/^\d+$/),
+            reason: string(),
         });
 
         Object.assign(
             req.body,
             Data.parse({
+                userReason,
                 reason,
                 userId: String(userId),
             })
         );
 
-        // Check reason length
-        if (reason.length > 300) return next(ErrorsEnum.TOO_LONG_REASON);
+        // Check user reason length
+        if (userReason.length > 300 && userReason.length < 4)
+            return next(GlobalErrorsEnum.INVALID_REASON);
 
         return next();
     } catch (err) {

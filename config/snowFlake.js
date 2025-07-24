@@ -31,6 +31,8 @@ const flakeIdGenComment = new FlakeId({ epoch: customEpoch });
 
 const flakeIdGenCategory = new FlakeId({ epoch: customEpoch });
 
+const flakeIdGenPlatform = new FlakeId({epoch: customEpoch})
+
 /**
  * Generate new id for articls
  * @returns {number}
@@ -63,9 +65,18 @@ function generateSnowFlakeIdCategory() {
     return intFormat(flakeIdGenCategory.next());
 }
 
+/**
+ * Generate new id for any platform specific model such as FAQ or user activity...
+ * @returns {number}
+ */
+function generateSnowFlakeIdPlatform() {
+    return intFormat(flakeIdGenPlatform.next());
+}
+
 export {
     generateSnowFlakeIdArticle,
     generateSnowFlakeIdCategory,
     generateSnowFlakeIdComment,
     generateSnowFlakeIdUser,
+    generateSnowFlakeIdPlatform
 };
