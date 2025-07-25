@@ -227,6 +227,27 @@ function normalizeTags(tags) {
     return tags.map((tag) => normalizeTag(tag));
 }
 
+// In my recommendation system I will give score high priority over read counts
+// but also consider it in my equation. As artilces the reads aren't a good way to rank
+// an article or not it's really depend on likes and dislikes
+
+/**
+ *
+ * @param {number} score
+ * @param {number} readCounts
+ * @returns {number}
+ */
+function UPDATE_RANK(score, readCounts) {
+    const logReads = Math.log10(readCounts);
+    const readScore = (logReads <= 0.5 ? 0.5 : logReads) * 2;
+
+    // For positive score
+    if (score > 0) return score * 0.5 + readScore;
+
+    // For negative score article. It mat still usefull so don't make it negative
+    return Math.abs(score) / (1.7 + Math.abs(score) * 0.1) + readScore;
+}
+
 export {
     canViewArticle,
     deleteFiles,
