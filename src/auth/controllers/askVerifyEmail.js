@@ -5,11 +5,11 @@ import {
 } from "../../../config/settings.js";
 import sendVerifyEmailCode from "../../../services/sendVerifyEmailCode.js";
 import APIError from "../../../util/APIError.js";
-import generateCode from "../../../util/generateCode.js";
 import generateDateAfter from "../../../util/generateDateAfter.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import AuthUserService from "../services/AuthUserService.js";
 import EmailTokenService from "../services/EmailTokenService.js";
+import { generateCode } from "../util/index.js";
 
 class ErrorsEnum {
     static EMAIL_VERIFICATION_LIMIT = (canRequestAt) =>

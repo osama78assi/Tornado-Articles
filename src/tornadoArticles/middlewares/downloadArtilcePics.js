@@ -1,13 +1,13 @@
 import articleImgsStorage from "../../../config/articleImgsStorage.js";
 import { MAX_ARTICLE_CONTENT_PICS_COUNT } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
-import deleteFiles from "../../../util/deleteFiles.js";
 import {
     fieldsTornadoFiles,
     FileLimitExceeded,
     SingleFileError,
 } from "../../../util/fileUploaderHandlers.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
+import { deleteFiles } from "../util/index.js";
 
 /**
  *

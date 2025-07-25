@@ -2,9 +2,9 @@ import { unlink } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import APIError from "../../../util/APIError.js";
-import deleteFiles from "../../../util/deleteFiles.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import ArticleService from "../services/articleService.js";
+import { deleteFiles } from "../util/index.js";
 
 class ErrorsEnum {
     static ONE_REQUIRED = new APIError(

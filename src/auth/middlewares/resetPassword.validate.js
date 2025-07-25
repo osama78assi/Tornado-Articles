@@ -1,7 +1,7 @@
 import { object, string, ZodError } from "zod/v4";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-import validatePassword from "../../../util/validatePassword.js";
+import { validatePassword } from "../util/index.js";
 
 class ErrorsEnum {
     static MISSING_DATA = new APIError(

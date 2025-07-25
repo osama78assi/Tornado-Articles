@@ -1,4 +1,4 @@
-import modifyIgnore from "../../../util/modifyIgnore.js";
+import { modifyIgnore } from "../util/index.js";
 import RecommendationService from "../services/recommendationService.js";
 
 /**

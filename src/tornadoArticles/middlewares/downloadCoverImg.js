@@ -1,10 +1,10 @@
 import articleImgsStorage from "../../../config/articleImgsStorage.js";
 import APIError from "../../../util/APIError.js";
-import deleteFiles from "../../../util/deleteFiles.js";
 import {
     SingleFileError,
     singleTornadoFile,
 } from "../../../util/fileUploaderHandlers.js";
+import { deleteFiles } from "../util/index.js";
 
 /**
  *

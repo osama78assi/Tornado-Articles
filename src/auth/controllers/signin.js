@@ -3,8 +3,8 @@ import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
 import redis from "../../../config/redisConfig.js";
 import APIError from "../../../util/APIError.js";
-import sanitize from "../../../util/sanitize.js";
 import AuthUserService from "../services/AuthUserService.js";
+import { sanitize } from "../util/index.js";
 
 class ErrorsEnum {
     static INCORRECT_PASSWORD = new APIError(

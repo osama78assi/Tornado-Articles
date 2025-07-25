@@ -1,5 +1,5 @@
-import canViewArticle from "../../../util/canViewArticle.js";
 import ArticleService from "../services/articleService.js";
+import { canViewArticle } from "../util/index.js";
 
 /**
  *

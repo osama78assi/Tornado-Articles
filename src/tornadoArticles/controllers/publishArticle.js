@@ -1,8 +1,6 @@
-import APIError from "../../../util/APIError.js";
-import deleteFiles from "../../../util/deleteFiles.js";
-import injectImgsInContent from "../../../util/injectImgsInContent.js";
 import removeDuplicated from "../../../util/removeDuplicated.js";
 import ArticleService from "../services/articleService.js";
+import { deleteFiles, injectImgsInContent } from "../util/index.js";
 
 /**
  *
@@ -44,13 +42,13 @@ async function publishArticle(req, res, next) {
         let contentPics = [];
         if (req?.files?.contentPics?.length > 0) {
             contentPics =
-            req?.files?.contentPics?.map(
-                (file) =>
-                    `${protocol}://${host}/uploads/articles/${file?.newName}`
-            ) || []; // return empty array if the contentPics doesn't exists
+                req?.files?.contentPics?.map(
+                    (file) =>
+                        `${protocol}://${host}/uploads/articles/${file?.newName}`
+                ) || []; // return empty array if the contentPics doesn't exists
         }
 
-        content = injectImgsInContent(contentPics, content)
+        content = injectImgsInContent(contentPics, content);
 
         // Safe the document (due to the complex relationships I will made one query getting publisher, likes count and comments count)
         const artilceId = await ArticleService.publishArticle(

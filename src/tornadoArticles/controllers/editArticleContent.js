@@ -5,12 +5,14 @@ import {
     MAX_ARTICLE_CONTENT_PICS_COUNT,
     SUPPORTED_IMAGES_MIMETYPES as supImgs,
 } from "../../../config/settings.js";
-import deleteFiles from "../../../util/deleteFiles.js";
-import escapeRegexSpecial from "../../../util/escapeRegexSpecial.js";
 import getObjectWithKeys from "../../../util/getObjectWithKeys.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-import injectImgsInContent from "../../../util/injectImgsInContent.js";
 import ArticleService from "../services/articleService.js";
+import {
+    deleteFiles,
+    escapeRegexSpecial,
+    injectImgsInContent,
+} from "../util/index.js";
 
 // This route accpet data wether it's multipart/form-data or application/json . Don't use application/json
 // use application/json when you don't have new images for the content

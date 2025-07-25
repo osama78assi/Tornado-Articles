@@ -1,5 +1,5 @@
-import sanitize from '../../../util/sanitize.js';
-import AuthUserService from '../services/AuthUserService.js';
+import AuthUserService from "../services/AuthUserService.js";
+import { sanitize } from "../util/index.js";
 
 /**
  *

@@ -14,7 +14,7 @@ import {
     MAX_TAGS_ARTICLE_COUNT,
     MAX_TOPICS_ARTICLE_COUNT,
 } from "../../../config/settings.js";
-import deleteFiles from "../../../util/deleteFiles.js";
+import { deleteFiles } from "../util/index.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 /**

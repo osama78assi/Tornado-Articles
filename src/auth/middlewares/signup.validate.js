@@ -8,8 +8,7 @@ import {
 } from "zod/v4";
 import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-import validateFullName from "../../../util/validateFullName.js";
-import validatePassword from "../../../util/validatePassword.js";
+import { validateFullName, validatePassword } from "../util/index.js";
 
 class ErrorsEnum {
     static INVALID_GENDER = new APIError(

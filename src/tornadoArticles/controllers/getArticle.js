@@ -1,6 +1,6 @@
 import APIError from "../../../util/APIError.js";
-import canViewArticle from "../../../util/canViewArticle.js";
 import ArticleService from "../services/articleService.js";
+import { canViewArticle } from "../util/index.js";
 
 class ErrorsEnum {
     static PRIVATE_ARTICLE = new APIError(

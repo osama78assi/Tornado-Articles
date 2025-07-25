@@ -1,6 +1,6 @@
 import { string, ZodError } from "zod/v4";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-import deleteFiles from "../../../util/deleteFiles.js";
+import { deleteFiles } from "../util/index.js";
 
 /**
  *

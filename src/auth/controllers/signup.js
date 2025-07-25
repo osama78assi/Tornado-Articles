@@ -2,8 +2,8 @@ import { randomUUID } from "crypto";
 import { unlink } from "fs/promises";
 import jwt from "jsonwebtoken";
 import redis from "../../../config/redisConfig.js";
-import sanitize from "../../../util/sanitize.js";
 import AuthUserService from "../services/AuthUserService.js";
+import { sanitize } from "../util/index.js";
 
 /**
  *

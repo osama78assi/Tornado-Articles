@@ -4,7 +4,7 @@ import {
     extractCategoriesRanges,
     extractFollowingRanges,
     extractTopicsRanges,
-} from "../../../util/extractRanges.js";
+} from "../util/index.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
 import Topic from "../../tornadoCategories/models/topic.js";

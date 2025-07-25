@@ -5,8 +5,7 @@ import { sequelize } from "../../../config/sequelize.js";
 import { TORNADO_ROLES } from "../../../config/settings.js";
 import { generateSnowFlakeIdUser } from "../../../config/snowFlake.js";
 import APIError from "../../../util/APIError.js";
-import validateFullName from "../../../util/validateFullName.js";
-import validatePassword from "../../../util/validatePassword.js";
+import { validateFullName, validatePassword } from "../util/index.js";
 
 class User extends Model {
     // To override the toJSON method and exclude the password attribute
@@ -190,20 +189,6 @@ User.init(
                         );
                         options.attributes.changeDate = new Date(); // Save the time when password changes. Sequelize will inlude that in the update statement
                     }
-
-                    // // The full name
-                    // if (options.fields.includes("fullName")) {
-                    //     options.attributes.fullName =
-                    //         options.attributes.fullName?.trim();
-
-                    //     validateFullName(options.attributes.fullName);
-                    // }
-
-                    // Brief
-                    // if (options.fields.includes("brief")) {
-                    //     options.attributes.brief =
-                    //         options.attributes.brief?.trim();
-                    // }
                 } catch (err) {
                     throw err;
                 }

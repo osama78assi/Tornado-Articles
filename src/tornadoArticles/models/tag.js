@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../../../config/sequelize.js";
-import { normalizeTag } from "../../../util/normalizeTags.js";
 import APIError from "../../../util/APIError.js";
+import { normalizeTag } from "../util/index.js";
 
 class Tag extends Model {}
 

@@ -1,6 +1,6 @@
 import { string, ZodError } from "zod/v4";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-import validatePassword from "../../../util/validatePassword.js";
+import {validatePassword} from "../util/index.js";
 
 /**
  *
