@@ -7,9 +7,6 @@ async function addAssociations() {
     const { default: CommentScore } = await import(
         "../tornadoComments/models/commentScore.js"
     );
-    const { default: ArticleCategory } = await import(
-        "../tornadoArticles/models/articleCategory.js"
-    );
     const { default: ArticleImage } = await import(
         "../tornadoArticles/models/articleImage.js"
     );
@@ -265,14 +262,6 @@ async function addAssociations() {
         onDelete: "SET NULL",
     });
 
-    ///// Article Categories
-    // Many to many relation with categories
-    // Article.belongsToMany(Category, {
-    //     through: ArticleCategory,
-    //     foreignKey: "articleId",
-    //     onDelete: "CASCADE",
-    //     as: "categories",
-    // });
 
     Article.belongsTo(Category, {
         foreignKey: "categoryId",
@@ -285,12 +274,6 @@ async function addAssociations() {
         foreignKey: "categoryId",
         onDelete: "SET NULL",
     });
-
-    // Category.belongsToMany(Article, {
-    //     through: ArticleCategory,
-    //     foreignKey: "categoryId",
-    //     onDelete: "CASCADE",
-    // });
 
     Article.belongsToMany(Topic, {
         through: ArticleTopic,
