@@ -14,14 +14,13 @@ async function publishArticle(req, res, next) {
             content,
             isPrivate,
             language,
-            categories,
+            category,
             tags,
             headline,
             topics,
         } = req?.body;
 
         // Remove duplicated values from categories and tags, categories and topics (silently) you can change the behavior and throw an error
-        categories = removeDuplicated(categories);
         tags = removeDuplicated(tags);
         topics = removeDuplicated(topics);
 
@@ -59,7 +58,7 @@ async function publishArticle(req, res, next) {
             language,
             coverPic,
             contentPics,
-            categories,
+            category,
             tags,
             headline,
             topics

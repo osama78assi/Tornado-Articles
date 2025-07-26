@@ -1,15 +1,5 @@
 import { array, string, ZodError } from "zod/v4";
-import APIError from "../../../util/APIError.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
-
-class ErrorsEnum {
-    static INVALID_CATEGORIES = (dataName) =>
-        new APIError(
-            `The ${dataName} must be array of IDs (string numbers)`,
-            400,
-            "VALIDATION_ERROR"
-        );
-}
 
 /**
  *
@@ -38,7 +28,7 @@ async function setPreferredDataValidate(req, res, next) {
         if (err instanceof ZodError) {
             let code = err.issues[0].code;
             if (code === "invalid_type" || code === "invalid_format") {
-                return next(ErrorsEnum.INVALID_CATEGORIES(dataName));
+                return next(GlobalErrorsEnum.INVALID_BIGINT_IDS(dataName));
             }
         }
         next(err);

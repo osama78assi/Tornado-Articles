@@ -1,5 +1,4 @@
 import {
-    MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_TAGS_ARTICLE_COUNT,
     MAX_TOPICS_ARTICLE_COUNT,
     MODERATOR_ACTIONS,
@@ -80,6 +79,13 @@ export default class GlobalErrorsEnum {
         [["hint", "Try this format yyyy-mm-dd"]]
     );
 
+    static INVALID_BIGINT_IDS = (dataName) =>
+        new APIError(
+            `The ${dataName} must be array of IDs (string numbers)`,
+            400,
+            "VALIDATION_ERROR"
+        );
+
     // For Auth
     static MISSING_REFRESH_TOKEN = new APIError(
         "No refresh token provided. Please login again",
@@ -118,12 +124,6 @@ export default class GlobalErrorsEnum {
     );
 
     // For articles
-    static INVALID_CATEGORIES = new APIError(
-        `The "categories" must be array contains ${MAX_CATEGORIES_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
-        400,
-        "VALIDATION_ERROR"
-    );
-
     static INVALID_TOPICS = new APIError(
         `The "topics" must be array contains ${MAX_TOPICS_ARTICLE_COUNT} string integer numbers (IDs) maximum`,
         400,

@@ -1,4 +1,3 @@
-import { MAX_CATEGORIES_ARTICLE_COUNT, MAX_TOPICS_ARTICLE_COUNT } from "../../../config/settings.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import ArticleService from "../services/articleService.js";
 
@@ -9,10 +8,7 @@ import ArticleService from "../services/articleService.js";
  */
 async function editArticleCatTopics(req, res, next) {
     try {
-        const {
-            categories = [],
-            topics = [],
-        } = req?.body;
+        const { categoryId, topics = [] } = req?.body;
 
         // Take user Id to check who is the editor. Only publisher are allowed to do that
         const { id } = req?.userInfo;
@@ -27,14 +23,14 @@ async function editArticleCatTopics(req, res, next) {
 
         await ArticleService.updateArticleCategoriesTopics(
             articleId,
-            categories,
-            topics,
+            categoryId,
+            topics
         );
 
         // Terminate the controller here
         return res.status(200).json({
             success: true,
-            message: "Article's topics and/or categories updated successfully",
+            message: "Article's topics and category updated successfully",
         });
     } catch (err) {
         next(err);

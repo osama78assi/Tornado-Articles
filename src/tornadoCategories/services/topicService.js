@@ -5,6 +5,7 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 import Category from "../models/category.js";
 import Topic from "../models/topic.js";
 import TopicCategory from "../models/topicCategory.js";
+import loggingService from "../../../services/loggingService.js";
 
 class ErrorsEnum {
     static FAILED_TO_DELETE = new APIError(
@@ -268,17 +269,21 @@ class TopicService {
         }
     }
 
-    static async isTopicsContainedIn(topicsIds, categoriesIds) {
+    static async isTopicsContainedIn(topicsIds, categoryId) {
         try {
+            console.log('\n\n###########\n', categoryId, '\n\n###########\n')
+            // Without making a connection to database
+            if (categoryId === null) return false;
+
             // Cast the passed topicsIds as array. Group by topicId to remove duplicates
-            // (when there is a topic related to all passed or at least two passed categories)
+            // (when there is a topic related to the passed category)
             const q = `
                 SELECT ARRAY[:topicsIds]::BIGINT[] <@ (
                 SELECT ARRAY_AGG("topicId") AS "topicsIds"
                 FROM (
                         SELECT "topicId"
                         FROM "TopicCategories"
-                        WHERE "categoryId" IN (:categoriesIds)
+                        WHERE "categoryId" = :categoryId
                         GROUP BY "topicId"
                     )
                 ) AS "isFound";
@@ -289,13 +294,12 @@ class TopicService {
                 type: QueryTypes.SELECT,
                 replacements: {
                     topicsIds: topicsIds.length > 0 ? topicsIds : null,
-                    categoriesIds:
-                        categoriesIds.length > 0 ? categoriesIds : null,
+                    categoryId,
                 },
-                // benchmark: true,
-                // logging: function (sql, timeMs) {
-                //     loggingService.emit("query-time-usage", { sql, timeMs });
-                // },
+                benchmark: true,
+                logging: function (sql, timeMs) {
+                    loggingService.emit("query-time-usage", { sql, timeMs });
+                },
             });
 
             return res[0].isFound;
@@ -303,7 +307,6 @@ class TopicService {
             throw err;
         }
     }
-
 }
 
 export default TopicService;

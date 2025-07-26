@@ -36,9 +36,6 @@ const MAX_ARTICLE_PICS_SIZE_MB = 5;
 // The maximum number of content photos that the article can have
 const MAX_ARTICLE_CONTENT_PICS_COUNT = 5;
 
-// The maximum number of categories that the article can relate to
-const MAX_CATEGORIES_ARTICLE_COUNT = 2;
-
 // The maximum number of topics that the article can relate to
 const MAX_TOPICS_ARTICLE_COUNT = 5;
 
@@ -172,7 +169,6 @@ export {
     MAX_ARTICLE_CONTENT_LENGTH,
     MAX_ARTICLE_CONTENT_PICS_COUNT,
     MAX_ARTICLE_PICS_SIZE_MB,
-    MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_PROFILE_PIC_SIZE_MB,
     MAX_RESULTS,
     MAX_TAGS_ARTICLE_COUNT,

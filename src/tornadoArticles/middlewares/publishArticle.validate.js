@@ -10,12 +10,11 @@ import {
 } from "zod/v4";
 import {
     SUPPORTED_ARTICLES_LANGUAGES as langs,
-    MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_TAGS_ARTICLE_COUNT,
     MAX_TOPICS_ARTICLE_COUNT,
 } from "../../../config/settings.js";
-import { deleteFiles } from "../util/index.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
+import { deleteFiles } from "../util/index.js";
 
 /**
  *
@@ -29,7 +28,7 @@ async function publishArticleValidate(req, res, next) {
             content = null,
             isPrivate = false,
             language = "english",
-            categories = [],
+            category = null,
             tags = [],
             topics = [], // 5 topics only
             headline = null,
@@ -44,7 +43,6 @@ async function publishArticleValidate(req, res, next) {
 
         // There is a small issue in multipart/form-data. I will solve it with less overhead but with little redundant code
         // This code will help when user publish an article without images so client can send request with content-type: application/json
-        if (typeof categories === "string") categories = [categories];
         if (typeof tags === "string") tags = [tags];
         if (typeof topics === "string") topics = [topics];
         if (typeof isPrivate === "string") {
@@ -61,7 +59,7 @@ async function publishArticleValidate(req, res, next) {
             content: string(),
             isPrivate: boolean(),
             language: union(langs.map((lang) => literal(lang))),
-            categories: array(union([string().regex(/^\d+$/), int()])),
+            category: string().regex(/^\d+$/),
             topics: array(union([string().regex(/^\d+$/), int()])),
             tags: array(string()),
             headline: union([string(), literal(null)]),
@@ -74,15 +72,12 @@ async function publishArticleValidate(req, res, next) {
                 content,
                 isPrivate,
                 language: language.toLowerCase(),
-                categories,
+                category: String(category),
                 tags,
                 headline: headline === "" ? null : headline,
                 topics,
             })
         );
-
-        if (categories.length > MAX_CATEGORIES_ARTICLE_COUNT)
-            return next(GlobalErrorsEnum.INVALID_CATEGORIES);
 
         // Check topics IDs length
         if (topics.length > MAX_TOPICS_ARTICLE_COUNT)
@@ -106,7 +101,6 @@ async function publishArticleValidate(req, res, next) {
                     ),
                 invalid_type: (field, type) =>
                     GlobalErrorsEnum.INVALID_DATATYPE(field, type),
-                categories: GlobalErrorsEnum.INVALID_CATEGORIES,
                 topics: GlobalErrorsEnum.INVALID_TOPICS,
             };
 
@@ -118,7 +112,7 @@ async function publishArticleValidate(req, res, next) {
                 ["invalid_type", "invalid_format", "invalid_union"].includes(
                     code
                 ) &&
-                (path === "categories" || path === "topics")
+                path === "topics"
             )
                 return next(errToThrow[path]);
 
@@ -126,6 +120,12 @@ async function publishArticleValidate(req, res, next) {
                 return next(
                     GlobalErrorsEnum.INVALID_DATATYPE("headline", "string")
                 );
+
+            if (
+                (code === "invalid_type" || code === "invalid_format") &&
+                path === "category"
+            )
+                return next(GlobalErrorsEnum.INVALID_BIGINT_ID("categoryId"));
 
             // The left here are functions
             if (errToThrow[code]) return next(errToThrow[code](path, expected));

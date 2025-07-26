@@ -80,6 +80,15 @@ Article.init(
             allowNull: false,
             onDelete: "CASCADE", // When the user delete his/her account. Delete his/her articles
         },
+        categoryId: {
+            type: DataTypes.BIGINT,
+            references: {
+                model: "Categories",
+                key: "id",
+            },
+            allowNull: true,
+            onDelete: "SET NULL" // The article may belongs to categry
+        },
         coverImg: {
             type: DataTypes.STRING(150),
             allowNull: true,
