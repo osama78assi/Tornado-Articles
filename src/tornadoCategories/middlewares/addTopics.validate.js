@@ -10,13 +10,7 @@ class ErrorsEnum {
     );
 
     static INVALID_SHAPE = new APIError(
-        "Topics must be array of objects. Each one has a title (string), category id and description (optional but type of string)",
-        400,
-        "VALIDATION_ERROR"
-    );
-
-    static INVALID_CATEGORIES_IDS = new APIError(
-        "CategoriesIds must be array of string numbers without sign (ex 7653). At least one id",
+        "Topics must be array of objects. Each one has a title (string), categoriesIds and description (optional but type of string)",
         400,
         "VALIDATION_ERROR"
     );
@@ -72,7 +66,11 @@ async function addTopicsValidate(req, res, next) {
                     code === "too_small") &&
                 path === "categoriesIds"
             )
-                return next(ErrorsEnum.INVALID_CATEGORIES_IDS);
+                return next(
+                    GlobalErrorsEnum.INVALID_BIGINT_IDS(
+                        "categoriesIds property"
+                    )
+                );
 
             if (code === "invalid_type")
                 return next(GlobalErrorsEnum.INVALID_DATATYPE(path, "string"));

@@ -117,7 +117,7 @@ articleRouter.patch(
 
 // User can change categories and topics for his article
 articleRouter.patch(
-    "/articles/:articleId/categories",
+    "/articles/:articleId/preferences",
     isAuthenticated,
     editArticleCatTopicsValidate,
     // measureHandlerTime(

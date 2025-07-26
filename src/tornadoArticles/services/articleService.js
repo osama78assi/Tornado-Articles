@@ -6,7 +6,6 @@ import {
     ARTICLE_PREFERENCES_UPDATE_LIMIT,
     ARTICLE_TAGS_UPDATE_LIMIT,
     ARTICLE_TITLE_LANGUAGE_UPDATE_LIMIT,
-    MAX_CATEGORIES_ARTICLE_COUNT,
     MAX_TOPICS_ARTICLE_COUNT,
     PUBLISH_ARTICLE_LIMIT,
 } from "../../../config/settings.js";
@@ -21,7 +20,6 @@ import TopicService from "../../tornadoCategories/services/topicService.js";
 import ModeratorActionService from "../../tornadoPlatform/services/moderatorActionService.js";
 import TornadoUserService from "../../tornadoUser/services/tornadoUserService.js";
 import Article from "../models/article.js";
-import ArticleCategory from "../models/articleCategory.js";
 import ArticleImage from "../models/articleImage.js";
 import ArticleLimit from "../models/articleLimit.js";
 import ArticleTag from "../models/articleTag.js";
@@ -127,12 +125,6 @@ class ErrorsEnum {
             [["canUpdateAt", canUpdateAt]]
         );
 
-    static CATEGORIES_MAX_LIMIT = new APIError(
-        `The article can have up to ${MAX_CATEGORIES_ARTICLE_COUNT} categroies`,
-        400,
-        "CATEGORIES_MAX_LIMIT"
-    );
-
     static TOPICS_MAX_LIMIT = new APIError(
         `The article can have up to ${MAX_TOPICS_ARTICLE_COUNT} topics`,
         400,
@@ -183,7 +175,7 @@ class ArticleService {
         language,
         coverPic,
         contentPics,
-        categories,
+        category,
         tags,
         headline,
         topics
@@ -218,7 +210,7 @@ class ArticleService {
                 // Let's check the topics if they are related to the passed categories or not
                 const isFound = await TopicService.isTopicsContainedIn(
                     topics,
-                    categories
+                    category
                 );
 
                 if (isFound === null || !isFound)
@@ -236,6 +228,7 @@ class ArticleService {
                     userId,
                     titleTsVector: sequelize.fn("to_tsvector", language, title),
                     headline,
+                    categoryId: category,
                 },
                 {
                     transaction: t,
@@ -270,19 +263,19 @@ class ArticleService {
                 await ArticleImage.bulkCreate(zip, { transaction: t });
             }
 
-            // Add the categories
-            if (categories.length !== 0) {
-                // Create the ZIP
-                const zip = categories.map((categoryId) => {
-                    return {
-                        categoryId,
-                        articleId: article.dataValues.id,
-                    };
-                });
+            // // Add the categories
+            // if (category.length !== 0) {
+            //     // Create the ZIP
+            //     const zip = category.map((categoryId) => {
+            //         return {
+            //             categoryId,
+            //             articleId: article.dataValues.id,
+            //         };
+            //     });
 
-                // Create the relations
-                await ArticleCategory.bulkCreate(zip, { transaction: t });
-            }
+            //     // Create the relations
+            //     await ArticleCategory.bulkCreate(zip, { transaction: t });
+            // }
 
             // Now add the tags.
             if (tags.length !== 0) {
@@ -345,11 +338,11 @@ class ArticleService {
         } catch (err) {
             await t.rollback();
             // Due to complex relation I will make some of them readable
-            if (
-                err instanceof ForeignKeyConstraintError &&
-                err.table === "ArticleCategories"
-            )
-                throw ErrorsEnum.CATEGORY_NOT_FOUND;
+            // if (
+            //     err instanceof ForeignKeyConstraintError &&
+            //     err.table === "ArticleCategories"
+            // )
+            //     throw ErrorsEnum.CATEGORY_NOT_FOUND;
 
             if (
                 err instanceof ForeignKeyConstraintError &&
@@ -368,7 +361,7 @@ class ArticleService {
                     id: articleId,
                 },
                 attributes: {
-                    exclude: ["titleTsVector", "userId"],
+                    exclude: ["titleTsVector", "userId", "categoryId"],
                 },
                 include: [
                     {
@@ -380,11 +373,12 @@ class ArticleService {
                     {
                         // Get the article categories
                         model: Category,
-                        through: {
-                            attributes: [], // Don't include anything from junction table
-                        },
+                        // through: {
+                        //     attributes: [], // Don't include anything from junction table
+                        // },
                         attributes: ["id", "title"],
-                        as: "categories",
+                        // as: "categories",
+                        as: "category",
                     },
                     {
                         // Get the topics
@@ -703,7 +697,7 @@ class ArticleService {
 
     static async updateArticleCategoriesTopics(
         articleId,
-        addCategories,
+        addCategory,
         addTopics
     ) {
         const t = await sequelize.transaction();
@@ -727,11 +721,11 @@ class ArticleService {
                     {
                         // Get the article categories
                         model: Category,
-                        through: {
-                            attributes: [], // Don't include anything from junction table
-                        },
+                        // through: {
+                        //     attributes: [], // Don't include anything from junction table
+                        // },
                         attributes: ["id"],
-                        as: "categories",
+                        as: "category",
                     },
                     {
                         // Get the topics
@@ -747,9 +741,9 @@ class ArticleService {
 
             // Extract topics and categories
             const topics = article.dataValues.topics.map((topic) => topic.id);
-            const categories = article.dataValues.categories.map(
-                (category) => category.id
-            );
+            // const categories = article.dataValues.categories.map(
+            //     (category) => category.id
+            // );
 
             // Remove the old categories and topics
             await ArticleTopic.destroy({
@@ -763,23 +757,25 @@ class ArticleService {
             });
 
             // Remove categories
-            await ArticleCategory.destroy({
-                where: {
-                    categoryId: {
-                        [Op.in]: categories,
-                    },
-                    articleId,
-                },
+            // await ArticleCategory.destroy({
+            //     where: {
+            //         categoryId: {
+            //             [Op.in]: categories,
+            //         },
+            //         articleId,
+            //     },
 
-                transaction: t,
-            });
+            //     transaction: t,
+            // });
 
             if (addTopics.length > 0) {
                 // Let's check the topics if they are related to the passed categories or not
                 const isFound = await TopicService.isTopicsContainedIn(
-                    topics,
-                    categories
+                    addTopics,
+                    addCategory
                 );
+
+                console.log("\n\n###########\n", isFound, "\n\n###########\n");
 
                 if (isFound === null || !isFound)
                     throw ErrorsEnum.TOPIC_WITHOUT_CATEGORY;
@@ -787,19 +783,30 @@ class ArticleService {
 
             // When the article have the categories for the topics (or no topics provided)
             // Add them all
-            if (addCategories.length > 0) {
-                // Create the zip
-                const zip = addCategories.map((categoryId) => {
-                    return {
-                        categoryId,
-                        articleId,
-                    };
-                });
+            // if (addCategory.length > 0) {
+            //     // Create the zip
+            //     const zip = addCategory.map((categoryId) => {
+            //         return {
+            //             categoryId,
+            //             articleId,
+            //         };
+            //     });
 
-                await ArticleCategory.bulkCreate(zip, {
+            //     await ArticleCategory.bulkCreate(zip, {
+            //         transaction: t,
+            //     });
+            // }
+
+            // Update the topic
+            await Article.update(
+                { categoryId: addCategory },
+                {
+                    where: {
+                        id: articleId,
+                    },
                     transaction: t,
-                });
-            }
+                }
+            );
 
             if (addTopics.length > 0) {
                 // Create the zip

@@ -254,7 +254,6 @@ async function addAssociations() {
     // Many-to-one with users
     Article.belongsTo(User, {
         foreignKey: "userId",
-        onDelete: "CASCADE",
         as: "publisher",
         onDelete: "SET NULL",
     });
@@ -262,25 +261,36 @@ async function addAssociations() {
     // one-to-many relation
     User.hasMany(Article, {
         foreignKey: "userId",
-        onDelete: "CASCADE",
         as: "articles",
         onDelete: "SET NULL",
     });
 
     ///// Article Categories
     // Many to many relation with categories
-    Article.belongsToMany(Category, {
-        through: ArticleCategory,
-        foreignKey: "articleId",
-        onDelete: "CASCADE",
-        as: "categories",
+    // Article.belongsToMany(Category, {
+    //     through: ArticleCategory,
+    //     foreignKey: "articleId",
+    //     onDelete: "CASCADE",
+    //     as: "categories",
+    // });
+
+    Article.belongsTo(Category, {
+        foreignKey: "categoryId",
+        onDelete: "SET NULL",
+        as: "category",
     });
 
-    Category.belongsToMany(Article, {
-        through: ArticleCategory,
+    // one-to-many relation
+    Category.hasMany(Article, {
         foreignKey: "categoryId",
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
     });
+
+    // Category.belongsToMany(Article, {
+    //     through: ArticleCategory,
+    //     foreignKey: "categoryId",
+    //     onDelete: "CASCADE",
+    // });
 
     Article.belongsToMany(Topic, {
         through: ArticleTopic,

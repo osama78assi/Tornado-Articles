@@ -1,10 +1,5 @@
 import { Op } from "sequelize";
 import { ARTICLE_ATTRIBUTES } from "../../../config/settings.js";
-import {
-    extractCategoriesRanges,
-    extractFollowingRanges,
-    extractTopicsRanges,
-} from "../util/index.js";
 import User from "../../auth/models/user.js";
 import Category from "../../tornadoCategories/models/category.js";
 import Topic from "../../tornadoCategories/models/topic.js";
@@ -12,6 +7,11 @@ import FollowingService from "../../tornadoUser/services/followingService.js";
 import UserPreferenceService from "../../tornadoUser/services/userPreferenceService.js";
 import Article from "../models/article.js";
 import Tag from "../models/tag.js";
+import {
+    extractCategoriesRanges,
+    extractFollowingRanges,
+    extractTopicsRanges,
+} from "../util/index.js";
 
 // It's a good idea to seperate this in another service. judging by the code lines
 class RecommendationService {
@@ -25,7 +25,6 @@ class RecommendationService {
     ) {
         try {
             let articles = await Article.findAll({
-                subQuery: false,
                 attributes: ARTICLE_ATTRIBUTES,
                 include: [
                     {
@@ -36,18 +35,19 @@ class RecommendationService {
                     },
                     {
                         model: Category,
-                        as: "categories",
-                        through: {
-                            attributes: [], // Don't include anything from junction table
-                        },
+                        // as: "categories",
+                        // through: {
+                        //     attributes: [], // Don't include anything from junction table
+                        // },
                         attributes: ["id", "title"],
+                        as: "category",
 
-                        // If passed categories filter by them
-                        ...(categories.length > 0 && {
-                            where: {
-                                id: { [Op.in]: categories },
-                            },
-                        }),
+                        // // If passed categories filter by them
+                        // ...(categories.length > 0 && {
+                        //     where: {
+                        //         id: { [Op.in]: categories },
+                        //     },
+                        // }),
                     },
                     {
                         // Get the topics
@@ -58,7 +58,7 @@ class RecommendationService {
                         },
                         as: "topics",
 
-                        // Again if he wants topics filter by them
+                        // If he wants topics filter by them
                         ...(topics.length > 0 && {
                             where: {
                                 id: { [Op.in]: topics },
@@ -91,6 +91,10 @@ class RecommendationService {
                             },
                         },
                     ],
+                    // If passed categories filter by them
+                    ...(categories.length > 0 && {
+                        categoryId: { [Op.in]: categories },
+                    }),
                 },
                 limit,
                 order: [
@@ -104,7 +108,7 @@ class RecommendationService {
             });
 
             // As the filter on categories. Not all categories for the article will be back from the query
-            articles = this._attachAllCategoriesTopics(articles);
+            articles = this._attachAllTopics(articles);
 
             return articles;
         } catch (err) {
@@ -130,7 +134,6 @@ class RecommendationService {
                 };
 
             let articles = await Article.findAll({
-                subQuery: false,
                 attributes: [...ARTICLE_ATTRIBUTES, "articleRank"],
                 include: [
                     {
@@ -141,16 +144,17 @@ class RecommendationService {
                     },
                     {
                         model: Category,
-                        as: "categories",
-                        through: {
-                            attributes: [],
-                        },
+                        // as: "categories",
+                        // through: {
+                        //     attributes: [],
+                        // },
                         attributes: ["id", "title"],
-                        ...(categories.length > 0 && {
-                            where: {
-                                id: { [Op.in]: categories },
-                            },
-                        }),
+                        as: "category",
+                        // ...(categories.length > 0 && {
+                        //     where: {
+                        //         id: { [Op.in]: categories },
+                        //     },
+                        // }),
                     },
                     {
                         // Get the topics
@@ -189,6 +193,10 @@ class RecommendationService {
                         },
                         compareId, // If there is equality take this
                     ],
+
+                    ...(categories.length > 0 && {
+                        categoryId: { [Op.in]: categories },
+                    }),
                 },
                 limit,
                 order: [
@@ -198,7 +206,7 @@ class RecommendationService {
             });
 
             // As the filter on categories. Not all categories for the article will be back from the query
-            articles = this._attachAllCategoriesTopics(articles);
+            articles = this._attachAllTopics(articles);
 
             return articles;
         } catch (err) {
@@ -258,7 +266,6 @@ class RecommendationService {
             // Get the articles for those followings
             // After getting the followings get article for them
             const articles = await Article.findAll({
-                subQuery: false,
                 attributes: ARTICLE_ATTRIBUTES,
                 where: {
                     id: {
@@ -286,11 +293,12 @@ class RecommendationService {
                     {
                         // Get the article categories
                         model: Category,
-                        through: {
-                            attributes: [],
-                        },
+                        // through: {
+                        //     attributes: [],
+                        // },
+                        // as: "categories",
+                        as: "category",
                         attributes: ["id", "title"],
-                        as: "categories",
                     },
                     {
                         // Get the topics
@@ -391,7 +399,6 @@ class RecommendationService {
             // Get the articles for those followings
             // After getting the followings get article for them
             const articles = await Article.findAll({
-                subQuery: false,
                 attributes: [...ARTICLE_ATTRIBUTES, "articleRank"],
                 where: {
                     id: {
@@ -419,11 +426,12 @@ class RecommendationService {
                     {
                         // Get the article categories
                         model: Category,
-                        through: {
-                            attributes: [],
-                        },
+                        // through: {
+                        //     attributes: [],
+                        // },
+                        // as: "categories",
+                        as: "category",
                         attributes: ["id", "title"],
-                        as: "categories",
                     },
                     {
                         // Get the topics
@@ -772,9 +780,9 @@ class RecommendationService {
     }
 
     // This helper methods don't use them outside the class
-    static async _attachAllCategoriesTopics(articles) {
+    static async _attachAllTopics(articles) {
         try {
-            let articlesCategories = [];
+            let articlesCatTopics = [];
 
             if (articles.length) {
                 let mapIdToIndex = {}; // This will be helpful
@@ -785,7 +793,7 @@ class RecommendationService {
                 });
 
                 // This is fast enough using the primary key and no need to additional relation setup in database/index.js
-                articlesCategories = await Article.findAll({
+                articlesCatTopics = await Article.findAll({
                     subQuery: false,
                     attributes: ["id"],
                     where: {
@@ -796,12 +804,13 @@ class RecommendationService {
                     include: [
                         {
                             // Get the categories
-                            attributes: ["id", "title"],
                             model: Category,
-                            as: "categories",
-                            through: {
-                                attributes: [],
-                            },
+                            attributes: ["id", "title"],
+                            // as: "categories",
+                            // through: {
+                            //     attributes: [],
+                            // },
+                            as: "category",
                         },
                         // Get the topics
                         {
@@ -816,13 +825,13 @@ class RecommendationService {
                 });
 
                 // Attach the categories to articles using the map between ids and indexes
-                articlesCategories.forEach((article) => {
+                articlesCatTopics.forEach((article) => {
                     // Get the id
                     let articleId = article.dataValues.id;
 
                     // Get the index of that Id and change its categories
-                    articles[mapIdToIndex[articleId]].dataValues.categories =
-                        article.dataValues.categories;
+                    // articles[mapIdToIndex[articleId]].dataValues.categories =
+                    //     article.dataValues.categories;
 
                     // And the topics
                     articles[mapIdToIndex[articleId]].dataValues.topics =

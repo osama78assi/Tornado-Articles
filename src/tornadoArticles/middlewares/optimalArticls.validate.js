@@ -1,10 +1,5 @@
 import { array, int, literal, object, string, union, ZodError } from "zod/v4";
-import {
-    MAX_CATEGORIES_ARTICLE_COUNT,
-    MAX_RESULTS,
-    MAX_TOPICS_ARTICLE_COUNT,
-    MIN_RESULTS,
-} from "../../../config/settings.js";
+import { MAX_RESULTS, MIN_RESULTS } from "../../../config/settings.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 /**
@@ -24,13 +19,9 @@ async function optimalArticlsValidate(req, res, next) {
         } = req?.body ?? {};
 
         const OptimalArticlesSchema = object({
-            articlesLimit: int().min(1).max(MAX_RESULTS),
-            categories: array(string().regex(/^\d+$/)).max(
-                MAX_CATEGORIES_ARTICLE_COUNT
-            ),
-            topics: array(string().regex(/^\d+$/)).max(
-                MAX_TOPICS_ARTICLE_COUNT
-            ),
+            articlesLimit: int(),
+            categories: array(string().regex(/^\d+$/)),
+            topics: array(string().regex(/^\d+$/)),
 
             lastArticleRank: union([
                 // It maybe positive infinity or number
@@ -58,29 +49,29 @@ async function optimalArticlsValidate(req, res, next) {
             })
         );
 
+        if (articlesLimit < 0 || articlesLimit > MAX_RESULTS)
+            return next(
+                GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS)
+            );
+
         next();
     } catch (err) {
         if (err instanceof ZodError) {
             let commonErrs = {
-                categories: GlobalErrorsEnum.INVALID_CATEGORIES,
-                topics: GlobalErrorsEnum.INVALID_TOPICS,
-                ignore: GlobalErrorsEnum.INVALID_IGNORE,
+                categories: GlobalErrorsEnum.INVALID_BIGINT_IDS("categories"),
+                topics: GlobalErrorsEnum.INVALID_BIGINT_IDS("topics"),
+                ignore: GlobalErrorsEnum.INVALID_BIGINT_IDS("ingore"),
                 lastArticleId:
                     GlobalErrorsEnum.INVALID_BIGINT_ID("lastArticleId"),
             };
 
             // Reduce nested 'if' as much as possible
             let errToThrow = {
-                articlesLimit: GlobalErrorsEnum.INVALID_LIMIT(
-                    "articlesLimit",
-                    MAX_RESULTS
-                ),
                 lastArticleRank:
                     GlobalErrorsEnum.INVALID_FLOAT_NUMBER("lastArticleRank"),
 
                 invalid_type: commonErrs, // No copy here it will take the reference
                 invalid_format: commonErrs,
-                too_big: commonErrs, // It will use only topics and categories btw
             };
 
             let code = err?.issues?.[0]?.code;

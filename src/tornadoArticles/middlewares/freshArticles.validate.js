@@ -1,10 +1,5 @@
 import { array, date, int, object, string, ZodError } from "zod/v4";
-import {
-    MAX_CATEGORIES_ARTICLE_COUNT,
-    MAX_RESULTS,
-    MAX_TOPICS_ARTICLE_COUNT,
-    MIN_RESULTS,
-} from "../../../config/settings.js";
+import { MAX_RESULTS, MIN_RESULTS } from "../../../config/settings.js";
 import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
 
 /**
@@ -25,14 +20,10 @@ async function freshArticlesValidate(req, res, next) {
 
         // Define the shema
         const FreshArticleSchema = object({
-            articlesLimit: int().min(1).max(MAX_RESULTS),
+            articlesLimit: int(),
             since: date(),
-            categories: array(string().regex(/^\d+$/)).max(
-                MAX_CATEGORIES_ARTICLE_COUNT
-            ),
-            topics: array(string().regex(/^\d+$/)).max(
-                MAX_TOPICS_ARTICLE_COUNT
-            ),
+            categories: array(string().regex(/^\d+$/)),
+            topics: array(string().regex(/^\d+$/)),
             ignore: array(string().regex(/^\d+$/)),
             lastArticleId: string().regex(/^\d+$/),
         });
@@ -49,6 +40,11 @@ async function freshArticlesValidate(req, res, next) {
             })
         );
 
+        if (articlesLimit < 0 || articlesLimit > MAX_RESULTS)
+            return next(
+                GlobalErrorsEnum.INVALID_LIMIT("articlesLimit", MAX_RESULTS)
+            );
+
         // Pass if okay
         next();
     } catch (err) {
@@ -57,33 +53,21 @@ async function freshArticlesValidate(req, res, next) {
 
             // Common errors between many codes
             let commonErrs = {
-                categories: GlobalErrorsEnum.INVALID_CATEGORIES,
-                topics: GlobalErrorsEnum.INVALID_TOPICS,
-                ignore: GlobalErrorsEnum.INVALID_IGNORE,
+                categories: GlobalErrorsEnum.INVALID_BIGINT_IDS("categories"),
+                topics: GlobalErrorsEnum.INVALID_BIGINT_IDS("topics"),
+                ignore: GlobalErrorsEnum.INVALID_BIGINT_IDS("ingore"),
                 lastArticleId:
                     GlobalErrorsEnum.INVALID_BIGINT_ID("lastArticleId"),
             };
 
             const errToThrow = {
-                articlesLimit: GlobalErrorsEnum.INVALID_LIMIT(
-                    "articlesLimit",
-                    MAX_RESULTS
-                ),
-
                 invalid_type: commonErrs, // Here there is no copy it will take it by reference
-                too_big: commonErrs,
                 invalid_format: commonErrs,
             };
 
             let code = err?.issues?.[0]?.code;
             let path = err?.issues?.[0]?.path?.[0];
             let expected = err?.issues?.[0]?.expected;
-
-            if (
-                (code === "too_big" || code === "too_small") &&
-                path === "articlesLimit"
-            )
-                return next(errToThrow.articlesLimit);
 
             if (errToThrow[code][path]) return next(errToThrow[code][path]);
 
