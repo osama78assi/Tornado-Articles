@@ -10,7 +10,7 @@ async function getArticlesFollowingsFresh(req, res, next) {
     try {
         // Check [followignsData.validate.js, getFreshArticles.validate.js] know what are this fields
         const {
-            since,
+            lastArticleRank,
             lastArticleId,
             firstPublisherId,
             lastPublisherId,
@@ -29,7 +29,7 @@ async function getArticlesFollowingsFresh(req, res, next) {
 
         let data = await RecommendationService.getArticlesFollowingFresh(
             id,
-            since,
+            lastArticleRank,
             lastArticleId,
             firstPublisherId,
             lastPublisherId,

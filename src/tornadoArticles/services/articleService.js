@@ -35,21 +35,21 @@ async function searchByTitle() {
     try {
         let searchFor = "HEllo there";
         // let query = `
-        // SELECT *, ts_rank(to_tsvector('english', title), to_tsquery(:searchFor)) AS articleRank
+        // SELECT *, ts_rank(to_tsvector('english', title), to_tsquery(:searchFor)) AS optimalRank
         // from "Articles" WHERE to_tsvector('english', title) @@ to_tsquery(:searchFor)
-        // ORDER BY articleRank DESC ,"createdAt" DESC
+        // ORDER BY optimalRank DESC ,"createdAt" DESC
         // LIMIT :results OFFSET :startAt
         // `;
 
         // Optimized query
         let query = `
-            SELECT sub.*, ts_rank(a.data, to_tsquery(:searchFor)) AS articleRank
+            SELECT sub.*, ts_rank(a.data, to_tsquery(:searchFor)) AS optimalRank
             FROM (
                 SELECT *, to_tsvector('english', title) AS data
                 FROM "Articles"
             ) sub
             WHERE sub.data @@ to_tsquery(:searchFor)
-            ORDER BY articleRank DESC, "createdAt" DESC
+            ORDER BY optimalRank DESC, "createdAt" DESC
             LIMIT :results OFFSET :startAt;
         `;
 

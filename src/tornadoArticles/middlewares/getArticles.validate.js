@@ -7,7 +7,7 @@ import GlobalErrorsEnum from "../../../util/globalErrorsEnum.js";
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async function optimalArticlsValidate(req, res, next) {
+async function getArticlesValidate(req, res, next) {
     try {
         let {
             articlesLimit = MIN_RESULTS, // How many articles you want
@@ -93,4 +93,4 @@ async function optimalArticlsValidate(req, res, next) {
     }
 }
 
-export default optimalArticlsValidate;
+export default getArticlesValidate;

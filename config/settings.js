@@ -58,6 +58,8 @@ const ARTICLE_ATTRIBUTES = [
     "minsToRead",
     "headline",
     "score",
+    "optimalRank",
+    "freshRank"
 ];
 
 // Some limits for the user.

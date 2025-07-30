@@ -17,7 +17,7 @@ import {
 class RecommendationService {
     static async getFreshArticles(
         limit,
-        since,
+        lastArticleRank,
         lastArticleId,
         categories,
         topics,
@@ -80,12 +80,12 @@ class RecommendationService {
                     private: false,
                     [Op.or]: [
                         {
-                            createdAt: {
-                                [Op.lt]: since,
+                            freshRank: {
+                                [Op.lt]: lastArticleRank,
                             },
                         },
                         {
-                            createdAt: since,
+                            freshRank: lastArticleRank,
                             id: {
                                 [Op.lt]: lastArticleId,
                             },
@@ -98,7 +98,7 @@ class RecommendationService {
                 },
                 limit,
                 order: [
-                    ["createdAt", "DESC"],
+                    ["freshRank", "DESC"],
                     ["id", "DESC"],
                 ],
                 // benchmark: true,
@@ -121,7 +121,7 @@ class RecommendationService {
         categories,
         topics,
         lastArticleId,
-        lastArticleRank = Number.POSITIVE_INFINITY,
+        lastArticleRank,
         ignore = []
     ) {
         try {
@@ -129,12 +129,12 @@ class RecommendationService {
             // If there is a provided id compare with it
             if (lastArticleId !== "")
                 compareId = {
-                    articleRank: lastArticleRank, // If they have the same rank
+                    optimalRank: lastArticleRank, // If they have the same rank
                     id: { [Op.lt]: lastArticleId }, // Then take where the id is less (snowflake guarantee that the id is sorted naturally by timestamp)
                 };
 
             let articles = await Article.findAll({
-                attributes: [...ARTICLE_ATTRIBUTES, "articleRank"],
+                attributes: [...ARTICLE_ATTRIBUTES, "optimalRank"],
                 include: [
                     {
                         // Get the necessary info about the publisher
@@ -187,7 +187,7 @@ class RecommendationService {
                     private: false,
                     [Op.or]: [
                         {
-                            articleRank: {
+                            optimalRank: {
                                 [Op.lt]: lastArticleRank, // Take less than provided article
                             },
                         },
@@ -200,7 +200,7 @@ class RecommendationService {
                 },
                 limit,
                 order: [
-                    ["articleRank", "DESC"],
+                    ["optimalRank", "DESC"],
                     ["id", "DESC"],
                 ],
             });
@@ -216,7 +216,7 @@ class RecommendationService {
 
     static async getArticlesFollowingFresh(
         followedId,
-        since,
+        lastArticleRank,
         lastArticleId,
         firstPublisherId,
         lastPublisherId,
@@ -277,12 +277,12 @@ class RecommendationService {
                     },
                     [Op.or]: [
                         {
-                            createdAt: {
-                                [Op.lt]: since,
+                            freshRank: {
+                                [Op.lt]: lastArticleRank,
                             },
                         },
                         {
-                            createdAt: since,
+                            freshRank: lastArticleRank,
                             id: {
                                 [Op.lt]: lastArticleId,
                             },
@@ -322,7 +322,7 @@ class RecommendationService {
                     },
                 ],
                 order: [
-                    ["createdAt", "DESC"],
+                    ["freshRank", "DESC"],
                     ["id", "DESC"],
                 ],
                 limit: articlesLimit,
@@ -339,8 +339,9 @@ class RecommendationService {
                 interestRateRange: followingsRates,
                 lastArticleId:
                     articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCreatedAt:
-                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
+                lastArticleRank:
+                    articles?.at(-1)?.dataValues?.freshRank ??
+                    String(Number.POSITIVE_INFINITY),
             };
         } catch (err) {
             throw err;
@@ -399,7 +400,7 @@ class RecommendationService {
             // Get the articles for those followings
             // After getting the followings get article for them
             const articles = await Article.findAll({
-                attributes: [...ARTICLE_ATTRIBUTES, "articleRank"],
+                attributes: [...ARTICLE_ATTRIBUTES, "optimalRank"],
                 where: {
                     id: {
                         [Op.notIn]: ignore,
@@ -410,12 +411,12 @@ class RecommendationService {
                     },
                     [Op.or]: [
                         {
-                            articleRank: {
+                            optimalRank: {
                                 [Op.lt]: lastArticleRank,
                             },
                         },
                         {
-                            articleRank: lastArticleRank,
+                            optimalRank: lastArticleRank,
                             id: {
                                 [Op.lt]: lastArticleId,
                             },
@@ -455,7 +456,7 @@ class RecommendationService {
                     },
                 ],
                 order: [
-                    ["articleRank", "DESC"],
+                    ["optimalRank", "DESC"],
                     ["id", "DESC"],
                 ],
                 limit: articlesLimit,
@@ -473,7 +474,7 @@ class RecommendationService {
                 lastArticleId:
                     articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
                 lastArticleRank:
-                    articles?.at(-1)?.dataValues?.articleRank ??
+                    articles?.at(-1)?.dataValues?.optimalRank ??
                     String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
             };
         } catch (err) {
@@ -488,7 +489,7 @@ class RecommendationService {
         firstCategoryId,
         lastCategoryId,
         categoriesLimit,
-        since,
+        lastArticleRank,
         lastArticleId,
         ignore,
         articlesLimit,
@@ -534,7 +535,7 @@ class RecommendationService {
             // Use the same function but send the categories
             let articles = await this.getFreshArticles(
                 articlesLimit,
-                since,
+                lastArticleRank,
                 lastArticleId,
                 categoriesIds,
                 [], // Pass empty topics list
@@ -547,8 +548,9 @@ class RecommendationService {
                 categoriesRates,
                 lastArticleId:
                     articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCreatedAt:
-                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
+                lastArticleRank:
+                    articles?.at(-1)?.dataValues?.freshRank ??
+                    String(Number.POSITIVE_INFINITY),
             };
         } catch (err) {
             throw err;
@@ -622,7 +624,7 @@ class RecommendationService {
                 lastArticleId:
                     articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
                 lastArtilceCRank:
-                    articles?.at(-1)?.dataValues?.articleRank ??
+                    articles?.at(-1)?.dataValues?.optimalRank ??
                     String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
             };
         } catch (err) {
@@ -637,7 +639,7 @@ class RecommendationService {
         firstTopicId,
         lastTopicId,
         topicsLimit,
-        since,
+        lastArticleRank,
         lastArticleId,
         ignore,
         articlesLimit,
@@ -683,7 +685,7 @@ class RecommendationService {
             // Use the same function but send the categories
             let articles = await this.getFreshArticles(
                 articlesLimit,
-                since,
+                lastArticleRank,
                 lastArticleId,
                 [], // Pass empty array as categories
                 topicsIds,
@@ -696,8 +698,9 @@ class RecommendationService {
                 topicsRates: topicsRates,
                 lastArticleId:
                     articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
-                lastArtilceCreatedAt:
-                    articles?.at(-1)?.dataValues?.createdAt ?? new Date(), // You can notify the user to take current date in his time
+                lastArticleRank:
+                    articles?.at(-1)?.dataValues?.freshRank ??
+                    String(Number.POSITIVE_INFINITY),
             };
         } catch (err) {
             throw err;
@@ -771,7 +774,7 @@ class RecommendationService {
                 lastArticleId:
                     articles?.at(-1)?.dataValues?.id ?? "9223372036854775807", // Give default value for more API friendly
                 lastArtilceCRank:
-                    articles?.at(-1)?.dataValues?.articleRank ??
+                    articles?.at(-1)?.dataValues?.optimalRank ??
                     String(Number.POSITIVE_INFINITY), // You can notify the user to take current date in his time
             };
         } catch (err) {

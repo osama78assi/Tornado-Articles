@@ -87,7 +87,7 @@ Article.init(
                 key: "id",
             },
             allowNull: true,
-            onDelete: "SET NULL" // The article may belongs to categry
+            onDelete: "SET NULL", // The article may belongs to categry
         },
         coverImg: {
             type: DataTypes.STRING(150),
@@ -115,8 +115,13 @@ Article.init(
             type: DataTypes.BIGINT,
             defaultValue: 0,
         },
-        articleRank: {
-            // Will help in recommendation system
+        optimalRank: {
+            // Will help in recommendation system. More on score then reads counts and finally the date
+            type: DataTypes.FLOAT,
+            defaultValue: 0,
+        },
+        freshRank: {
+            // Will help in recommendation system. More on date then scores and finally the date
             type: DataTypes.FLOAT,
             defaultValue: 0,
         },

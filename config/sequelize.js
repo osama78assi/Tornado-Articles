@@ -64,8 +64,10 @@ async function dropIndexes() {
 // Write your triggers here
 async function addTriggers() {
     try {
+        // When user update the title (or language in the future) of the article there is a field that is used for searching
+        // This will keep that field in sync with updates
         await sequelize.query(`
-            CREATE OR REPLACE FUNCTION update_title_tsvector() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION update_title_tsvector() RETURNS TRIGGER AS $$
             BEGIN
                 IF NEW.title IS DISTINCT FROM OLD.title OR NEW.language IS DISTINCT FROM OLD.language THEN
                     NEW."titleTsVector" := to_tsvector(NEW.language::text::regconfig, NEW.title);
@@ -74,7 +76,47 @@ async function addTriggers() {
             END
             $$ LANGUAGE plpgsql;
 
-            CREATE OR REPLACE TRIGGER tsvectorupdate BEFORE UPDATE
+            CREATE OR REPLACE TRIGGER tsvector_update BEFORE UPDATE
+            ON "Articles" FOR EACH ROW EXECUTE FUNCTION update_title_tsvector();
+        `);
+
+        // When any new read or score update hit the article the fresh and optimal rank must be updated. This will keep them in sync
+        await sequelize.query(`
+            CREATE OR REPLACE FUNCTION update_article_ranks() RETURNS TRIGGER AS $$
+            DECLARE
+                newScore BIGINT;
+                oldDate BIGINT;
+                normalizedScore BIGINT;
+            BEGIN
+                -- Check if one of these fields changed
+                IF NEW.score != OLD.score OR NEW."readsCounts" != OLD."readsCounts" THEN
+                    -- Update fresh rank
+                    oldDate := EXTRACT(EPOCH FROM OLD."createdAt")::BIGINT;
+
+                    -- Normalize the score if negative
+                    normalizedScore := CASE WHEN NEW.score < 0 THEN 0 ELSE NEW.score END;
+
+                    -- Apply this formula and check if it's exceeded 12 hours later from it's publish date
+                    newScore := oldDate + (0.2 * NEW."readsCounts") + (0.3 * normalizedScore);
+
+                    IF newScore < (oldDate + 43200) THEN  -- 43200 seconds = 12 hours
+                        NEW."freshRank" := newScore * 0.00000006;
+                    ELSE
+                        -- Keep it trend for 12 hours maximum
+                        NEW."freshRank" := (oldDate + 43200) * 0.00000006;
+                    END IF;
+
+                    -- Update the optimal rank
+                    NEW."optimalScore" := NEW."readsCounts" * 0.000003 + normalizedScore * 0.07;
+
+                END IF;
+
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+
+            CREATE OR REPLACE TRIGGER update_article_ranks BEFORE UPDATE
             ON "Articles" FOR EACH ROW EXECUTE FUNCTION update_title_tsvector();
         `);
     } catch (err) {

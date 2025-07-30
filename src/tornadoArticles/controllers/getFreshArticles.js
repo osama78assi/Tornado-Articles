@@ -10,7 +10,7 @@ async function getFreshArticles(req, res, next) {
     try {
         let {
             articlesLimit: limit,
-            since,
+            lastArticleRank,
             categories,
             topics,
             lastArticleId,
@@ -22,7 +22,7 @@ async function getFreshArticles(req, res, next) {
 
         const articles = await RecommendationService.getFreshArticles(
             limit,
-            since,
+            lastArticleRank,
             lastArticleId,
             categories,
             topics,
@@ -33,9 +33,9 @@ async function getFreshArticles(req, res, next) {
         let details = {
             lastArticleId:
                 articles.length > 0 ? articles.at(-1)?.dataValues?.id : null,
-            since:
+            lastArticleRank:
                 articles.length > 0
-                    ? articles.at(-1)?.dataValues?.createdAt
+                    ? articles.at(-1)?.dataValues?.freshRank
                     : null,
         };
 

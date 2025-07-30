@@ -32,10 +32,9 @@ import editArticleCatTopicsValidate from "../middlewares/editArticleCatTopics.va
 import editArticleContentValidate from "../middlewares/editArticleContent.validate.js";
 import editArticleTagsValidate from "../middlewares/editArticleTags.validate.js";
 import followingsDataValidate from "../middlewares/followingsData.validate.js";
-import freshArticlesValidate from "../middlewares/freshArticles.validate.js";
 import getArticlesForValidate from "../middlewares/getArticlesFor.validate.js";
 import moderatorDeleteArticleValidate from "../middlewares/moderatorDeleteArticle.validate.js";
-import optimalArticlesValidate from "../middlewares/optimalArticls.validate.js";
+import getArticlesValidate from "../middlewares/getArticles.validate.js";
 import preferenceDataValidate from "../middlewares/preferenceData.vaildate.js";
 import publishArticleValidate from "../middlewares/publishArticle.validate.js";
 
@@ -64,14 +63,14 @@ articleRouter.get(
 articleRouter.post(
     "/articles/fresh",
     isLoggedIn,
-    freshArticlesValidate,
+    getArticlesValidate,
     getFreshArticles
 ); // DONE
 
 articleRouter.post(
     "/articles/optimal",
     isLoggedIn,
-    optimalArticlesValidate,
+    getArticlesValidate,
     getOptimalArticles
 ); // DONE
 
@@ -148,7 +147,7 @@ articleRouter.post(
     "/articles/recommends/followings/fresh",
     isAuthenticated,
     followingsDataValidate,
-    freshArticlesValidate, // Here is the same but we don't care about passed categories array
+    getArticlesValidate, // Here is the same but we don't care about passed categories array
     getArticlesFollowingsFresh
 ); // DONE
 
@@ -157,7 +156,7 @@ articleRouter.post(
     "/articles/recommends/followings/optimal",
     isAuthenticated,
     followingsDataValidate,
-    optimalArticlesValidate, // This is the same but here we don't care about passed categories array
+    getArticlesValidate, // This is the same but here we don't care about passed categories array
     getArticlesFollowingsOptimal
 ); // DONE
 
@@ -166,7 +165,7 @@ articleRouter.post(
     "/articles/recommends/categories/fresh",
     isAuthenticated,
     preferenceDataValidate,
-    freshArticlesValidate, // This is the same as getFreshArticle only instead here we don't care about the categories array
+    getArticlesValidate, // This is the same as getFreshArticle only instead here we don't care about the categories array
     getArticlesCategoriesFresh
 ); // DONE
 
@@ -175,7 +174,7 @@ articleRouter.post(
     "/articles/recommends/categories/optimal",
     isAuthenticated,
     preferenceDataValidate,
-    optimalArticlesValidate,
+    getArticlesValidate,
     getArticlesCategoriesOptimal
 ); // DONE
 
@@ -184,7 +183,7 @@ articleRouter.post(
     "/articles/recommends/topics/fresh",
     isAuthenticated,
     preferenceDataValidate,
-    freshArticlesValidate,
+    getArticlesValidate,
     getArtilcesTopicFresh
 ); // DONE
 
@@ -193,7 +192,7 @@ articleRouter.post(
     "/articles/recommends/topics/optimal",
     isAuthenticated,
     preferenceDataValidate,
-    optimalArticlesValidate,
+    getArticlesValidate,
     getArtilcesTopicOptimal
 ); // DONE
 
