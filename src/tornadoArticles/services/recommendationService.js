@@ -35,19 +35,8 @@ class RecommendationService {
                     },
                     {
                         model: Category,
-                        // as: "categories",
-                        // through: {
-                        //     attributes: [], // Don't include anything from junction table
-                        // },
                         attributes: ["id", "title"],
                         as: "category",
-
-                        // // If passed categories filter by them
-                        // ...(categories.length > 0 && {
-                        //     where: {
-                        //         id: { [Op.in]: categories },
-                        //     },
-                        // }),
                     },
                     {
                         // Get the topics
@@ -144,17 +133,8 @@ class RecommendationService {
                     },
                     {
                         model: Category,
-                        // as: "categories",
-                        // through: {
-                        //     attributes: [],
-                        // },
                         attributes: ["id", "title"],
                         as: "category",
-                        // ...(categories.length > 0 && {
-                        //     where: {
-                        //         id: { [Op.in]: categories },
-                        //     },
-                        // }),
                     },
                     {
                         // Get the topics
@@ -293,10 +273,6 @@ class RecommendationService {
                     {
                         // Get the article categories
                         model: Category,
-                        // through: {
-                        //     attributes: [],
-                        // },
-                        // as: "categories",
                         as: "category",
                         attributes: ["id", "title"],
                     },
@@ -427,10 +403,6 @@ class RecommendationService {
                     {
                         // Get the article categories
                         model: Category,
-                        // through: {
-                        //     attributes: [],
-                        // },
-                        // as: "categories",
                         as: "category",
                         attributes: ["id", "title"],
                     },
