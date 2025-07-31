@@ -271,7 +271,6 @@ class TopicService {
 
     static async isTopicsContainedIn(topicsIds, categoryId) {
         try {
-            console.log('\n\n###########\n', categoryId, '\n\n###########\n')
             // Without making a connection to database
             if (categoryId === null) return false;
 

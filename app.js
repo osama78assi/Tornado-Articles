@@ -8,11 +8,11 @@ import { fileURLToPath } from "url";
 import errorHandler from "./publicMiddlewares/errorHandler.js";
 import authRouter from "./src/auth/route/authRoutes.js";
 import articleRouter from "./src/tornadoArticles/routes/artcileRoutes.js";
-import categoryRoutes from "./src/tornadoCategories/routes/categoryRoutes.js";
-import topicRoutes from "./src/tornadoCategories/routes/topicRoutes.js";
+import moderatorActionRoutes from "./src/tornadoPlatform/routes/moderatorActionRoutes.js";
+import categoryRoutes from "./src/tornadoPreferences/routes/categoryRoutes.js";
+import topicRoutes from "./src/tornadoPreferences/routes/topicRoutes.js";
 import tornadoUserRoutes from "./src/tornadoUser/routes/userRoutes.js";
 import APIError from "./util/APIError.js";
-import moderatorActionRoutes from "./src/tornadoPlatform/routes/moderatorActionRoutes.js";
 
 let app = express();
 

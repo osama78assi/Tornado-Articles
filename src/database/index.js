@@ -17,7 +17,7 @@ async function addAssociations() {
         "../tornadoArticles/models/articleTag.js"
     );
     const { default: Category } = await import(
-        "../tornadoCategories/models/category.js"
+        "../tornadoPreferences/models/category.js"
     );
     const { default: Comment } = await import(
         "../tornadoComments/models/comment.js"
@@ -37,10 +37,10 @@ async function addAssociations() {
     );
     const { default: UserLimit } = await import("../auth/models/userLimit.js");
     const { default: Topic } = await import(
-        "../tornadoCategories/models/topic.js"
+        "../tornadoPreferences/models/topic.js"
     );
     const { default: TopicCategory } = await import(
-        "../tornadoCategories/models/topicCategory.js"
+        "../tornadoPreferences/models/topicCategory.js"
     );
     const { default: UserTopic } = await import(
         "../tornadoUser/models/userTopic.js"
@@ -261,7 +261,6 @@ async function addAssociations() {
         as: "articles",
         onDelete: "SET NULL",
     });
-
 
     Article.belongsTo(Category, {
         foreignKey: "categoryId",

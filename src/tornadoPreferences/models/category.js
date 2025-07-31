@@ -9,7 +9,7 @@ Category.init(
     {
         id: {
             type: DataTypes.BIGINT,
-            defaultValue: () => generateSnowFlakeIdCategory(),
+            defaultValue: generateSnowFlakeIdCategory,
             primaryKey: true,
         },
         title: {
@@ -62,8 +62,9 @@ Category.init(
             beforeValidate(category) {
                 // Normalize
                 if (typeof category.dataValues?.title === "string") {
-                    category.dataValues.title =
-                        category.dataValues.title.trim().toLowerCase();
+                    category.dataValues.title = category.dataValues.title
+                        .trim()
+                        .toLowerCase();
                 }
 
                 if (typeof category.dataValues?.description === "string") {

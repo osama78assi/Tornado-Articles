@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
 import { MIN_RESULTS } from "../../../config/settings.js";
 import APIError from "../../../util/APIError.js";
-import Category from "../../tornadoCategories/models/category.js";
-import Topic from "../../tornadoCategories/models/topic.js";
+import Category from "../../tornadoPreferences/models/category.js";
+import Topic from "../../tornadoPreferences/models/topic.js";
 import UserCategories from "../models/userCategory.js";
 import UserTopic from "../models/userTopic.js";
 

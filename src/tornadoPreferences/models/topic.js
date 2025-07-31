@@ -9,7 +9,7 @@ Topic.init(
     {
         id: {
             type: DataTypes.BIGINT,
-            defaultValue: () => generateSnowFlakeIdCategory(),
+            defaultValue: generateSnowFlakeIdCategory,
             primaryKey: true,
         },
         title: {

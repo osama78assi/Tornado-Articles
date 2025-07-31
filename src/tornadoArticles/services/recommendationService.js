@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
 import { ARTICLE_ATTRIBUTES } from "../../../config/settings.js";
 import User from "../../auth/models/user.js";
-import Category from "../../tornadoCategories/models/category.js";
-import Topic from "../../tornadoCategories/models/topic.js";
+import Category from "../../tornadoPreferences/models/category.js";
+import Topic from "../../tornadoPreferences/models/topic.js";
 import FollowingService from "../../tornadoUser/services/followingService.js";
 import UserPreferenceService from "../../tornadoUser/services/userPreferenceService.js";
 import Article from "../models/article.js";
